@@ -61,7 +61,23 @@ function isNotNull(value) {
   return (!value) || value === 'null';
 }
 
+function sendMessageRaw(message) {
+  message['channel'] = this.id;
+  message['parse'] = 'none'
+  this._client._send(message);
+}
+
 module.exports = function(robot) {
+  // We monkey patch sendMessage function to send "parse" argument with the message so the text is not
+  // formatted and parsed on the server side.
+  // NOTE / TODO: We can get rid of this nasty patch once our node-slack-client and hubot-slack pull
+  // requests are merged.
+  if (robot.adapter && robot.adapter.constructor && robot.adapter.constructor.name == 'SlackBot') {
+    for (var channel in robot.adapter.client.channels) {
+      robot.adapter.client.channels[channel].sendMessage = sendMessageRaw.bind(robot.adapter.client.channels[channel]);
+    }
+  }
+
   var self = this;
 
   // Stores a list of hubot command strings
