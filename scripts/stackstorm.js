@@ -57,6 +57,19 @@ env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 env.ST2_COMMANDS_RELOAD_INTERVAL = env.ST2_COMMANDS_RELOAD_INTERVAL || 120;
 env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL, 10);
 
+// Fun human-friendly commands. Use %s for payload output.
+var startMessages = [
+    "I'll take it from here! Your execution ID for reference is %s",
+    "Got it! Remember %s as your execution ID",
+    "I'm on it! Your execution ID is %s",
+    "Let me get right on that. Remember %s as your execution ID",
+    "Always something with you. :) I'll take care of that. Your ID is %s",
+    "I have it covered. Your execution ID is %s",
+    "Let me start up the machine! Your execution ID is %s",
+    "I'll throw that task in the oven and get cookin'! Your execution ID is %s",
+    "Want me to take that off your hand? You got it! Don't forget your execution ID: %s"
+];
+
 function isNotNull(value) {
   return (!value) || value === 'null';
 }
@@ -241,7 +254,8 @@ module.exports = function(robot) {
         } else if (resp.statusCode !== 200) {
           msg.send(util.format('status code "%s": %s', resp.statusCode, body));
         } else {
-          msg.send(util.format('Action execution with id %s started.', body));
+          var randomStartMessage = startMessages[Math.floor(Math.random() * startMessages.length)];
+          msg.send(util.format(randomStartMessage, body));
         }
       }
     );
