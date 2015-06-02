@@ -37,8 +37,8 @@ var url = require('url');
 var _ = require('lodash'),
     util = require('util'),
     env = process.env,
-    formatCommand = require('./format_command.js'),
-    formatData = require('./format_data.js');
+    formatCommand = require('../lib/format_command.js'),
+    formatData = require('../lib/format_data.js');
 
 var st2client = require('st2client');
 
