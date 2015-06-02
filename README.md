@@ -1,7 +1,45 @@
+[![StackStorm](https://github.com/stackstorm/st2/raw/master/stackstorm_logo.png)](http://www.stackstorm.com)
+
+[![Build Status](https://api.travis-ci.org/StackStorm/hubot-stackstorm.svg?branch=master)](https://travis-ci.org/StackStorm/hubot-stackstorm) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
+
 # StackStorm Hubot Plugin
 
 Hubot plugin for integrating with StackStorm event-driven infrastructure
 automation platform.
+
+## Installing and configuring the plugin
+
+To install and configure the plugin, first install hubot by following the
+installation instructions at https://hubot.github.com/docs/.
+
+After you have installed hubot and generated your bot, go to your bot directory
+and install the plugin npm package:
+
+```bash
+npm install hubot-stackstorm
+```
+
+After that, edit the `external-scripts.json` file in your bot directory and
+make sure it contains ``hubot-stackstorm`` entry.
+
+```javascript
+['hubot-stackstorm']
+```
+
+After that's done, you are ready to start your bot.
+
+## Plugin environment variable options
+
+To configure the plugin behavior, the following environment variable can be
+specified when running hubot:
+
+* `ST2_API` - URL to the StackStorm API endpoint.
+* `ST2_CHANNEL` - Slack channel where all the notifications should be sent to.
+* `ST2_AUTH_USERNAME` - API credentials - username (optional).
+* `ST2_AUTH_PASSWORD` - API credentials - password (optional).
+* `ST2_AUTH_URL` - URL to the StackStorm Auth API (optional).
+* `ST2_COMMANDS_RELOAD_INTERVAL` - How often the list of available commands
+  should be reloaded. Defaults to every 120 seconds (optional).
 
 ## Testing
 
