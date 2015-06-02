@@ -32,10 +32,10 @@ module.exports = function(robot, scripts) {
 
   filenames.forEach(function(filename) {
     if (scripts && scripts.indexOf('*') === -1 && scripts.indexOf(filename) !== -1) {
-      robot.loadFile(SCRIPTS_PATH, script);
+      robot.loadFile(SCRIPTS_PATH, filename);
     }
     else {
-      robot.loadFile(SCRIPTS_PATH, script);
+      robot.loadFile(SCRIPTS_PATH, filename);
     }
   });
 };
