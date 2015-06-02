@@ -22,9 +22,16 @@ npm install hubot-stackstorm
 After that, edit the `external-scripts.json` file in your bot directory and
 make sure it contains ``hubot-stackstorm`` entry.
 
-```javascript
-['hubot-stackstorm']
+```json
+[
+  ...
+  "hubot-stackstorm"
+]
 ```
+
+If you want to use this plugin with a Slack adapter, you also need to install
+`hubot-slack` npm package and add `"hubot-slack"` entry to the
+`external-scripts` file.
 
 After that's done, you are ready to start your bot.
 
@@ -34,7 +41,9 @@ To configure the plugin behavior, the following environment variable can be
 specified when running hubot:
 
 * `ST2_API` - URL to the StackStorm API endpoint.
-* `ST2_CHANNEL` - Slack channel where all the notifications should be sent to.
+* `ST2_CHANNEL` - Notification channel where all the notification messages
+  should be sent to. If you use Slack adapter, that's the name of the Slack
+  channel.
 * `ST2_AUTH_USERNAME` - API credentials - username (optional).
 * `ST2_AUTH_PASSWORD` - API credentials - password (optional).
 * `ST2_AUTH_URL` - URL to the StackStorm Auth API (optional).
