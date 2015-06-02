@@ -35,10 +35,10 @@ limitations under the License.
 var url = require('url');
 
 var _ = require('lodash'),
-    util = require('util'),
-    env = process.env,
-    formatCommand = require('../lib/format_command.js'),
-    formatData = require('../lib/format_data.js');
+  util = require('util'),
+  env = process.env,
+  formatCommand = require('../lib/format_command.js'),
+  formatData = require('../lib/format_data.js');
 
 var st2client = require('st2client');
 
@@ -127,15 +127,14 @@ module.exports = function(robot) {
       request = request.header('X-Auth-Token', auth_token);
     }
 
-    request.get() (
+    request.get()(
       function(err, resp, body) {
         var parsed_body, success;
 
         parsed_body = JSON.parse(body);
         if (!_.isArray(parsed_body)) {
           success = false;
-        }
-        else {
+        } else {
           success = true;
         }
 
@@ -315,6 +314,7 @@ module.exports = function(robot) {
 
     // Initial command loading
     loadCommands();
+    return commands_load_interval;
   }
 
   // TODO: Use async.js or similar or organize this better
@@ -337,8 +337,7 @@ module.exports = function(robot) {
       config['auth']['host'] = parsed['hostname'];
       config['auth']['port'] = parsed['port'];
       config['auth']['protocol'] = parsed['protocol'].substring(0, (parsed['protocol'].length - 1));
-    }
-    else {
+    } else {
       parsed = url.parse(env.ST2_API);
 
       config['host'] = parsed['hostname'];
@@ -352,13 +351,12 @@ module.exports = function(robot) {
       robot.logger.debug('Successfully authenticated.');
       auth_token = result['token'];
 
-      start();
+      return start();
     }).catch(function(err) {
       robot.logger.error('Failed to authenticate: ' + err.message.toString());
       process.exit(2);
     });
-  }
-  else {
-    start();
+  } else {
+    return start();
   }
 };
