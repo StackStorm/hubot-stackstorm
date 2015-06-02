@@ -50,6 +50,17 @@ specified when running hubot:
 * `ST2_COMMANDS_RELOAD_INTERVAL` - How often the list of available commands
   should be reloaded. Defaults to every 120 seconds (optional).
 
+## Running the bot
+
+To run the bot, go to your bot directory and run the following command:
+
+```bash
+ST2_AUTH_USERNAME=testu ST2_AUTH_PASSWORD=testp HUBOT_SLACK_TOKEN=token ST2_CHANNEL=mychannel PORT=8181 bin/hubot --name "st2-bot" -a slack --alias !
+```
+
+Keep in mind that you need to replace values of the environment variables which
+reflect configuration of your environment.
+
 ## Testing
 
 ### Lint
