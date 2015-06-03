@@ -29,9 +29,32 @@ make sure it contains ``hubot-stackstorm`` entry.
 ]
 ```
 
+Final file should look something like that:
+
+```json
+
+[
+  "hubot-diagnostics",
+  "hubot-help",
+  "hubot-heroku-keepalive",
+  "hubot-google-images",
+  "hubot-google-translate",
+  "hubot-pugme",
+  "hubot-maps",
+  "hubot-redis-brain",
+  "hubot-rules",
+  "hubot-shipit",
+  "hubot-youtube",
+  "hubot-stackstorm"
+]
+```
+
 If you want to use this plugin with a Slack adapter, you also need to install
-`hubot-slack` npm package and add `"hubot-slack"` entry to the
-`external-scripts` file.
+`hubot-slack` npm package.
+
+```bash
+npm install hubot-slack
+````
 
 After that's done, you are ready to start your bot.
 
@@ -58,7 +81,8 @@ To run the bot, go to your bot directory and run the following command:
 ST2_AUTH_USERNAME=testu ST2_AUTH_PASSWORD=testp HUBOT_SLACK_TOKEN=token ST2_CHANNEL=mychannel PORT=8181 bin/hubot --name "st2-bot" -a slack --alias !
 ```
 
-Keep in mind that you need to replace values of the environment variables which
+
+Keep in mind that you need to replace values of the environment variables so they
 reflect configuration of your environment.
 
 ## Testing
