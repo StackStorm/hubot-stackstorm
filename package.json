@@ -39,7 +39,8 @@
     "hubot-help": "^0.1.1",
     "hubot-mock-adapter": "~1.0.0",
     "jshint": "^2.7.0",
-    "jshint-stylish": "^2.0.0"
+    "jshint-stylish": "^2.0.0",
+    "log": "1.4.0"
   },
   "main": "index.js",
   "scripts": {

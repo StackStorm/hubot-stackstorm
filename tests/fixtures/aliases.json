@@ -1,0 +1,20 @@
+[{
+  "name": "alias1",
+  "description": "alias1",
+  "formats": [
+    "alias1 fmt1 {{param}} breaking words {{param2=default}}"
+  ]
+}, {
+  "name": "alias2",
+  "description": "alias2",
+  "formats": [
+    "alias2 fmt1 {{param1}} {{param2}}",
+    "alias2 fmt2 {{param1}} some more words"
+  ]
+}, {
+  "name": "alias3",
+  "description": "alias3",
+  "formats": [
+    "alias3 fmt1 {{param1}} {{param2}} {{param3=default}} trailing words"
+  ]
+}]
