@@ -218,7 +218,10 @@ module.exports = function(robot) {
 
     // Note: We replace format parameters with (.+?) and allow arbitrary
     // number of key=value pairs at the end of the string
-    regex_str = format.replace(/{{.+?}}/g, '(.+?)');
+    // Format parameters with default value {{param=value}} are allowed to
+    // be skipped.
+    regex_str = format.replace(/\s+{{\w+\s*=.+?}}/g, '(\\s+)?(.*?)');
+    regex_str = regex_str.replace(/{{.+?}}/g, '(.+?)');
     regex = new RegExp(regex_str + '(\\s+)?(\\s?(\\w+)=(\\w+)){0,}' + '$');
 
     return regex;
