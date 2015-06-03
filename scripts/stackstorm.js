@@ -38,7 +38,8 @@ var _ = require('lodash'),
   util = require('util'),
   env = process.env,
   formatCommand = require('../lib/format_command.js'),
-  formatData = require('../lib/format_data.js');
+  formatData = require('../lib/format_data.js'),
+  CommandFactory = require('../lib/st2_command_factory.js');
 
 var st2client = require('st2client');
 
@@ -94,43 +95,13 @@ module.exports = function(robot) {
 
   var self = this;
 
-  // Stores a list of hubot command strings
-  var st2_hubot_commands = [];
-
-  // Maps command name (pk) to the action alias object
-  var st2_commands_name_map = {};
-
-  // Maps command format to the action alias object
-  var st2_commands_format_map = {};
-
-  // Maps command format to a compiled regex for that format
-  var st2_commands_regex_map = {};
-
   // Auth token we use to authenticate
   var auth_token = null;
 
   var client = robot.http(env.ST2_API);
 
-  /**
-   * Function which removes all the StackStorm hubot command and resets all the internal state.
-   */
-  var removeCommands = function() {
-    var i, command, array_index;
-
-    for (i = 0; i < st2_hubot_commands.length; i++) {
-      command = st2_hubot_commands[i];
-      array_index = robot.commands.indexOf(command);
-
-      if (array_index !== -1) {
-        robot.commands.splice(array_index, 1);
-      }
-    }
-
-    st2_hubot_commands = [];
-    st2_commands_name_map = {};
-    st2_commands_format_map = {};
-    st2_commands_regex_map = {};
-  };
+  // factory to manage commands
+  var command_factory = new CommandFactory(robot);
 
   var loadCommands = function() {
     var request;
@@ -161,7 +132,7 @@ module.exports = function(robot) {
         }
 
         // Remove all the existing commands
-        removeCommands();
+        command_factory.removeCommands();
 
         _.each(parsed_body, function(action_alias) {
           var name, formats, description, i, format, command;
@@ -184,74 +155,11 @@ module.exports = function(robot) {
             format = formats[i];
             command = formatCommand(robot.logger, name, format, description);
 
-            addCommand(command, name, format, action_alias);
+            command_factory.addCommand(command, name, format, action_alias);
           }
         });
       }
     );
-  };
-
-  /**
-   * Return matching command name and format for the provided command string.
-   */
-  var getMatchingCommand = function(command) {
-    var result, common_prefix, command_name, command_arguments, format_strings, i, format_string, regex;
-
-    // 1. Try to use regex search - this works for commands with a format string
-    format_strings = Object.keys(st2_commands_regex_map);
-
-    for (i = 0; i < format_strings.length; i++) {
-      format_string = format_strings[i];
-      regex = st2_commands_regex_map[format_string];
-
-      if (regex.test(command)) {
-        command_name = st2_commands_format_map[format_string].name;
-        return [command_name, format_string];
-      }
-    }
-
-    return null;
-  };
-
-  var getRegexForFormatString = function(format) {
-    var regex_str, regex;
-
-    // Note: We replace format parameters with (.+?) and allow arbitrary
-    // number of key=value pairs at the end of the string
-    // Format parameters with default value {{param=value}} are allowed to
-    // be skipped.
-    regex_str = format.replace(/\s+{{\w+\s*=.+?}}/g, '(\\s+)?(.*?)');
-    regex_str = regex_str.replace(/{{.+?}}/g, '(.+?)');
-    regex = new RegExp(regex_str + '(\\s+)?(\\s?(\\w+)=(\\w+)){0,}' + '$');
-
-    return regex;
-  };
-
-  var addCommand = function(command, name, format, action_alias) {
-    var compiled_template, context, command_string, regex;
-
-    if (!format) {
-      robot.logger.error('Skipped empty command.');
-      return;
-    }
-
-    context = {
-      robotName: robot.name,
-      command: command
-    };
-
-    compiled_template = _.template('${robotName} ${command}');
-    command_string = compiled_template(context);
-    regex = getRegexForFormatString(format);
-
-    robot.commands.push(command_string);
-
-    st2_hubot_commands.push(command_string);
-    st2_commands_name_map[name] = action_alias;
-    st2_commands_format_map[format] = action_alias;
-    st2_commands_regex_map[format] = regex;
-
-    robot.logger.debug('Added command: ' + command);
   };
 
   var executeCommand = function(msg, command_name, format_string, command) {
@@ -284,7 +192,7 @@ module.exports = function(robot) {
     var command, result, command_name, format_string;
 
     command = msg.match[1].toLowerCase();
-    result = getMatchingCommand(command);
+    result = command_factory.getMatchingCommand(command);
 
     if (!result) {
       // No command found
