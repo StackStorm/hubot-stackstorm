@@ -39,7 +39,7 @@ var _ = require('lodash'),
   env = process.env,
   formatCommand = require('../lib/format_command.js'),
   formatData = require('../lib/format_data.js'),
-  CommandFactory = require('../lib/st2_command_factory.js');
+  CommandFactory = require('../lib/command_factory.js');
 
 var st2client = require('st2client');
 
