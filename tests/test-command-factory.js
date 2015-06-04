@@ -23,7 +23,7 @@ var fs = require('fs'),
   chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  CommandFactory = require('../lib/st2_command_factory.js'),
+  CommandFactory = require('../lib/command_factory.js'),
   Robot = require('./dummy-robot.js'),
   formatCommand = require('../lib/format_command.js');
 
