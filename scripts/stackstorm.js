@@ -46,6 +46,7 @@ var st2client = require('st2client');
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
 env.ST2_CHANNEL = env.ST2_CHANNEL || 'hubot';
+env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 
 // Optional authentication info
 env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
@@ -58,8 +59,11 @@ env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 env.ST2_COMMANDS_RELOAD_INTERVAL = env.ST2_COMMANDS_RELOAD_INTERVAL || 120;
 env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL, 10);
 
+// Constants
+var WEBUI_EXECUTION_HISTORY_URL = '%s/#/history/%s/general';
+
 // Fun human-friendly commands. Use %s for payload output.
-var startMessages = [
+var START_MESSAGES = [
     "I'll take it from here! Your execution ID for reference is %s",
     "Got it! Remember %s as your execution ID",
     "I'm on it! Your execution ID is %s",
@@ -71,7 +75,10 @@ var startMessages = [
     "Want me to take that off your hand? You got it! Don't forget your execution ID: %s"
 ];
 
-function isNotNull(value) {
+var MESSAGE_EXECUTION_ID_REGEX = new RegExp('.*execution: (.+).*');
+
+
+function isNull(value) {
   return (!value) || value === 'null';
 }
 
@@ -162,6 +169,37 @@ module.exports = function(robot) {
     );
   };
 
+  var getExecutionHistoryUrl = function(execution_id) {
+    var url;
+
+    if (isNull(env.ST2_WEBUI_URL)) {
+      return null;
+    }
+
+    if (!execution_id) {
+      return null;
+    }
+
+    url = util.format(WEBUI_EXECUTION_HISTORY_URL, env.ST2_WEBUI_URL, execution_id);
+    return url;
+  };
+
+  var getExecutionIdFromMessage = function(message) {
+    var match, execution_id = null;
+
+    if (!message) {
+      return null;
+    }
+
+    match = message.match(MESSAGE_EXECUTION_ID_REGEX);
+
+    if (match) {
+      execution_id = match[1];
+    }
+
+    return execution_id;
+  };
+
   var executeCommand = function(msg, command_name, format_string, command) {
     var payload = {
       'name': command_name,
@@ -174,15 +212,26 @@ module.exports = function(robot) {
 
     robot.logger.debug('Sending command payload %s ' + JSON.stringify(payload));
 
-    client.scope('/exp/aliasexecution').post(JSON.stringify(payload))(
+    client.scope('/exp/aliasexecution').post(JSON.stringify(payload)) (
       function(err, resp, body) {
+        var message, history_url, execution_id;
+
         if (err) {
           msg.send(util.format('error : %s', err));
         } else if (resp.statusCode !== 200) {
           msg.send(util.format('status code "%s": %s', resp.statusCode, body));
         } else {
-          var randomStartMessage = startMessages[Math.floor(Math.random() * startMessages.length)];
-          msg.send(util.format(randomStartMessage, body));
+          execution_id = _.trim(body, '"');
+          history_url = getExecutionHistoryUrl(execution_id);
+
+          message = START_MESSAGES[_.random(0, START_MESSAGES.length)];
+          message = util.format(message, execution_id);
+
+          if (history_url) {
+            message += util.format(' (details available at %s)', history_url);
+          }
+
+          msg.send(message);
         }
       }
     );
@@ -206,7 +255,7 @@ module.exports = function(robot) {
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
-    var data, message, channel, recipient;
+    var data, message, channel, recipient, execution_id, history_url;
 
     try {
       if (req.body.payload) {
@@ -228,6 +277,13 @@ module.exports = function(robot) {
         recipient = data.channel;
       }
 
+      execution_id = getExecutionIdFromMessage(message);
+      history_url = getExecutionHistoryUrl(execution_id);
+
+      if (history_url) {
+        message += util.format('\n Execution details available at: %s', history_url);
+      }
+
       robot.messageRoom(recipient, message);
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
@@ -246,7 +302,7 @@ module.exports = function(robot) {
   }
 
   // TODO: Use async.js or similar or organize this better
-  if (!isNotNull(env.ST2_AUTH_USERNAME) && !isNotNull(env.ST2_AUTH_PASSWORD)) {
+  if (!isNull(env.ST2_AUTH_USERNAME) && !isNull(env.ST2_AUTH_PASSWORD)) {
     var credentials, config, st2_client, parsed;
 
     credentials = {
@@ -258,7 +314,7 @@ module.exports = function(robot) {
       'credentials': credentials
     };
 
-    if (!isNotNull(env.ST2_AUTH_URL)) {
+    if (!isNull(env.ST2_AUTH_URL)) {
       parsed = url.parse(env.ST2_AUTH_URL);
 
       config['auth'] = {};

@@ -67,6 +67,8 @@ specified when running hubot:
 * `ST2_CHANNEL` - Notification channel where all the notification messages
   should be sent to. If you use Slack adapter, that's the name of the Slack
   channel.
+* `ST2_WEBUI_URL` - Base URL to the WebUI. If provided, link to the execution
+  history will be provided in the chat after every execution (optional).
 * `ST2_AUTH_USERNAME` - API credentials - username (optional).
 * `ST2_AUTH_PASSWORD` - API credentials - password (optional).
 * `ST2_AUTH_URL` - URL to the StackStorm Auth API (optional).
