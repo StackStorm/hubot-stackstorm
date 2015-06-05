@@ -12,8 +12,8 @@
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ limitations under the License.
+ */
 
 /*jshint quotmark:false*/
 /*global describe, it*/
@@ -23,18 +23,13 @@ var fs = require('fs'),
   chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  CommandFactory = require('../lib/st2_command_factory.js'),
+  CommandFactory = require('../lib/command_factory.js'),
   Robot = require('./dummy-robot.js'),
   formatCommand = require('../lib/format_command.js');
 
-var alias_fixtures;
+var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
+ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
 
-fs.readFile('tests/fixtures/aliases.json', function(err, data) {
-  if (err) {
-    throw err;
-  }
-  alias_fixtures = JSON.parse(data);
-});
 
 function getCleanCommandFactory() {
   var robot = new Robot(false);
@@ -46,7 +41,7 @@ describe('command factory', function() {
     var command_factory, alias;
 
     command_factory = getCleanCommandFactory();
-    alias = alias_fixtures[0];
+    alias = ALIAS_FIXTURES[0];
 
     command_factory.addCommand(
       formatCommand(null, alias.name, alias.formats[0], alias.description),
@@ -63,8 +58,8 @@ describe('command factory', function() {
     alias_count = 0;
     command_factory = getCleanCommandFactory();
 
-    for (idx_a = 0; idx_a < alias_fixtures.length; idx_a++) {
-      alias = alias_fixtures[idx_a];
+    for (idx_a = 0; idx_a < ALIAS_FIXTURES.length; idx_a++) {
+      alias = ALIAS_FIXTURES[idx_a];
       for (idx_f = 0; idx_f < alias.formats.length; idx_f++) {
         alias_format = alias.formats[idx_f];
         command_factory.addCommand(
@@ -83,7 +78,7 @@ describe('command factory', function() {
     var command_factory, alias, match;
 
     command_factory = getCleanCommandFactory();
-    alias = alias_fixtures[0];
+    alias = ALIAS_FIXTURES[0];
 
     command_factory.addCommand(
       formatCommand(null, alias.name, alias.formats[0], alias.description),
@@ -105,7 +100,7 @@ describe('command factory', function() {
     var command_factory, alias, alias_format, match, idx_f;
 
     command_factory = getCleanCommandFactory();
-    alias = alias_fixtures[1];
+    alias = ALIAS_FIXTURES[1];
 
     for (idx_f = 0; idx_f < alias.formats.length; idx_f++) {
       alias_format = alias.formats[idx_f];

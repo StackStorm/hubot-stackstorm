@@ -37,15 +37,18 @@ var url = require('url');
 var _ = require('lodash'),
   util = require('util'),
   env = process.env,
+  utils = require('../lib/utils.js'),
+  slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
   formatCommand = require('../lib/format_command.js'),
   formatData = require('../lib/format_data.js'),
-  CommandFactory = require('../lib/st2_command_factory.js');
+  CommandFactory = require('../lib/command_factory.js');
 
 var st2client = require('st2client');
 
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
 env.ST2_CHANNEL = env.ST2_CHANNEL || 'hubot';
+env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 
 // Optional authentication info
 env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
@@ -58,8 +61,9 @@ env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 env.ST2_COMMANDS_RELOAD_INTERVAL = env.ST2_COMMANDS_RELOAD_INTERVAL || 120;
 env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL, 10);
 
+// Constants
 // Fun human-friendly commands. Use %s for payload output.
-var startMessages = [
+var START_MESSAGES = [
     "I'll take it from here! Your execution ID for reference is %s",
     "Got it! Remember %s as your execution ID",
     "I'm on it! Your execution ID is %s",
@@ -71,27 +75,9 @@ var startMessages = [
     "Want me to take that off your hand? You got it! Don't forget your execution ID: %s"
 ];
 
-function isNotNull(value) {
-  return (!value) || value === 'null';
-}
-
-function sendMessageRaw(message) {
-  /*jshint validthis:true */
-  message['channel'] = this.id;
-  message['parse'] = 'none';
-  this._client._send(message);
-}
 
 module.exports = function(robot) {
-  // We monkey patch sendMessage function to send "parse" argument with the message so the text is not
-  // formatted and parsed on the server side.
-  // NOTE / TODO: We can get rid of this nasty patch once our node-slack-client and hubot-slack pull
-  // requests are merged.
-  if (robot.adapter && robot.adapter.constructor && robot.adapter.constructor.name === 'SlackBot') {
-    for (var channel in robot.adapter.client.channels) {
-      robot.adapter.client.channels[channel].sendMessage = sendMessageRaw.bind(robot.adapter.client.channels[channel]);
-    }
-  }
+  slack_monkey_patch.patchSendMessage(robot);
 
   var self = this;
 
@@ -174,15 +160,26 @@ module.exports = function(robot) {
 
     robot.logger.debug('Sending command payload %s ' + JSON.stringify(payload));
 
-    client.scope('/exp/aliasexecution').post(JSON.stringify(payload))(
+    client.scope('/exp/aliasexecution').post(JSON.stringify(payload)) (
       function(err, resp, body) {
+        var message, history_url, execution_id;
+
         if (err) {
           msg.send(util.format('error : %s', err));
         } else if (resp.statusCode !== 200) {
           msg.send(util.format('status code "%s": %s', resp.statusCode, body));
         } else {
-          var randomStartMessage = startMessages[Math.floor(Math.random() * startMessages.length)];
-          msg.send(util.format(randomStartMessage, body));
+          execution_id = _.trim(body, '"');
+          history_url = utils.getExecutionHistoryUrl(execution_id);
+
+          message = START_MESSAGES[_.random(0, START_MESSAGES.length)];
+          message = util.format(message, execution_id);
+
+          if (history_url) {
+            message += util.format(' (details available at %s)', history_url);
+          }
+
+          msg.send(message);
         }
       }
     );
@@ -206,7 +203,7 @@ module.exports = function(robot) {
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
-    var data, message, channel, recipient;
+    var data, message, channel, recipient, execution_id, history_url;
 
     try {
       if (req.body.payload) {
@@ -228,6 +225,13 @@ module.exports = function(robot) {
         recipient = data.channel;
       }
 
+      execution_id = utils.getExecutionIdFromMessage(message);
+      history_url = utils.getExecutionHistoryUrl(execution_id);
+
+      if (history_url) {
+        message += util.format('\n Execution details available at: %s', history_url);
+      }
+
       robot.messageRoom(recipient, message);
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
@@ -246,7 +250,7 @@ module.exports = function(robot) {
   }
 
   // TODO: Use async.js or similar or organize this better
-  if (!isNotNull(env.ST2_AUTH_USERNAME) && !isNotNull(env.ST2_AUTH_PASSWORD)) {
+  if (!utils.isNull(env.ST2_AUTH_USERNAME) && !utils.isNull(env.ST2_AUTH_PASSWORD)) {
     var credentials, config, st2_client, parsed;
 
     credentials = {
@@ -258,7 +262,7 @@ module.exports = function(robot) {
       'credentials': credentials
     };
 
-    if (!isNotNull(env.ST2_AUTH_URL)) {
+    if (!utils.isNull(env.ST2_AUTH_URL)) {
       parsed = url.parse(env.ST2_AUTH_URL);
 
       config['auth'] = {};
