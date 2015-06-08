@@ -32,8 +32,6 @@ limitations under the License.
 
 "use strict";
 
-var url = require('url');
-
 var _ = require('lodash'),
   util = require('util'),
   env = process.env,
@@ -263,18 +261,19 @@ module.exports = function(robot) {
     };
 
     if (!utils.isNull(env.ST2_AUTH_URL)) {
-      parsed = url.parse(env.ST2_AUTH_URL);
+      parsed = utils.parseUrl(env.ST2_AUTH_URL);
 
       config['auth'] = {};
       config['auth']['host'] = parsed['hostname'];
+      config['auth']['protocol'] = parsed['protocol'];
       config['auth']['port'] = parsed['port'];
-      config['auth']['protocol'] = parsed['protocol'].substring(0, (parsed['protocol'].length - 1));
-    } else {
-      parsed = url.parse(env.ST2_API);
+    }
+    else {
+      parsed = utils.parseUrl(env.ST2_API);
 
       config['host'] = parsed['hostname'];
+      config['protocol'] = parsed['protocol'];
       config['port'] = parsed['port'];
-      config['protocol'] = parsed['protocol'].substring(0, (parsed['protocol'].length - 1));
     }
 
     st2_client = st2client(config);
