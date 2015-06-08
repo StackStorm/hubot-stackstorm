@@ -170,7 +170,7 @@ module.exports = function(robot) {
           execution_id = _.trim(body, '"');
           history_url = utils.getExecutionHistoryUrl(execution_id);
 
-          message = START_MESSAGES[_.random(0, START_MESSAGES.length)];
+          message = START_MESSAGES[_.random(0, START_MESSAGES.length - 1)];
           message = util.format(message, execution_id);
 
           if (history_url) {
