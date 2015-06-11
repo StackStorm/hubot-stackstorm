@@ -65,8 +65,10 @@ specified when running hubot:
 
 * `ST2_API` - URL to the StackStorm API endpoint.
 * `ST2_CHANNEL` - Notification channel where all the notification messages
-  should be sent to. If you use Slack adapter, that's the name of the Slack
-  channel.
+  should be sent to. This is the reference to the channel construct internal
+  to StackStorm's notification system. Make sure this value is set to whatever
+  is assigned the rule that defines a StackStrom channel. e.g. `hubot` is a value
+  that works well with the `hubot` pack found https://github.com/StackStorm/st2contrib/tree/master/packs/hubot
 * `ST2_WEBUI_URL` - Base URL to the WebUI. If provided, link to the execution
   history will be provided in the chat after every execution (optional).
 * `ST2_AUTH_USERNAME` - API credentials - username (optional).
