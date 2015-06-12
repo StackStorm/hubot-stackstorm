@@ -79,7 +79,7 @@ describe('getExecutionIdFromMessage', function() {
 
 describe('parseUrl', function() {
   it('should correctly parse values', function() {
-    var result = utils.parseUrl('http://www.example.com/a')
+    var result = utils.parseUrl('http://www.example.com/a');
     expect(result['hostname']).to.be.equal('www.example.com');
     expect(result['protocol']).to.be.equal('http');
     expect(result['port']).to.be.equal(80);
@@ -87,21 +87,23 @@ describe('parseUrl', function() {
   });
 
   it('should correctly parrse ports', function() {
-    var result = utils.parseUrl('http://www.example.com:8080')
+    var result;
+
+    result = utils.parseUrl('http://www.example.com:8080');
       expect(result['port']).to.be.equal(8080);
 
-    var result = utils.parseUrl('https://www.example.com:8181')
+    result = utils.parseUrl('https://www.example.com:8181');
       expect(result['port']).to.be.equal(8181);
   });
 
   it('should use default http port on port not specified', function() {
-    var result = utils.parseUrl('http://www.example.com/a')
+    var result = utils.parseUrl('http://www.example.com/a');
     expect(result['protocol']).to.be.equal('http');
     expect(result['port']).to.be.equal(80);
   });
 
   it('should use default https port on port not specified', function() {
-    var result = utils.parseUrl('https://www.example.com/a')
+    var result = utils.parseUrl('https://www.example.com/a');
     expect(result['protocol']).to.be.equal('https');
     expect(result['port']).to.be.equal(443);
   });
