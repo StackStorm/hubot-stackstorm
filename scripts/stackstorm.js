@@ -287,7 +287,13 @@ module.exports = function(robot) {
       robot.logger.error('Failed to authenticate: ' + err.message.toString());
       process.exit(2);
     });
-  } else {
-    return start();
   }
+  else {
+    start();
+  }
+
+  // Install SIGUSR2 handler which reloads the command
+  process.on('SIGUSR2', function() {
+    loadCommands();
+  });
 };
