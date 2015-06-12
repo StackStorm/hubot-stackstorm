@@ -244,7 +244,17 @@ module.exports = function(robot) {
 
     // Initial command loading
     loadCommands();
+
+    // Install SIGUSR2 handler which reloads the command
+    install_sigusr2_handler();
+
     return commands_load_interval;
+  }
+
+  function install_sigusr2_handler() {
+    process.on('SIGUSR2', function() {
+      loadCommands();
+    });
   }
 
   // TODO: Use async.js or similar or organize this better
@@ -289,11 +299,6 @@ module.exports = function(robot) {
     });
   }
   else {
-    start();
+    return start();
   }
-
-  // Install SIGUSR2 handler which reloads the command
-  process.on('SIGUSR2', function() {
-    loadCommands();
-  });
 };
