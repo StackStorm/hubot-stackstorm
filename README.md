@@ -76,11 +76,12 @@ Note: ``ST2_CHANNEL`` environment variable mentioned below should only be
 specified if you modified the rule which comes with a ``hubot`` pack to use a
 non default value of ``hubot`` for the ``trigger.channel`` criteria.
 
-* `ST2_CHANNEL` - Notification channel where all the notification messages
+* `ST2_CHANNEL` - StackStorm notification channel where all the notification messages
   should be sent to. This is the reference to the channel construct internal
   to StackStorm's notification system. Make sure this value is set to whatever
   is assigned the rule that defines a StackStrom channel. e.g. `hubot` is a value
-  that works well with the `hubot` pack found https://github.com/StackStorm/st2contrib/tree/master/packs/hubot.
+  that works well with the `hubot` pack found at
+  https://github.com/StackStorm/st2contrib/tree/master/packs/hubot.
 
 ## Running the bot
 
