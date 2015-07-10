@@ -209,7 +209,7 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      if (robot.adapterName == "hipchat") {
+      if (robot.adapterName === "hipchat") {
         message = data.message;
       }
       else {
@@ -235,7 +235,7 @@ module.exports = function(robot) {
         message += util.format('\n Execution details available at: %s', history_url);
       }
 
-      if (robot.adapterName == "hipchat" ) {
+      if (robot.adapterName === "hipchat" ) {
         robot.logger.info('Using adapter ' + robot.adapterName + '. Modifying the recipient.');
         var robot_name = env.HUBOT_HIPCHAT_JID.split("_", 1);
         recipient = robot_name + "_" + recipient + "@conf.hipchat.com";
