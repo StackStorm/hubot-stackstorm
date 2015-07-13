@@ -209,7 +209,12 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      message = formatData(data.message, '', robot.logger);
+      if (robot.adapterName === "hipchat") {
+        message = data.message;
+      }
+      else {
+        message = formatData(data.message, '', robot.logger);
+      }
 
       // PM user, notify user, or tell channel
       if (data.user) {
@@ -228,6 +233,12 @@ module.exports = function(robot) {
 
       if (history_url) {
         message += util.format('\n Execution details available at: %s', history_url);
+      }
+
+      if (robot.adapterName === "hipchat" ) {
+        robot.logger.info('Using adapter ' + robot.adapterName + '. Modifying the recipient.');
+        var robot_name = env.HUBOT_HIPCHAT_JID.split("_", 1);
+        recipient = robot_name + "_" + recipient + "@conf.hipchat.com";
       }
 
       robot.messageRoom(recipient, message);
