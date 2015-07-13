@@ -29,7 +29,8 @@
     "hubot": "2.x"
   },
   "devDependencies": {
-    "chai": "^1.9.1",
+    "chai": "^3.0.0",
+    "chai-as-promised": "^5.1.0",
     "coffee-script": "~1.7.1",
     "gulp": "~3.8.11",
     "gulp-jshint": "^1.9.0",
