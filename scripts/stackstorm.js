@@ -39,10 +39,8 @@ var _ = require('lodash'),
   slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
   formatCommand = require('../lib/format_command.js'),
   formatData = require('../lib/format_data.js'),
-  CommandFactory = require('../lib/command_factory.js');
-  authenticate = require('../lib/st2_authenticate.js')
-
-var st2client = require('st2client');
+  CommandFactory = require('../lib/command_factory.js'),
+  authenticate = require('../lib/st2_authenticate.js');
 
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
@@ -247,10 +245,11 @@ module.exports = function(robot) {
     return commands_load_interval;
   }
 
+
   // Authenticate with StackStorm backend and then call start.
   // On a failure to
   authenticate(env.ST2_AUTH_URL, env.ST2_API, env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
-  .then(function() {
+  .then(function(result) {
     auth_token = result['token'];
     return start();
   })
