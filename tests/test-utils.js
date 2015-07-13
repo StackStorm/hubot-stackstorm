@@ -72,7 +72,6 @@ describe('getExecutionIdFromMessage', function() {
 
   it('should return execution id on match', function() {
     var result = utils.getExecutionIdFromMessage(MOCK_MESSAGE);
-    console.log(result);
     expect(result).to.be.equal('55701c8b0640fd53cdf4f08');
   });
 });
