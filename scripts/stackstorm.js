@@ -35,13 +35,13 @@ limitations under the License.
 var _ = require('lodash'),
   util = require('util'),
   env = process.env,
+  Promise = require('rsvp').Promise,
   utils = require('../lib/utils.js'),
   slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
   formatCommand = require('../lib/format_command.js'),
   formatData = require('../lib/format_data.js'),
-  CommandFactory = require('../lib/command_factory.js');
-
-var st2client = require('st2client');
+  CommandFactory = require('../lib/command_factory.js'),
+  authenticate = require('../lib/st2_authenticate.js');
 
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
@@ -56,8 +56,7 @@ env.ST2_AUTH_PASSWORD = env.ST2_AUTH_PASSWORD || null;
 env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 
 // Command reload interval in seconds
-env.ST2_COMMANDS_RELOAD_INTERVAL = env.ST2_COMMANDS_RELOAD_INTERVAL || 120;
-env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL, 10);
+env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL || 120, 10);
 
 // Constants
 // Fun human-friendly commands. Use %s for payload output.
@@ -258,47 +257,18 @@ module.exports = function(robot) {
     return commands_load_interval;
   }
 
-  // TODO: Use async.js or similar or organize this better
-  if (!utils.isNull(env.ST2_AUTH_USERNAME) && !utils.isNull(env.ST2_AUTH_PASSWORD)) {
-    var credentials, config, st2_client, parsed;
-
-    credentials = {
-      'user': env.ST2_AUTH_USERNAME,
-      'password': env.ST2_AUTH_PASSWORD
-    };
-    config = {
-      'rejectUnauthorized': false,
-      'credentials': credentials
-    };
-
-    if (!utils.isNull(env.ST2_AUTH_URL)) {
-      parsed = utils.parseUrl(env.ST2_AUTH_URL);
-
-      config['auth'] = {};
-      config['auth']['host'] = parsed['hostname'];
-      config['auth']['protocol'] = parsed['protocol'];
-      config['auth']['port'] = parsed['port'];
-    }
-    else {
-      parsed = utils.parseUrl(env.ST2_API);
-
-      config['host'] = parsed['hostname'];
-      config['protocol'] = parsed['protocol'];
-      config['port'] = parsed['port'];
-    }
-
-    st2_client = st2client(config);
-    robot.logger.info('Performing authentication...');
-    st2_client.authenticate(config.credentials.user, config.credentials.password).then(function(result) {
-      robot.logger.debug('Successfully authenticated.');
+  // Authenticate with StackStorm backend and then call start.
+  // On a failure to authenticate log the error but do not quit.
+  return new Promise(function(resolve, reject) {
+    authenticate(env.ST2_AUTH_URL, env.ST2_API, env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD, robot.logger)
+    .then(function(result) {
       auth_token = result['token'];
-
-      return start();
-    }).catch(function(err) {
+      result = start();
+      resolve(result);
+    })
+    .catch(function(err) {
       robot.logger.error('Failed to authenticate: ' + err.message.toString());
-      process.exit(2);
+      reject(err);
     });
-  } else {
-    return start();
-  }
+  });
 };

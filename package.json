@@ -23,13 +23,15 @@
   "dependencies": {
     "lodash": "~3.8.0",
     "cli-table": "<=1.0.0",
+    "rsvp": "3.0.14",
     "st2client": "~0.3.3"
   },
   "peerDependencies": {
     "hubot": "2.x"
   },
   "devDependencies": {
-    "chai": "^1.9.1",
+    "chai": "^3.0.0",
+    "chai-as-promised": "^5.1.0",
     "coffee-script": "~1.7.1",
     "gulp": "~3.8.11",
     "gulp-jshint": "^1.9.0",
@@ -40,7 +42,8 @@
     "hubot-mock-adapter": "~1.0.0",
     "jshint": "^2.7.0",
     "jshint-stylish": "^2.0.0",
-    "log": "1.4.0"
+    "log": "1.4.0",
+    "nock": "^0.50.0"
   },
   "main": "index.js",
   "scripts": {

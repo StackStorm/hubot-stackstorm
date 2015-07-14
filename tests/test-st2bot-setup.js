@@ -49,27 +49,32 @@ describe("stanley the StackStorm bot", function() {
 
       // Load script under test
       st2bot = require("../scripts/stackstorm");
-      commands_load_interval = st2bot(robot);
 
-      // Load help module
-      robot.loadFile(path.resolve('node_modules', 'hubot-help', 'src'), 'help.coffee');
+      st2bot(robot).then(function(result) {
+        commands_load_interval = result;
+        // Load help module
+        robot.loadFile(path.resolve('node_modules', 'hubot-help', 'src'), 'help.coffee');
 
-      user = robot.brain.userForId("1", {
-        name: "mocha",
-        room: "#mocha"
+        user = robot.brain.userForId("1", {
+          name: "mocha",
+          room: "#mocha"
+        });
+
+        adapter = robot.adapter;
+        done();
+      }).catch(function(err) {
+        done();
       });
-
-      adapter = robot.adapter;
-      done();
     });
 
     robot.run();
   });
 
-  after(function() {
+  after(function(done) {
     clearInterval(commands_load_interval);
     robot.server.close();
     robot.shutdown();
+    done();
   });
 
   it("responds when asked for help", function(done) {
