@@ -1,3 +1,9 @@
+0.1.2
+-----
+* Support Hipchat channel type and message format (@Itxaka)
+* hubot-stackstorm does not cause hubot to quit on authentication failure.
+* Authentication code is resilient to unavailability or StackStorm service. Will retry a configurable number of times.
+
 0.1.1
 -----
 
