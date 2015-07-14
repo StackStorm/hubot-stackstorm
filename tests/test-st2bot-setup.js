@@ -31,6 +31,11 @@ var expect = require("chai").expect,
 var disableLogger = true,
   controlledLogger = function(msg) {};
 
+var disableAuth = function() {
+  process.env.ST2_AUTH_USERNAME = null;
+  process.env.ST2_AUTH_PASSWORD = null;
+}
+
 describe("stanley the StackStorm bot", function() {
   var robot, user, adapter, st2bot, commands_load_interval;
 
@@ -44,6 +49,8 @@ describe("stanley the StackStorm bot", function() {
       robot.logger.info = controlledLogger;
       robot.logger.debug = controlledLogger;
     }
+
+    disableAuth();
 
     robot.adapter.on("connected", function() {
 
@@ -63,6 +70,7 @@ describe("stanley the StackStorm bot", function() {
         adapter = robot.adapter;
         done();
       }).catch(function(err) {
+        console.log(err);
         done();
       });
     });
