@@ -35,6 +35,7 @@ limitations under the License.
 var _ = require('lodash'),
   util = require('util'),
   env = process.env,
+  Promise = require('rsvp').Promise,
   utils = require('../lib/utils.js'),
   slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
   formatCommand = require('../lib/format_command.js'),
@@ -245,15 +246,18 @@ module.exports = function(robot) {
     return commands_load_interval;
   }
 
-
   // Authenticate with StackStorm backend and then call start.
-  // On a failure to
-  authenticate(env.ST2_AUTH_URL, env.ST2_API, env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
-  .then(function(result) {
-    auth_token = result['token'];
-    return start();
-  })
-  .catch(function(err) {
-    robot.logger.error('Failed to authenticate: ' + err.message.toString());
+  // On a failure to authenticate log the error but do not quit.
+  return new Promise(function(resolve, reject) {
+    authenticate(env.ST2_AUTH_URL, env.ST2_API, env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
+    .then(function(result) {
+      auth_token = result['token'];
+      result = start();
+      resolve(result);
+    })
+    .catch(function(err) {
+      robot.logger.error('Failed to authenticate: ' + err.message.toString());
+      reject(err);
+    });
   });
 };
