@@ -43,7 +43,7 @@ describe('st2 authentication', function() {
   it('should treat no username and password as auth disabled.', function() {
     var expected_response = {
       token: null
-    }
+    };
     return expect(authenticate('', '', null, null, getLogger())).to.eventually.be.deep.equal(expected_response);
   });
 
@@ -78,7 +78,7 @@ describe('st2 authentication', function() {
     nock('http://test:9100/').post('/tokens').reply(400, response);
     // adjust the env variable.
     env.ST2_AUTH_RETRY_INTERVAL = 0.001;
-    var result = authenticate('http://test:9100/tokens', '', username, password, getLogger())
+    var result = authenticate('http://test:9100/tokens', '', username, password, getLogger());
     return expect(result).to.be.rejected;
   });
 
