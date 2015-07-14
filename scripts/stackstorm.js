@@ -185,8 +185,10 @@ module.exports = function(robot) {
   robot.respond(/(.+?)$/i, function(msg) {
     var command, result, command_name, format_string;
 
-    command = msg.match[1].toLowerCase();
-    result = command_factory.getMatchingCommand(command);
+    command = msg.match[1];
+    // Use the lower-case version only for lookup. Other preserve the case so that
+    // user provided case is preserved.
+    result = command_factory.getMatchingCommand(command.toLowerCase());
 
     if (!result) {
       // No command found
