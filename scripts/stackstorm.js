@@ -249,7 +249,7 @@ module.exports = function(robot) {
   // Authenticate with StackStorm backend and then call start.
   // On a failure to authenticate log the error but do not quit.
   return new Promise(function(resolve, reject) {
-    authenticate(env.ST2_AUTH_URL, env.ST2_API, env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
+    authenticate(env.ST2_AUTH_URL, env.ST2_API, env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD, robot.logger)
     .then(function(result) {
       auth_token = result['token'];
       result = start();
