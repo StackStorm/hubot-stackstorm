@@ -34,7 +34,7 @@ var disableLogger = true,
 var disableAuth = function() {
   process.env.ST2_AUTH_USERNAME = null;
   process.env.ST2_AUTH_PASSWORD = null;
-}
+};
 
 describe("stanley the StackStorm bot", function() {
   var robot, user, adapter, st2bot, commands_load_interval;
@@ -51,6 +51,7 @@ describe("stanley the StackStorm bot", function() {
     }
 
     disableAuth();
+
 
     robot.adapter.on("connected", function() {
 
