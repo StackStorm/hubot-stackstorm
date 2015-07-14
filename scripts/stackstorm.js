@@ -86,6 +86,9 @@ module.exports = function(robot) {
   // factory to manage commands
   var command_factory = new CommandFactory(robot);
 
+  // formatter to manage per adapter message formatting.
+  var formatter = formatData.getFormatter(robot.adapterName, robot)
+
   var loadCommands = function() {
     var request;
 
@@ -210,12 +213,7 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      if (robot.adapterName === "hipchat") {
-        message = data.message;
-      }
-      else {
-        message = formatData(data.message, '', robot.logger);
-      }
+      message = formatter.formatData(data.message);
 
       // PM user, notify user, or tell channel
       if (data.user) {
@@ -228,18 +226,13 @@ module.exports = function(robot) {
       } else {
         recipient = data.channel;
       }
+      recepient = formatter.formatRecepient(recepient);
 
       execution_id = utils.getExecutionIdFromMessage(message);
       history_url = utils.getExecutionHistoryUrl(execution_id);
 
       if (history_url) {
         message += util.format('\n Execution details available at: %s', history_url);
-      }
-
-      if (robot.adapterName === "hipchat" ) {
-        robot.logger.info('Using adapter ' + robot.adapterName + '. Modifying the recipient.');
-        var robot_name = env.HUBOT_HIPCHAT_JID.split("_", 1);
-        recipient = robot_name + "_" + recipient + "@conf.hipchat.com";
       }
 
       robot.messageRoom(recipient, message);

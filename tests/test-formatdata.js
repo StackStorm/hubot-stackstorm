@@ -20,76 +20,84 @@ limitations under the License.
 "use strict";
 
 var chai = require('chai'),
-  assert = chai.assert,
   expect = chai.expect,
-  formatdata = require('../lib/format_data.js');
+  env = process.env,
+  formatData = require('../lib/format_data.js'),
+  DummyRobot = require('./dummy-robot.js');
 
-describe('unknownFormatData', function() {
-  it('should throw an exception', function() {
-    assert.throws(function() {
-      formatdata('', 'X', null);
-    }, Error, 'Formatter X not supported.');
-  });
+describe('SlackFormatter', function() {
+  var adapterName = 'slack';
 
-  it('should pick basicFormatdata on null', function() {
-    var o = formatdata('DATA', null, null);
+  it('should create a snippet for non-empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('DATA', 'slack', null);
     expect(o).to.be.an('string');
     expect(o).to.equal('```\nDATA\n```');
   });
 
-  it('should pick basicFormatdata on empty', function() {
-    var o = formatdata('DATA', '', null);
-    expect(o).to.be.an('string');
-    expect(o).to.equal('```\nDATA\n```');
-  });
-});
-
-
-describe('tableFormatdata', function() {
-  var format = 'table';
-
-  it('should do nothing for empty data', function() {
-    var o = formatdata('', format, null);
+  it('should be an empty string for empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('', null);
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
-  it('should create the right table format', function() {
-    var o = formatdata("{\"a\": 1}", format, null);
+  it('should echo back recepient', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatRecepient('Estee');
     expect(o).to.be.an('string');
-    expect(o).to.equal('```\n┌──────────┬───────┐\n│ Property │ Value │\n├──────────┼───────┤\n│ a        │ 1     │\n└──────────┴───────┘```');
+    expect(o).to.equal('Estee');
   });
 });
 
-describe('jsonFormatdata', function() {
-  var format = 'json';
+describe('HipChatFormatter', function() {
+  var adapterName = 'hipchat';
 
-  it('should do nothing for empty data', function() {
-    var o = formatdata('', format, null);
+  it('should echo back for non-empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('DATA', null);
+    expect(o).to.be.an('string');
+    expect(o).to.equal('DATA');
+  });
+
+  it('should be an empty string for empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('', null);
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
-  it('should create the right json format', function() {
-    var o = formatdata("{\"a\": 1}", format, null);
+  it('should correctly format recepient', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    env.HUBOT_HIPCHAT_JID = '234x_y234@conf.hipchat.com';
+    var o = formatter.formatRecepient('Estee');
     expect(o).to.be.an('string');
-    // Not a big fan of this test
-    expect(o).to.equal('```\n{\n    \"a\": 1\n}\n```');
+    expect(o).to.equal('234x_Estee@conf.hipchat.com');
   });
 });
 
-describe('basicFormatdata', function() {
-  var format = 'basic';
+describe('DefaultFormatter', function() {
+  var adapterName = 'unknown';
+  var robot = new DummyRobot('dummy', false);
 
-  it('should do nothing for empty data', function() {
-    var o = formatdata('', format, null);
+  it('should create a snippet for non-empty', function() {
+    var formatter = formatData.getFormatter(adapterName, robot);
+    var o = formatter.formatData('DATA', null);
+    expect(o).to.be.an('string');
+    expect(o).to.equal('DATA');
+  });
+
+  it('should be an empty string for empty', function() {
+    var formatter = formatData.getFormatter(adapterName, robot);
+    var o = formatter.formatData('', null);
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
-  it('should create the right basic format', function() {
-    var o = formatdata('DATA', format, null);
+  it('should echo back recepient', function() {
+    var formatter = formatData.getFormatter(adapterName, robot);
+    var o = formatter.formatRecepient('Estee');
     expect(o).to.be.an('string');
-    expect(o).to.equal('```\nDATA\n```');
+    expect(o).to.equal('Estee');
   });
 });
