@@ -191,7 +191,10 @@ module.exports = function(robot) {
   robot.respond(/(.+?)$/i, function(msg) {
     var command, result, command_name, format_string;
 
-    command = msg.match[1];
+    // Normalize the command and remove special handling provided by the chat service.
+    // e.g. slack replace quote marks with left double quote which would break behavior.
+    command = formatter.normalizeCommand(msg.match[1]);
+
     // Use the lower-case version only for lookup. Other preserve the case so that
     // user provided case is preserved.
     result = command_factory.getMatchingCommand(command.toLowerCase());
@@ -208,7 +211,7 @@ module.exports = function(robot) {
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
-    var data, message, channel, recipient, execution_id, history_url;
+    var data, args, message, channel, recipient, execution_id, history_url;
 
     try {
       if (req.body.payload) {
@@ -216,32 +219,37 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      message = formatter.formatData(data.message);
 
+      args = [];
       // PM user, notify user, or tell channel
       if (data.user) {
         if (data.whisper === true) {
           recipient = data.user;
         } else {
           recipient = data.channel;
-          message = util.format('%s :\n%s', data.user, message);
+          // message = util.format('%s :\n%s', data.user, message);
+          args.push(util.format('%s :', data.user));
         }
       } else {
         recipient = data.channel;
       }
       recipient = formatter.formatRecepient(recipient);
+      args.unshift(recipient);
 
-      execution_id = utils.getExecutionIdFromMessage(message);
+      args.push(formatter.formatData(data.message));
+
+      execution_id = utils.getExecutionIdFromMessage(data.message);
       history_url = utils.getExecutionHistoryUrl(execution_id);
 
       if (history_url) {
-        message += util.format('\n Execution details available at: %s', history_url);
+        args.push(util.format('Execution details available at: %s', history_url));
       }
 
-      robot.messageRoom(recipient, message);
+      robot.messageRoom.apply(robot, args);
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
       robot.logger.error("Unable to decode JSON: " + e);
+      robot.logger.error(e.stack);
       res.send('{"status": "failed", "msg": "An error occurred trying to post the message: ' + e + '"}');
     }
   });
