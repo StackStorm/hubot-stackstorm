@@ -45,7 +45,7 @@ describe("stanley the StackStorm bot", function() {
     // Hack. Need a better solution than stubbing out methods.
     if (disableLogger) {
       robot.logger.error = controlledLogger;
-      robot.logger.warn = controlledLogger;
+      robot.logger.warning = controlledLogger;
       robot.logger.info = controlledLogger;
       robot.logger.debug = controlledLogger;
     }

@@ -58,6 +58,9 @@ env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 // Command reload interval in seconds
 env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL || 120, 10);
 
+// Cap message length to a certain number of characters.
+env.ST2_MAX_MESSAGE_LENGTH = parseInt(env.ST2_MAX_MESSAGE_LENGTH || 500, 10);
+
 // Constants
 // Fun human-friendly commands. Use %s for payload output.
 var START_MESSAGES = [
@@ -85,6 +88,9 @@ module.exports = function(robot) {
 
   // factory to manage commands
   var command_factory = new CommandFactory(robot);
+
+  // formatter to manage per adapter message formatting.
+  var formatter = formatData.getFormatter(robot.adapterName, robot);
 
   var loadCommands = function() {
     var request;
@@ -185,7 +191,10 @@ module.exports = function(robot) {
   robot.respond(/(.+?)$/i, function(msg) {
     var command, result, command_name, format_string;
 
-    command = msg.match[1];
+    // Normalize the command and remove special handling provided by the chat service.
+    // e.g. slack replace quote marks with left double quote which would break behavior.
+    command = formatter.normalizeCommand(msg.match[1]);
+
     // Use the lower-case version only for lookup. Other preserve the case so that
     // user provided case is preserved.
     result = command_factory.getMatchingCommand(command.toLowerCase());
@@ -202,7 +211,7 @@ module.exports = function(robot) {
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
-    var data, message, channel, recipient, execution_id, history_url;
+    var data, args, message, channel, recipient, execution_id, history_url;
 
     try {
       if (req.body.payload) {
@@ -210,42 +219,37 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      if (robot.adapterName === "hipchat") {
-        message = data.message;
-      }
-      else {
-        message = formatData(data.message, '', robot.logger);
-      }
 
+      args = [];
       // PM user, notify user, or tell channel
       if (data.user) {
         if (data.whisper === true) {
           recipient = data.user;
         } else {
           recipient = data.channel;
-          message = util.format('%s :\n%s', data.user, message);
+          // message = util.format('%s :\n%s', data.user, message);
+          args.push(util.format('%s :', data.user));
         }
       } else {
         recipient = data.channel;
       }
+      recipient = formatter.formatRecepient(recipient);
+      args.unshift(recipient);
 
-      execution_id = utils.getExecutionIdFromMessage(message);
+      args.push(formatter.formatData(data.message));
+
+      execution_id = utils.getExecutionIdFromMessage(data.message);
       history_url = utils.getExecutionHistoryUrl(execution_id);
 
       if (history_url) {
-        message += util.format('\n Execution details available at: %s', history_url);
+        args.push(util.format('Execution details available at: %s', history_url));
       }
 
-      if (robot.adapterName === "hipchat" ) {
-        robot.logger.info('Using adapter ' + robot.adapterName + '. Modifying the recipient.');
-        var robot_name = env.HUBOT_HIPCHAT_JID.split("_", 1);
-        recipient = robot_name + "_" + recipient + "@conf.hipchat.com";
-      }
-
-      robot.messageRoom(recipient, message);
+      robot.messageRoom.apply(robot, args);
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
       robot.logger.error("Unable to decode JSON: " + e);
+      robot.logger.error(e.stack);
       res.send('{"status": "failed", "msg": "An error occurred trying to post the message: ' + e + '"}');
     }
   });
