@@ -211,7 +211,7 @@ module.exports = function(robot) {
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
-    var data, args, message, channel, recipient, execution_id, history_url;
+    var data, args, message, channel, recipient, execution_id, execution_details;
 
     try {
       if (req.body.payload) {
@@ -239,10 +239,13 @@ module.exports = function(robot) {
       args.push(formatter.formatData(data.message));
 
       execution_id = utils.getExecutionIdFromMessage(data.message);
-      history_url = utils.getExecutionHistoryUrl(execution_id);
+      execution_details = utils.getExecutionHistoryUrl(execution_id);
+      if (!execution_details) {
+        execution_details = utils.getExecutionCLICommand(execution_id);
+      }
 
-      if (history_url) {
-        args.push(util.format('Execution details available at: %s', history_url));
+      if (execution_details) {
+        args.push(util.format('Execution details available at: %s', execution_details));
       }
 
       robot.messageRoom.apply(robot, args);
