@@ -58,6 +58,9 @@ env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 // Command reload interval in seconds
 env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL || 120, 10);
 
+// Cap message length to a certain number of characters.
+env.ST2_MAX_MESSAGE_LENGTH = parseInt(env.ST2_MAX_MESSAGE_LENGTH || 500, 10);
+
 // Constants
 // Fun human-friendly commands. Use %s for payload output.
 var START_MESSAGES = [
@@ -87,7 +90,7 @@ module.exports = function(robot) {
   var command_factory = new CommandFactory(robot);
 
   // formatter to manage per adapter message formatting.
-  var formatter = formatData.getFormatter(robot.adapterName, robot)
+  var formatter = formatData.getFormatter(robot.adapterName, robot);
 
   var loadCommands = function() {
     var request;
@@ -226,7 +229,7 @@ module.exports = function(robot) {
       } else {
         recipient = data.channel;
       }
-      recepient = formatter.formatRecepient(recepient);
+      recipient = formatter.formatRecepient(recipient);
 
       execution_id = utils.getExecutionIdFromMessage(message);
       history_url = utils.getExecutionHistoryUrl(execution_id);

@@ -25,14 +25,28 @@ var chai = require('chai'),
   formatData = require('../lib/format_data.js'),
   DummyRobot = require('./dummy-robot.js');
 
+env.ST2_MAX_MESSAGE_LENGTH = 500;
+
 describe('SlackFormatter', function() {
   var adapterName = 'slack';
 
   it('should create a snippet for non-empty', function() {
     var formatter = formatData.getFormatter(adapterName, null);
-    var o = formatter.formatData('DATA', 'slack', null);
+    var o = formatter.formatData('DATA', null);
     expect(o).to.be.an('string');
     expect(o).to.equal('```\nDATA\n```');
+  });
+
+  it('should truncate text more than a certain length', function() {
+    var org_max_length = env.ST2_MAX_MESSAGE_LENGTH;
+    env.ST2_MAX_MESSAGE_LENGTH = 10;
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('abcd efgh ijklm', null);
+    env.ST2_MAX_MESSAGE_LENGTH = org_max_length;
+
+    expect(o).to.be.an('string');
+    expect(o).to.equal('```\nabcd efgh ...\n```');
+
   });
 
   it('should be an empty string for empty', function() {
@@ -85,6 +99,17 @@ describe('DefaultFormatter', function() {
     var o = formatter.formatData('DATA', null);
     expect(o).to.be.an('string');
     expect(o).to.equal('DATA');
+  });
+
+  it('should truncate text more than a certain length', function() {
+    var org_max_length = env.ST2_MAX_MESSAGE_LENGTH;
+    env.ST2_MAX_MESSAGE_LENGTH = 10;
+    var formatter = formatData.getFormatter(adapterName, robot);
+    var o = formatter.formatData('abcd efgh ijklm', null);
+    env.ST2_MAX_MESSAGE_LENGTH = org_max_length;
+
+    expect(o).to.be.an('string');
+    expect(o).to.equal('abcd efgh ...');
   });
 
   it('should be an empty string for empty', function() {
