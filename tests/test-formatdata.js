@@ -62,6 +62,13 @@ describe('SlackFormatter', function() {
     expect(o).to.be.an('string');
     expect(o).to.equal('Estee');
   });
+
+  it('should normalize command', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.normalizeCommand('run local \u201cuname -a"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run local "uname -a"');
+  });
 });
 
 describe('HipChatFormatter', function() {
@@ -87,6 +94,13 @@ describe('HipChatFormatter', function() {
     var o = formatter.formatRecepient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('234x_Estee@conf.hipchat.com');
+  });
+
+  it('should normalize command', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.normalizeCommand('run local "uname -a"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run local "uname -a"');
   });
 });
 
@@ -124,5 +138,12 @@ describe('DefaultFormatter', function() {
     var o = formatter.formatRecepient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('Estee');
+  });
+
+  it('should normalize command', function() {
+    var formatter = formatData.getFormatter(adapterName, robot);
+    var o = formatter.normalizeCommand('run local "uname -a"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run local "uname -a"');
   });
 });
