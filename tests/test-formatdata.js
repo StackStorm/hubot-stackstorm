@@ -71,7 +71,7 @@ describe('HipChatFormatter', function() {
     var formatter = formatData.getFormatter(adapterName, null);
     var o = formatter.formatData('DATA', null);
     expect(o).to.be.an('string');
-    expect(o).to.equal('DATA');
+    expect(o).to.equal('/code DATA');
   });
 
   it('should be an empty string for empty', function() {
