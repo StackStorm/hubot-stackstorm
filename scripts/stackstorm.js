@@ -263,7 +263,17 @@ module.exports = function(robot) {
 
     // Initial command loading
     loadCommands();
+
+    // Install SIGUSR2 handler which reloads the command
+    install_sigusr2_handler();
+
     return commands_load_interval;
+  }
+
+  function install_sigusr2_handler() {
+    process.on('SIGUSR2', function() {
+      loadCommands();
+    });
   }
 
   // Authenticate with StackStorm backend and then call start.
