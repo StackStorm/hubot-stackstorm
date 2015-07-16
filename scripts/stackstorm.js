@@ -290,5 +290,4 @@ module.exports = function(robot) {
       reject(err);
     });
   });
-
 };
