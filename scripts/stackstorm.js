@@ -98,7 +98,7 @@ module.exports = function(robot) {
     robot.logger.info('Loading commands....');
 
     // TODO: We should use st2client for this
-    request = client.scope('/exp/actionalias');
+    request = client.scope('/v1/actionalias');
 
     if (auth_token) {
       request = request.header('X-Auth-Token', auth_token);
@@ -163,7 +163,7 @@ module.exports = function(robot) {
 
     robot.logger.debug('Sending command payload %s ' + JSON.stringify(payload));
 
-    client.scope('/exp/aliasexecution').post(JSON.stringify(payload)) (
+    client.scope('/v1/aliasexecution').post(JSON.stringify(payload)) (
       function(err, resp, body) {
         var message, history_url, execution_id;
 
