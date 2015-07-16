@@ -72,7 +72,6 @@ describe('getExecutionIdFromMessage', function() {
 
   it('should return execution id on match', function() {
     var result = utils.getExecutionIdFromMessage(MOCK_MESSAGE);
-    console.log(result);
     expect(result).to.be.equal('55701c8b0640fd53cdf4f08');
   });
 });
@@ -87,13 +86,11 @@ describe('parseUrl', function() {
   });
 
   it('should correctly parrse ports', function() {
-    var result;
-
-    result = utils.parseUrl('http://www.example.com:8080');
-      expect(result['port']).to.be.equal(8080);
+    var result = utils.parseUrl('http://www.example.com:8080');
+    expect(result['port']).to.be.equal(8080);
 
     result = utils.parseUrl('https://www.example.com:8181');
-      expect(result['port']).to.be.equal(8181);
+    expect(result['port']).to.be.equal(8181);
   });
 
   it('should use default http port on port not specified', function() {

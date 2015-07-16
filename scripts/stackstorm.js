@@ -35,13 +35,13 @@ limitations under the License.
 var _ = require('lodash'),
   util = require('util'),
   env = process.env,
+  Promise = require('rsvp').Promise,
   utils = require('../lib/utils.js'),
   slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
   formatCommand = require('../lib/format_command.js'),
   formatData = require('../lib/format_data.js'),
-  CommandFactory = require('../lib/command_factory.js');
-
-var st2client = require('st2client');
+  CommandFactory = require('../lib/command_factory.js'),
+  authenticate = require('../lib/st2_authenticate.js');
 
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
@@ -56,8 +56,10 @@ env.ST2_AUTH_PASSWORD = env.ST2_AUTH_PASSWORD || null;
 env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 
 // Command reload interval in seconds
-env.ST2_COMMANDS_RELOAD_INTERVAL = env.ST2_COMMANDS_RELOAD_INTERVAL || 120;
-env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL, 10);
+env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL || 120, 10);
+
+// Cap message length to a certain number of characters.
+env.ST2_MAX_MESSAGE_LENGTH = parseInt(env.ST2_MAX_MESSAGE_LENGTH || 500, 10);
 
 // Constants
 // Fun human-friendly commands. Use %s for payload output.
@@ -86,6 +88,9 @@ module.exports = function(robot) {
 
   // factory to manage commands
   var command_factory = new CommandFactory(robot);
+
+  // formatter to manage per adapter message formatting.
+  var formatter = formatData.getFormatter(robot.adapterName, robot);
 
   var loadCommands = function() {
     var request;
@@ -186,8 +191,13 @@ module.exports = function(robot) {
   robot.respond(/(.+?)$/i, function(msg) {
     var command, result, command_name, format_string;
 
-    command = msg.match[1].toLowerCase();
-    result = command_factory.getMatchingCommand(command);
+    // Normalize the command and remove special handling provided by the chat service.
+    // e.g. slack replace quote marks with left double quote which would break behavior.
+    command = formatter.normalizeCommand(msg.match[1]);
+
+    // Use the lower-case version only for lookup. Other preserve the case so that
+    // user provided case is preserved.
+    result = command_factory.getMatchingCommand(command.toLowerCase());
 
     if (!result) {
       // No command found
@@ -201,7 +211,7 @@ module.exports = function(robot) {
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
-    var data, message, channel, recipient, execution_id, history_url;
+    var data, args, message, channel, recipient, execution_id, execution_details;
 
     try {
       if (req.body.payload) {
@@ -209,31 +219,40 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      message = formatData(data.message, '', robot.logger);
 
+      args = [];
       // PM user, notify user, or tell channel
       if (data.user) {
         if (data.whisper === true) {
           recipient = data.user;
         } else {
           recipient = data.channel;
-          message = util.format('%s :\n%s', data.user, message);
+          // message = util.format('%s :\n%s', data.user, message);
+          args.push(util.format('%s :', data.user));
         }
       } else {
         recipient = data.channel;
       }
+      recipient = formatter.formatRecepient(recipient);
+      args.unshift(recipient);
 
-      execution_id = utils.getExecutionIdFromMessage(message);
-      history_url = utils.getExecutionHistoryUrl(execution_id);
+      args.push(formatter.formatData(data.message));
 
-      if (history_url) {
-        message += util.format('\n Execution details available at: %s', history_url);
+      execution_id = utils.getExecutionIdFromMessage(data.message);
+      execution_details = utils.getExecutionHistoryUrl(execution_id);
+      if (!execution_details) {
+        execution_details = utils.getExecutionCLICommand(execution_id);
       }
 
-      robot.messageRoom(recipient, message);
+      if (execution_details) {
+        args.push(util.format('Execution details available at: %s', execution_details));
+      }
+
+      robot.messageRoom.apply(robot, args);
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
       robot.logger.error("Unable to decode JSON: " + e);
+      robot.logger.error(e.stack);
       res.send('{"status": "failed", "msg": "An error occurred trying to post the message: ' + e + '"}');
     }
   });
@@ -257,48 +276,19 @@ module.exports = function(robot) {
     });
   }
 
-  // TODO: Use async.js or similar or organize this better
-  if (!utils.isNull(env.ST2_AUTH_USERNAME) && !utils.isNull(env.ST2_AUTH_PASSWORD)) {
-    var credentials, config, st2_client, parsed;
-
-    credentials = {
-      'user': env.ST2_AUTH_USERNAME,
-      'password': env.ST2_AUTH_PASSWORD
-    };
-    config = {
-      'rejectUnauthorized': false,
-      'credentials': credentials
-    };
-
-    if (!utils.isNull(env.ST2_AUTH_URL)) {
-      parsed = utils.parseUrl(env.ST2_AUTH_URL);
-
-      config['auth'] = {};
-      config['auth']['host'] = parsed['hostname'];
-      config['auth']['protocol'] = parsed['protocol'];
-      config['auth']['port'] = parsed['port'];
-    }
-    else {
-      parsed = utils.parseUrl(env.ST2_API);
-
-      config['host'] = parsed['hostname'];
-      config['protocol'] = parsed['protocol'];
-      config['port'] = parsed['port'];
-    }
-
-    st2_client = st2client(config);
-    robot.logger.info('Performing authentication...');
-    st2_client.authenticate(config.credentials.user, config.credentials.password).then(function(result) {
-      robot.logger.debug('Successfully authenticated.');
+  // Authenticate with StackStorm backend and then call start.
+  // On a failure to authenticate log the error but do not quit.
+  return new Promise(function(resolve, reject) {
+    authenticate(env.ST2_AUTH_URL, env.ST2_API, env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD, robot.logger)
+    .then(function(result) {
       auth_token = result['token'];
-
-      return start();
-    }).catch(function(err) {
+      result = start();
+      resolve(result);
+    })
+    .catch(function(err) {
       robot.logger.error('Failed to authenticate: ' + err.message.toString());
-      process.exit(2);
+      reject(err);
     });
-  }
-  else {
-    return start();
-  }
+  });
+
 };

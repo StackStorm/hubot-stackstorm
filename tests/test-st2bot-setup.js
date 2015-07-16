@@ -31,6 +31,11 @@ var expect = require("chai").expect,
 var disableLogger = true,
   controlledLogger = function(msg) {};
 
+var disableAuth = function() {
+  process.env.ST2_AUTH_USERNAME = null;
+  process.env.ST2_AUTH_PASSWORD = null;
+};
+
 describe("stanley the StackStorm bot", function() {
   var robot, user, adapter, st2bot, commands_load_interval;
 
@@ -40,36 +45,45 @@ describe("stanley the StackStorm bot", function() {
     // Hack. Need a better solution than stubbing out methods.
     if (disableLogger) {
       robot.logger.error = controlledLogger;
-      robot.logger.warn = controlledLogger;
+      robot.logger.warning = controlledLogger;
       robot.logger.info = controlledLogger;
       robot.logger.debug = controlledLogger;
     }
+
+    disableAuth();
+
 
     robot.adapter.on("connected", function() {
 
       // Load script under test
       st2bot = require("../scripts/stackstorm");
-      commands_load_interval = st2bot(robot);
 
-      // Load help module
-      robot.loadFile(path.resolve('node_modules', 'hubot-help', 'src'), 'help.coffee');
+      st2bot(robot).then(function(result) {
+        commands_load_interval = result;
+        // Load help module
+        robot.loadFile(path.resolve('node_modules', 'hubot-help', 'src'), 'help.coffee');
 
-      user = robot.brain.userForId("1", {
-        name: "mocha",
-        room: "#mocha"
+        user = robot.brain.userForId("1", {
+          name: "mocha",
+          room: "#mocha"
+        });
+
+        adapter = robot.adapter;
+        done();
+      }).catch(function(err) {
+        console.log(err);
+        done();
       });
-
-      adapter = robot.adapter;
-      done();
     });
 
     robot.run();
   });
 
-  after(function() {
+  after(function(done) {
     clearInterval(commands_load_interval);
     robot.server.close();
     robot.shutdown();
+    done();
   });
 
   it("responds when asked for help", function(done) {

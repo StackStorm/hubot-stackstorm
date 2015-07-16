@@ -30,11 +30,11 @@ function Logger(enabled) {
     this.log.error(msg);
   };
 
-  this.warn = function(msg) {
+  this.warning = function(msg) {
     if (!this.enabled) {
       return;
     }
-    this.log.warn(msg);
+    this.log.warning(msg);
   };
 
   this.info = function(msg) {
