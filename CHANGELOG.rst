@@ -1,3 +1,7 @@
+0.2.1
+-----
+* Switched to use StackStorm API v1 instead of exp.
+
 0.2.0
 -----
 * Preserve user supplied casing for chat literals. (bug-fix)
