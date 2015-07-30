@@ -17,4 +17,11 @@
   "formats": [
     "alias3 fmt1 {{param1}} {{param2}} {{param3=default}} trailing words"
   ]
+}, {
+  "name": "alias4",
+  "description": "alias4",
+  "formats": [
+    "alias4 fmt1 {{param1}}",
+    "alias4 fmt1 {{param1}} word {{param2}}"
+  ]
 }]
