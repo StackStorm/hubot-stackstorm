@@ -1,9 +1,16 @@
+0.2.2
+-----
+
+* Log a better error message if we fail to load the commands because of the StackStorm API unavailability.
+
 0.2.1
 -----
+
 * Switched to use StackStorm API v1 instead of exp.
 
 0.2.0
 -----
+
 * Preserve user supplied casing for chat literals. (bug-fix)
 * Refactor formatting code to handle various adapter better. Tested support for
   slack, hubot and xmpp.
@@ -18,7 +25,8 @@
 -----
 * Support Hipchat channel type and message format (@Itxaka)
 * hubot-stackstorm does not cause hubot to quit on authentication failure.
-* Authentication code is resilient to unavailability or StackStorm service. Will retry a configurable number of times.
+* Authentication code is resilient to unavailability or StackStorm service. Will retry a
+  configurable number of times.
 
 0.1.1
 -----
