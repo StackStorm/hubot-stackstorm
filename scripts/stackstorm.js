@@ -106,7 +106,13 @@ module.exports = function(robot) {
 
     request.get()(
       function(err, resp, body) {
-        var parsed_body, success;
+        var parsed_body, success, error_msg_prefix;
+
+        error_msg_prefix = 'Failed to retrieve commands from ' + env.ST2_API + ': ';
+        if (err) {
+          robot.logger.error(error_msg_prefix + err.toString());
+          return;
+        }
 
         parsed_body = JSON.parse(body);
         if (!_.isArray(parsed_body)) {
@@ -116,7 +122,7 @@ module.exports = function(robot) {
         }
 
         if (!success) {
-          robot.logger.error('Failed to retrieve commands: ' + body);
+          robot.logger.error(body + err.toString());
           return;
         }
 
