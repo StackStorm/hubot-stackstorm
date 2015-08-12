@@ -23,7 +23,7 @@ limitations under the License.
 //
 // Configuration:
 //   ST2_API - FQDN + port to StackStorm endpoint
-//   ST2_CHANNEL - StackStorm channel name used for notification
+//   ST2_ROUTE - StackStorm notification route name
 //   ST2_COMMANDS_RELOAD_INTERVAL - Reload interval for commands
 //
 // Notes:
@@ -45,7 +45,7 @@ var _ = require('lodash'),
 
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
-env.ST2_CHANNEL = env.ST2_CHANNEL || 'hubot';
+env.ST2_ROUTE = env.ST2_ROUTE || env.ST2_CHANNEL || 'hubot';
 env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 
 // Optional authentication info
@@ -165,7 +165,7 @@ module.exports = function(robot) {
       'command': command,
       'user': msg.message.user.name,
       'source_channel': msg.message.room,
-      'notification_channel': env.ST2_CHANNEL
+      'notification_route': env.ST2_ROUTE
     };
 
     robot.logger.debug('Sending command payload %s ' + JSON.stringify(payload));
