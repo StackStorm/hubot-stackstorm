@@ -101,7 +101,7 @@ describe("stanley the StackStorm bot", function() {
 
   it("has the right environment variables", function(done) {
     expect(process.env.ST2_API).to.exist;
-    expect(process.env.ST2_CHANNEL).to.exist;
+    expect(process.env.ST2_ROUTE).to.exist;
     expect(process.env.ST2_COMMANDS_RELOAD_INTERVAL).to.exist;
     done();
   });
