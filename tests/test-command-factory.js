@@ -120,6 +120,35 @@ describe('command factory', function() {
     match = command_factory.getMatchingCommand('alias2 fmt2 value1 some more words');
     expect(match[0]).to.equal('alias2');
     expect(match[1]).to.equal('alias2 fmt2 {{param1}} some more words');
+
+
+  });
+
+  it('should match various command literals even if the beginning format seems to match a shorter alias', function() {
+    var command_factory, alias, match, alias_format, idx_f;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[3];
+
+    for (idx_f = 0; idx_f < alias.formats.length; idx_f++) {
+      alias_format = alias.formats[idx_f];
+      command_factory.addCommand(
+        formatCommand(null, alias.name, alias_format, alias.description),
+        alias.name,
+        alias_format,
+        alias);
+    }
+
+    expect(command_factory.robot.commands).to.have.length(2);
+
+    match = command_factory.getMatchingCommand('alias4 fmt1 value1');
+    expect(match[0]).to.equal('alias4');
+    expect(match[1]).to.equal('alias4 fmt1 {{param1}}');
+
+    match = command_factory.getMatchingCommand('alias4 fmt1 value1 word value2');
+    expect(match[0]).to.equal('alias4');
+    expect(match[1]).to.equal('alias4 fmt1 {{param1}} word {{param2}}');
+
   });
 
 });
