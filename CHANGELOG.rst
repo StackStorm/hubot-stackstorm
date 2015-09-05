@@ -1,3 +1,10 @@
+0.2.3
+-----
+
+* fixes to command factory regex (amaline)
+* rename notification channel to route.
+* fix command normalization by using global string replace.
+
 0.2.2
 -----
 
