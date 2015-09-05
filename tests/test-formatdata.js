@@ -69,6 +69,13 @@ describe('SlackFormatter', function() {
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
   });
+
+  it('should normalize command with multiple normalizable', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.normalizeCommand('run remote \u201cuname -a" \u201clocalhost, 127.0.0.1"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run remote "uname -a" "localhost, 127.0.0.1"');
+  });
 });
 
 describe('HipChatFormatter', function() {
