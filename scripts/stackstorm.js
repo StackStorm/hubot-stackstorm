@@ -170,7 +170,7 @@ module.exports = function(robot) {
 
     robot.logger.debug('Sending command payload %s ' + JSON.stringify(payload));
 
-    client.scope('/v1/aliasexecution').post(JSON.stringify(payload)) (
+    client.scope('/v1/aliasexecution').header('Content-Type', 'application/json').post(JSON.stringify(payload)) (
       function(err, resp, body) {
         var message, history_url, execution_id;
 
