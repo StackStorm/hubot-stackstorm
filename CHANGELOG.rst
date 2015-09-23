@@ -1,3 +1,8 @@
+0.2.4
+-----
+
+* include content-type in headers
+
 0.2.3
 -----
 
