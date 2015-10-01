@@ -96,6 +96,25 @@ describe('command factory', function() {
 
   });
 
+  it('should match command literals with blank spaces in values', function() {
+    var command_factory, alias, match;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[2];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      alias.formats[0],
+      alias);
+
+    expect(command_factory.robot.commands).to.have.length(1);
+
+    match = command_factory.getMatchingCommand('alias3 fmt1 "blank space" no_blank_space trailing words');
+    expect(match[0]).to.equal('alias3');
+
+  });
+
   it('should match command literals for various formats of an alias', function() {
     var command_factory, alias, alias_format, match, idx_f;
 
@@ -120,7 +139,6 @@ describe('command factory', function() {
     match = command_factory.getMatchingCommand('alias2 fmt2 value1 some more words');
     expect(match[0]).to.equal('alias2');
     expect(match[1]).to.equal('alias2 fmt2 {{param1}} some more words');
-
 
   });
 

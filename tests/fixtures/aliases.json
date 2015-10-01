@@ -21,7 +21,7 @@
   "name": "alias4",
   "description": "alias4",
   "formats": [
-    "alias4 fmt1 {{param1}}",
-    "alias4 fmt1 {{param1}} word {{param2}}"
+    "alias4 fmt1 {{param1}} word {{param2}}",
+    "alias4 fmt1 {{param1}}"
   ]
 }]
