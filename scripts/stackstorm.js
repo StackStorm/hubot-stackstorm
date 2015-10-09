@@ -256,10 +256,14 @@ module.exports = function(robot) {
       }
       
       if (robot.adapterName == 'slack') {
+        var attachment_color = 'dfdfdf';
+        if (data.message.indexOf("status : failed") > -1) {
+          attachment_color = 'danger';
+        }
         robot.emit('slack-attachment', {
           channel: recipient,
           content: {
-            color: "c0c0c0",
+            color: attachment_color,
             title: "Execution Details",
             title_link: execution_details,
             text: formatter.formatData(data.message),
