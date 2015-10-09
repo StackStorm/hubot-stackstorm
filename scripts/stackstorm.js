@@ -254,8 +254,17 @@ module.exports = function(robot) {
       if (execution_details) {
         args.push(util.format('Execution details available at: %s', execution_details));
       }
-
-      robot.messageRoom.apply(robot, args);
+      robot.emit('slack-attachment', {
+        channel: recipient,
+        content: {
+          color: "c0c0c0",
+          title: "Execution Details",
+          title_link: execution_details,
+          text: formatter.formatData(data.message),
+          "mrkdwn_in": ["text", "pretext"]
+        }
+      });
+      //robot.messageRoom.apply(robot, args);
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
       robot.logger.error("Unable to decode JSON: " + e);
