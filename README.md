@@ -72,6 +72,8 @@ specified when running hubot:
 * `ST2_COMMANDS_RELOAD_INTERVAL` - How often the list of available commands
   should be reloaded. Defaults to every 120 seconds (optional).
 * `ST2_MAX_MESSAGE_LENGTH` - Message truncation to preserve chat context. Default is 500 characters of length. 0 means no limit (optional).
+* `ST2_SLACK_SUCCESS_COLOR` - Slack attachement color for success, can either be one of good, warning, danger, or any hex color code (optional).
+* `ST2_SLACK_FAIL_COLOR` - Slack attachement color for failures either be one of good, warning, danger, or any hex color code (optional).
 
 Note: ``ST2_ROUTE`` environment variable mentioned below should only be
 specified if you modified the rule which comes with a ``hubot`` pack to use a
