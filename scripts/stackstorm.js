@@ -52,6 +52,10 @@ env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
 env.ST2_AUTH_PASSWORD = env.ST2_AUTH_PASSWORD || null;
 
+// slack attachment colors
+env.ST2_SLACK_SUCCESS_COLOR = env.ST2_SLACK_SUCCESS_COLOR || 'dfdfdf';
+env.ST2_SLACK_FAIL_COLOR = env.ST2_SLACK_FAIL_COLOR || 'danger';
+
 // Optional, if not provided, we infer it from the API URL
 env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 
@@ -254,17 +258,22 @@ module.exports = function(robot) {
       if (execution_details) {
         args.push(util.format('Execution details available at: %s', execution_details));
       }
-      
+
       if (robot.adapterName == 'slack') {
-        var attachment_color = 'dfdfdf';
+        var attachment_color = env.ST2_SLACK_SUCCESS_COLOR;
         if (data.message.indexOf("status : failed") > -1) {
-          attachment_color = 'danger';
+          attachment_color = env.ST2_SLACK_FAIL_COLOR;
+        }
+        var text = "";
+        if (data.whisper != true) {
+          text = util.format('%s :', data.user);
         }
         robot.emit('slack-attachment', {
           channel: recipient,
+          text: text,
           content: {
             color: attachment_color,
-            title: "Execution Details",
+            title: "Execution " + execution_id,
             title_link: execution_details,
             text: formatter.formatData(data.message),
             "mrkdwn_in": ["text", "pretext"]
