@@ -98,6 +98,22 @@ ST2_AUTH_USERNAME=testu ST2_AUTH_PASSWORD=testp HUBOT_SLACK_TOKEN=token ST2_ROUT
 Keep in mind that you need to replace values of the environment variables so they
 reflect configuration of your environment.
 
+## Known issues / limitations
+
+Right now the bot won't re-authenticate with StackStorm API when the authentication token expires
+(usually in 24 hours after start) and you will see a similar error message in the hubot logs:
+
+```
+status code "401": {
+   "faultstring": "Unauthorized - Token has expired."
+}
+```
+
+When this happen the best thing to do is simply restart the bot - once the bot starts up again it
+will retrieve a new token which is valid for another 24 hours.
+
+For more information about this issue, please see https://github.com/StackStorm/hubot-stackstorm/issues/45
+
 ## Testing
 
 ### Lint
