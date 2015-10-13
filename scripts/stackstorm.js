@@ -40,7 +40,7 @@ var _ = require('lodash'),
   slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
   formatCommand = require('../lib/format_command.js'),
   formatData = require('../lib/format_data.js'),
-  postDatahandler = require('../lib/post_data.js'),
+  postData = require('../lib/post_data.js'),
   CommandFactory = require('../lib/command_factory.js'),
   authenticate = require('../lib/st2_authenticate.js');
 
@@ -97,8 +97,8 @@ module.exports = function(robot) {
   // formatter to manage per adapter message formatting.
   var formatter = formatData.getFormatter(robot.adapterName, robot);
 
-  // formatter to manage per adapter message formatting.
-  var postDataHandler = formatData.getFormatter(robot.adapterName, robot);
+  // handler to manage per adapter message post-ing.
+  var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
   var loadCommands = function() {
     var request;
@@ -235,7 +235,7 @@ module.exports = function(robot) {
         data = req.body;
       }
 
-      postDatahandler.postData(data);
+      postDataHandler.postData(data);
 
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {

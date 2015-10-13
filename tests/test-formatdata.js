@@ -34,7 +34,7 @@ describe('SlackFormatter', function() {
     var formatter = formatData.getFormatter(adapterName, null);
     var o = formatter.formatData('DATA', null);
     expect(o).to.be.an('string');
-    expect(o).to.equal('```\nDATA\n```');
+    expect(o).to.equal('DATA');
   });
 
   it('should truncate text more than a certain length', function() {
@@ -45,7 +45,7 @@ describe('SlackFormatter', function() {
     env.ST2_MAX_MESSAGE_LENGTH = org_max_length;
 
     expect(o).to.be.an('string');
-    expect(o).to.equal('```\nabcd efgh ...\n```');
+    expect(o).to.equal('abcd efgh ijklm');
 
   });
 
