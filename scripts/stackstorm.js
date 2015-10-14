@@ -40,6 +40,7 @@ var _ = require('lodash'),
   slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
   formatCommand = require('../lib/format_command.js'),
   formatData = require('../lib/format_data.js'),
+  postData = require('../lib/post_data.js'),
   CommandFactory = require('../lib/command_factory.js'),
   authenticate = require('../lib/st2_authenticate.js');
 
@@ -95,6 +96,9 @@ module.exports = function(robot) {
 
   // formatter to manage per adapter message formatting.
   var formatter = formatData.getFormatter(robot.adapterName, robot);
+
+  // handler to manage per adapter message post-ing.
+  var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
   var loadCommands = function() {
     var request;
@@ -231,57 +235,8 @@ module.exports = function(robot) {
         data = req.body;
       }
 
-      args = [];
-      // PM user, notify user, or tell channel
-      if (data.user) {
-        if (data.whisper === true) {
-          recipient = data.user;
-        } else {
-          recipient = data.channel;
-          // message = util.format('%s :\n%s', data.user, message);
-          args.push(util.format('%s :', data.user));
-        }
-      } else {
-        recipient = data.channel;
-      }
-      recipient = formatter.formatRecepient(recipient);
-      args.unshift(recipient);
+      postDataHandler.postData(data);
 
-      args.push(formatter.formatData(data.message));
-
-      execution_id = utils.getExecutionIdFromMessage(data.message);
-      execution_details = utils.getExecutionHistoryUrl(execution_id);
-      if (!execution_details) {
-        execution_details = utils.getExecutionCLICommand(execution_id);
-      }
-
-      if (execution_details) {
-        args.push(util.format('Execution details available at: %s', execution_details));
-      }
-
-      if (robot.adapterName == 'slack') {
-        var attachment_color = env.ST2_SLACK_SUCCESS_COLOR;
-        if (data.message.indexOf("status : failed") > -1) {
-          attachment_color = env.ST2_SLACK_FAIL_COLOR;
-        }
-        var text = "";
-        if (data.whisper != true) {
-          text = util.format('%s :', data.user);
-        }
-        robot.emit('slack-attachment', {
-          channel: recipient,
-          text: text,
-          content: {
-            color: attachment_color,
-            title: "Execution " + execution_id,
-            title_link: execution_details,
-            text: formatter.formatData(data.message),
-            "mrkdwn_in": ["text", "pretext"]
-          }
-        });
-      } else {
-        robot.messageRoom.apply(robot, args);
-      }
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
       robot.logger.error("Unable to decode JSON: " + e);

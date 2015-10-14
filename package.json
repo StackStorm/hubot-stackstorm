@@ -44,7 +44,9 @@
     "jshint": "^2.7.0",
     "jshint-stylish": "^2.0.0",
     "log": "1.4.0",
-    "nock": "^0.50.0"
+    "nock": "^0.50.0",
+    "sinon": "^1.17.1",
+    "sinon-chai": "^2.8.0"
   },
   "main": "index.js",
   "scripts": {
