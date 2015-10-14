@@ -1,3 +1,12 @@
+0.2.6
+-----
+* Results are posted to slack as attachments with appropriate colors. (Feature - thomaspicquet)
+
+0.2.5
+-----
+* Bring back support for spaces in commands (regression fix)
+* Handle slack special quotes (bug fix)
+
 0.2.4
 -----
 
