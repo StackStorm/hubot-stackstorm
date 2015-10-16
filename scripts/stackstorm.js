@@ -34,7 +34,7 @@ limitations under the License.
 
 var _ = require('lodash'),
   util = require('util'),
-  env = process.env,
+  env = _.clone(process.env),
   Promise = require('rsvp').Promise,
   utils = require('../lib/utils.js'),
   slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
@@ -52,6 +52,9 @@ env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 // Optional authentication info
 env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
 env.ST2_AUTH_PASSWORD = env.ST2_AUTH_PASSWORD || null;
+
+// Optional API key
+env.ST2_API_KEY = env.ST2_API_KEY || null;
 
 // slack attachment colors
 env.ST2_SLACK_SUCCESS_COLOR = env.ST2_SLACK_SUCCESS_COLOR || 'dfdfdf';
@@ -110,6 +113,10 @@ module.exports = function(robot) {
 
     if (auth_token) {
       request = request.header('X-Auth-Token', auth_token);
+    }
+
+    if (env.ST2_API_KEY) {
+      request = request.header('st2-api-key', env.ST2_API_KEY);
     }
 
     request.get()(
