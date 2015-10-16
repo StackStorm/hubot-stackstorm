@@ -30,7 +30,7 @@ var chai = require("chai"),
   sinonChai = require('sinon-chai'),
   util = require('util');
 
-chai.use(sinonChai)
+chai.use(sinonChai);
 
 describe("slack post data", function() {
   var robot, formatter, postDataHandler;

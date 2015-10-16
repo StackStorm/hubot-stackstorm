@@ -34,7 +34,7 @@ limitations under the License.
 
 var _ = require('lodash'),
   util = require('util'),
-  env = process.env,
+  env = _.clone(process.env),
   Promise = require('rsvp').Promise,
   utils = require('../lib/utils.js'),
   slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
@@ -42,7 +42,8 @@ var _ = require('lodash'),
   formatData = require('../lib/format_data.js'),
   postData = require('../lib/post_data.js'),
   CommandFactory = require('../lib/command_factory.js'),
-  authenticate = require('../lib/st2_authenticate.js');
+  st2client = require('st2client')
+  ;
 
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
@@ -52,6 +53,12 @@ env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 // Optional authentication info
 env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
 env.ST2_AUTH_PASSWORD = env.ST2_AUTH_PASSWORD || null;
+
+// Optional authentication token
+env.ST2_API_KEY = env.ST2_API_KEY || null;
+
+// Optional API key
+env.ST2_API_KEY = env.ST2_API_KEY || null;
 
 // slack attachment colors
 env.ST2_SLACK_SUCCESS_COLOR = env.ST2_SLACK_SUCCESS_COLOR || 'dfdfdf';
@@ -86,10 +93,44 @@ module.exports = function(robot) {
 
   var self = this;
 
-  // Auth token we use to authenticate
-  var auth_token = null;
+  var promise = Promise.resolve();
 
-  var client = robot.http(env.ST2_API);
+  var url = utils.parseUrl(env.ST2_API);
+
+  var opts = {
+    protocol: url.protocol,
+    host: url.host,
+    port: url.port,
+    rejectUnauthorized: false
+  };
+
+  var api = st2client(opts);
+
+  if (env.ST2_API_KEY) {
+    api.setKey({ key: env.ST2_API_KEY });
+  }
+
+  if (env.ST2_AUTH_TOKEN) {
+    api.setToken({ token: env.ST2_AUTH_TOKEN });
+  }
+
+  if (env.ST2_AUTH_URL) {
+    if (env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD) {
+      promise = st2client({
+        auth: utils.parseUrl(env.ST2_AUTH_URL)
+      }).authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
+        .then(function (token) {
+          api.setToken(token);
+        })
+        .catch(function (err) {
+          robot.logger.error('Failed to authenticate: ' + err.message);
+
+          throw err;
+        });
+    } else {
+      throw new Error('Both ST2_AUTH_USERNAME and ST2_AUTH_PASSWORD env variables are required when ST2_AUTH_URL is set.');
+    }
+  }
 
   // factory to manage commands
   var command_factory = new CommandFactory(robot);
@@ -101,69 +142,36 @@ module.exports = function(robot) {
   var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
   var loadCommands = function() {
-    var request;
-
     robot.logger.info('Loading commands....');
 
-    // TODO: We should use st2client for this
-    request = client.scope('/v1/actionalias');
-
-    if (auth_token) {
-      request = request.header('X-Auth-Token', auth_token);
-    }
-
-    request.get()(
-      function(err, resp, body) {
-        var parsed_body, success, error_msg;
-
-        if (err) {
-          error_msg = 'Failed to retrieve commands from "%s": %s';
-          robot.logger.error(util.format(error_msg, env.ST2_API, err.toString()));
-          return;
-        }
-
-        parsed_body = JSON.parse(body);
-        if (!_.isArray(parsed_body)) {
-          success = false;
-        } else {
-          success = true;
-        }
-
-        if (!success) {
-          error_msg = 'Failed to retrieve commands from "%s": %s';
-          robot.logger.error(util.format(error_msg, env.ST2_API, body));
-          return;
-        }
+    api.actionAlias.list()
+      .then(function (aliases) {
+        robot.logger.info(aliases.length + ' commands are loaded');
 
         // Remove all the existing commands
         command_factory.removeCommands();
 
-        _.each(parsed_body, function(action_alias) {
-          var name, formats, description, i, format, command;
-
-          if (!action_alias) {
-            robot.logger.error('No action alias specified for command: ' + name);
-            return;
-          }
-
-          name = action_alias.name;
-          formats = action_alias.formats;
-          description = action_alias.description;
+        _.each(aliases, function (alias) {
+          var name = alias.name;
+          var formats = alias.formats;
+          var description = alias.description;
 
           if (!formats || formats.length === 0) {
             robot.logger.error('No formats specified for command: ' + name);
             return;
           }
 
-          for (i = 0; i < formats.length; i++) {
-            format = formats[i];
-            command = formatCommand(robot.logger, name, format, description);
+          _.each(formats, function (format) {
+            var command = formatCommand(robot.logger, name, format, description);
 
-            command_factory.addCommand(command, name, format, action_alias);
-          }
+            command_factory.addCommand(command, name, format, alias);
+          });
         });
-      }
-    );
+      })
+      .catch(function (err) {
+        var error_msg = 'Failed to retrieve commands from "%s": %s';
+        robot.logger.error(util.format(error_msg, env.ST2_API, err.message));
+      });
   };
 
   var executeCommand = function(msg, command_name, format_string, command) {
@@ -178,29 +186,30 @@ module.exports = function(robot) {
 
     robot.logger.debug('Sending command payload %s ' + JSON.stringify(payload));
 
-    client.scope('/v1/aliasexecution').header('Content-Type', 'application/json').post(JSON.stringify(payload)) (
-      function(err, resp, body) {
-        var message, history_url, execution_id;
-
-        if (err) {
-          msg.send(util.format('error : %s', err));
-        } else if (resp.statusCode !== 200) {
-          msg.send(util.format('status code "%s": %s', resp.statusCode, body));
-        } else {
-          execution_id = _.trim(body, '"');
-          history_url = utils.getExecutionHistoryUrl(execution_id);
-
-          message = START_MESSAGES[_.random(0, START_MESSAGES.length - 1)];
-          message = util.format(message, execution_id);
-
-          if (history_url) {
-            message += util.format(' (details available at %s)', history_url);
-          }
-
-          msg.send(message);
+    api.aliasExecution.create(payload)
+      .catch(function (err) {
+        // Until aliasexecution endpoint didn't get patched with proper status and output, work
+        // around this curious design decision.
+        if (err.status === 200) {
+          return { id: err.message };
         }
-      }
-    );
+
+        throw err;
+      })
+      .then(function (execution) {
+        var history_url = utils.getExecutionHistoryUrl(execution.id);
+
+        var message = util.format(_.sample(START_MESSAGES), execution.id);
+
+        if (history_url) {
+          message += util.format(' (details available at %s)', history_url);
+        }
+
+        msg.send(message);
+      })
+      .catch(function (err) {
+        msg.send(util.format('error : %s', err.message));
+      });
   };
 
   robot.respond(/(.+?)$/i, function(msg) {
@@ -226,7 +235,7 @@ module.exports = function(robot) {
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
-    var data, args, message, channel, recipient, execution_id, execution_details;
+    var data;
 
     try {
       if (req.body.payload) {
@@ -266,16 +275,7 @@ module.exports = function(robot) {
 
   // Authenticate with StackStorm backend and then call start.
   // On a failure to authenticate log the error but do not quit.
-  return new Promise(function(resolve, reject) {
-    authenticate(env.ST2_AUTH_URL, env.ST2_API, env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD, robot.logger)
-    .then(function(result) {
-      auth_token = result['token'];
-      result = start();
-      resolve(result);
-    })
-    .catch(function(err) {
-      robot.logger.error('Failed to authenticate: ' + err.message.toString());
-      reject(err);
-    });
+  return promise.then(function () {
+    return start();
   });
 };
