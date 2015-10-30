@@ -47,7 +47,7 @@ var _ = require('lodash'),
 
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
-env.ST2_ROUTE = env.ST2_ROUTE || env.ST2_CHANNEL || 'hubot';
+env.ST2_ROUTE = env.ST2_ROUTE || null;
 env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 
 // Optional authentication info
@@ -181,7 +181,7 @@ module.exports = function(robot) {
       'command': command,
       'user': msg.message.user.name,
       'source_channel': msg.message.room,
-      'notification_route': env.ST2_ROUTE
+      'notification_route': env.ST2_ROUTE || 'hubot'
     };
 
     robot.logger.debug('Sending command payload %s ' + JSON.stringify(payload));
@@ -232,6 +232,20 @@ module.exports = function(robot) {
     format_string = result[1];
 
     executeCommand(msg, command_name, format_string, command);
+  });
+
+  api.stream.listen().then(function (source) {
+    source.addEventListener('st2.announcement__chatops', function (e) {
+      var data;
+
+      if (e.data) {
+        data = JSON.parse(e.data).payload;
+      } else {
+        data = e.data;
+      }
+
+      postDataHandler.postData(data);
+    });
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
