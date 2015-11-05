@@ -34,7 +34,7 @@
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
     "coffee-script": "~1.7.1",
-    "gulp": "~3.8.11",
+    "gulp": "^3.9.0",
     "gulp-jshint": "^1.9.0",
     "gulp-mocha": "^1.1.1",
     "gulp-plumber": "^0.6.6",
@@ -50,8 +50,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "gult test",
-    "lint": "gulp lint"
+    "test": "node_modules/.bin/gulp"
   },
   "engines": {
     "node": ">= 0.10.x"

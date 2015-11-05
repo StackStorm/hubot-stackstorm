@@ -268,17 +268,25 @@ module.exports = function(robot) {
     }
   });
 
+  var commands_load_interval;
+
   function start() {
     // Add an interval which tries to re-load the commands
-    var commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
+    commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
 
     // Initial command loading
     loadCommands();
 
     // Install SIGUSR2 handler which reloads the command
     install_sigusr2_handler();
+  }
 
-    return commands_load_interval;
+  function stop() {
+    clearInterval(commands_load_interval);
+    api.stream.listen().then(function (source) {
+      source.removeAllListeners();
+      source.close();
+    });
   }
 
   function install_sigusr2_handler() {
@@ -290,6 +298,7 @@ module.exports = function(robot) {
   // Authenticate with StackStorm backend and then call start.
   // On a failure to authenticate log the error but do not quit.
   return promise.then(function () {
-    return start();
+    start();
+    return stop;
   });
 };
