@@ -139,15 +139,16 @@ module.exports = function(robot) {
         command_factory.removeCommands();
 
         _.each(parsed_body, function(action_alias) {
-          var name, formats, description, i, format, command;
+          var name, formats, description, i, format, command, aliases;
 
           if (!action_alias) {
             robot.logger.error('No action alias specified for command: ' + name);
             return;
           }
-
+          
           name = action_alias.name;
           formats = action_alias.formats;
+          aliases = action_alias.aliases;
           description = action_alias.description;
 
           if (!formats || formats.length === 0) {
@@ -161,6 +162,16 @@ module.exports = function(robot) {
 
             command_factory.addCommand(command, name, format, action_alias);
           }
+
+          if (aliases && aliases.length > 0) {
+            for (i = 0; i < aliases.length; i++) {
+              format = aliases[i];
+              command = formatCommand(robot.logger, name, format, description);
+
+              command_factory.addCommand(command, name, format, action_alias, true);
+            }
+	  }
+ 
         });
       }
     );
