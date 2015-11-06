@@ -177,7 +177,7 @@ module.exports = function(robot) {
     );
   };
 
-  var executeCommand = function(msg, command_name, format_string, command) {
+  var executeCommand = function(msg, command_name, format_string, command, action_alias) {
     var payload = {
       'name': command_name,
       'format': format_string,
@@ -198,24 +198,31 @@ module.exports = function(robot) {
         } else if (resp.statusCode !== 200) {
           msg.send(util.format('status code "%s": %s', resp.statusCode, body));
         } else {
-          execution_id = _.trim(body, '"');
-          history_url = utils.getExecutionHistoryUrl(execution_id);
+          if (!(action_alias.ack && action_alias.ack.enabled === false)) {
 
-          message = START_MESSAGES[_.random(0, START_MESSAGES.length - 1)];
-          message = util.format(message, execution_id);
+            if (action_alias.ack && action_alias.ack.format) {
+              message = action_alias.ack.format;
+            } else {
+              execution_id = _.trim(body, '"');
+              history_url = utils.getExecutionHistoryUrl(execution_id);
 
-          if (history_url) {
-            message += util.format(' (details available at %s)', history_url);
+              message = START_MESSAGES[_.random(0, START_MESSAGES.length - 1)];
+              message = util.format(message, execution_id);
+
+              if (history_url) {
+                message += util.format(' (details available at %s)', history_url);
+              }
+            }
+
+            msg.send(message);
           }
-
-          msg.send(message);
         }
       }
     );
   };
 
   robot.respond(/([\s\S]+?)$/i, function(msg) {
-    var command, result, command_name, format_string;
+    var command, result, command_name, format_string, action_alias;
 
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
@@ -232,8 +239,9 @@ module.exports = function(robot) {
 
     command_name = result[0];
     format_string = result[1];
+    action_alias = result[2];
 
-    executeCommand(msg, command_name, format_string, command);
+    executeCommand(msg, command_name, format_string, command, action_alias);
   });
 
   robot.router.post('/hubot/st2', function(req, res) {
