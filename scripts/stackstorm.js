@@ -139,7 +139,7 @@ module.exports = function(robot) {
         command_factory.removeCommands();
 
         _.each(parsed_body, function(action_alias) {
-          var name, formats, description, i, format, command, aliases;
+          var name, formats, description, i, ii, format, command;
 
           if (!action_alias) {
             robot.logger.error('No action alias specified for command: ' + name);
@@ -148,7 +148,6 @@ module.exports = function(robot) {
           
           name = action_alias.name;
           formats = action_alias.formats;
-          aliases = action_alias.aliases;
           description = action_alias.description;
 
           if (!formats || formats.length === 0) {
@@ -158,20 +157,19 @@ module.exports = function(robot) {
 
           for (i = 0; i < formats.length; i++) {
             format = formats[i];
-            command = formatCommand(robot.logger, name, format, description);
-
-            command_factory.addCommand(command, name, format, action_alias);
+            if (typeof(format) === "string") {
+              command = formatCommand(robot.logger, name, format, description);
+              command_factory.addCommand(command, name, format, action_alias);
+            } else {
+              command = formatCommand(robot.logger, name, format.display, description);
+              command_factory.addCommand(command, name, format.display, action_alias);
+              for (ii = 0; ii < format.representation.length; ii++) {
+                command = formatCommand(robot.logger, name, format.representation[ii], description);
+                command_factory.addCommand(command, name, format.representation[ii], action_alias, true);
+              }
+            }
           }
 
-          if (aliases && aliases.length > 0) {
-            for (i = 0; i < aliases.length; i++) {
-              format = aliases[i];
-              command = formatCommand(robot.logger, name, format, description);
-
-              command_factory.addCommand(command, name, format, action_alias, true);
-            }
-	  }
- 
         });
       }
     );
