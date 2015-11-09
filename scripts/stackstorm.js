@@ -212,7 +212,7 @@ module.exports = function(robot) {
       });
   };
 
-  robot.respond(/(.+?)$/i, function(msg) {
+  robot.respond(/([\s\S]+?)$/i, function(msg) {
     var command, result, command_name, format_string;
 
     // Normalize the command and remove special handling provided by the chat service.
