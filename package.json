@@ -24,7 +24,7 @@
     "lodash": "~3.8.0",
     "cli-table": "<=1.0.0",
     "rsvp": "3.0.14",
-    "st2client": "~0.3.3",
+    "st2client": "^0.4.1",
     "truncate": "^1.0.4"
   },
   "peerDependencies": {
@@ -34,7 +34,7 @@
     "chai": "^3.0.0",
     "chai-as-promised": "^5.1.0",
     "coffee-script": "~1.7.1",
-    "gulp": "~3.8.11",
+    "gulp": "^3.9.0",
     "gulp-jshint": "^1.9.0",
     "gulp-mocha": "^1.1.1",
     "gulp-plumber": "^0.6.6",
@@ -50,8 +50,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "gult test",
-    "lint": "gulp lint"
+    "test": "node_modules/.bin/gulp"
   },
   "engines": {
     "node": ">= 0.10.x"

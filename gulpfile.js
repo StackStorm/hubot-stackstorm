@@ -22,14 +22,14 @@ var gulp = require('gulp'),
   plumber = require('gulp-plumber'),
   mocha = require('gulp-mocha');
 
-gulp.task('lint', function() {
+gulp.task('lint', function () {
   return gulp.src(['scripts/**/*.js', 'lib/**/*.js', 'tests/**/*.js'])
     .pipe(plumber())
     .pipe(jshint('jshint.json'))
     .pipe(jshint.reporter('jshint-stylish'));
 });
 
-gulp.task('tests', function() {
+gulp.task('test', function () {
   return gulp.src('tests/**/*.js', {
       read: false
     })
@@ -38,6 +38,4 @@ gulp.task('tests', function() {
     }));
 });
 
-gulp.task('ci', ['lint', 'tests']);
-
-gulp.task('default', ['lint', 'tests']);
+gulp.task('default', ['lint', 'test']);

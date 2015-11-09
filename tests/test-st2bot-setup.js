@@ -37,7 +37,7 @@ var disableAuth = function() {
 };
 
 describe("stanley the StackStorm bot", function() {
-  var robot, user, adapter, st2bot, commands_load_interval;
+  var robot, user, adapter, st2bot, stop;
 
   before(function(done) {
     robot = new Robot(null, "mock-adapter", true, "Hubot");
@@ -59,7 +59,7 @@ describe("stanley the StackStorm bot", function() {
       st2bot = require("../scripts/stackstorm");
 
       st2bot(robot).then(function(result) {
-        commands_load_interval = result;
+        stop = result;
         // Load help module
         robot.loadFile(path.resolve('node_modules', 'hubot-help', 'src'), 'help.coffee');
 
@@ -72,18 +72,17 @@ describe("stanley the StackStorm bot", function() {
         done();
       }).catch(function(err) {
         console.log(err);
-        done();
+        done(err);
       });
     });
 
     robot.run();
   });
 
-  after(function(done) {
-    clearInterval(commands_load_interval);
+  after(function() {
+    stop();
     robot.server.close();
     robot.shutdown();
-    done();
   });
 
   it("responds when asked for help", function(done) {
@@ -94,15 +93,7 @@ describe("stanley the StackStorm bot", function() {
     adapter.receive(new TextMessage(user, "Hubot help"));
   });
 
-  it("has listeners", function(done) {
+  it("has listeners", function() {
     expect(robot.listeners).to.have.length(2);
-    done();
-  });
-
-  it("has the right environment variables", function(done) {
-    expect(process.env.ST2_API).to.exist;
-    expect(process.env.ST2_ROUTE).to.exist;
-    expect(process.env.ST2_COMMANDS_RELOAD_INTERVAL).to.exist;
-    done();
   });
 });
