@@ -99,7 +99,7 @@ module.exports = function(robot) {
 
   var opts = {
     protocol: url.protocol,
-    host: url.host,
+    host: url.hostname,
     port: url.port,
     rejectUnauthorized: false
   };
