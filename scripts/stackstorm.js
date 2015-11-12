@@ -162,9 +162,13 @@ module.exports = function(robot) {
           }
 
           _.each(formats, function (format) {
-            var command = formatCommand(robot.logger, name, format, description);
+            var command = formatCommand(robot.logger, name, format.display || format, description);
+            command_factory.addCommand(command, name, format.display || format, alias);
 
-            command_factory.addCommand(command, name, format, alias);
+            _.each(format.representation, function (representation) {
+              command = formatCommand(robot.logger, name, representation, description);
+              command_factory.addCommand(command, name, representation, alias, true);
+            });
           });
         });
       })
@@ -174,7 +178,7 @@ module.exports = function(robot) {
       });
   };
 
-  var executeCommand = function(msg, command_name, format_string, command) {
+  var executeCommand = function(msg, command_name, format_string, command, action_alias) {
     var payload = {
       'name': command_name,
       'format': format_string,
@@ -197,6 +201,14 @@ module.exports = function(robot) {
         throw err;
       })
       .then(function (execution) {
+        if (action_alias.ack && action_alias.ack.enabled === false) {
+          return;
+        }
+
+        if (action_alias.ack && action_alias.ack.format) {
+          return action_alias.ack.format;
+        }
+
         var history_url = utils.getExecutionHistoryUrl(execution.id);
 
         var message = util.format(_.sample(START_MESSAGES), execution.id);
@@ -205,7 +217,12 @@ module.exports = function(robot) {
           message += util.format(' (details available at %s)', history_url);
         }
 
-        msg.send(message);
+        return message;
+      })
+      .then(function (message) {
+        if (message) {
+          msg.send(message);
+        }
       })
       .catch(function (err) {
         msg.send(util.format('error : %s', err.message));
@@ -213,7 +230,7 @@ module.exports = function(robot) {
   };
 
   robot.respond(/([\s\S]+?)$/i, function(msg) {
-    var command, result, command_name, format_string;
+    var command, result, command_name, format_string, action_alias;
 
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
@@ -230,8 +247,9 @@ module.exports = function(robot) {
 
     command_name = result[0];
     format_string = result[1];
+    action_alias = result[2];
 
-    executeCommand(msg, command_name, format_string, command);
+    executeCommand(msg, command_name, format_string, command, action_alias);
   });
 
   api.stream.listen().then(function (source) {
