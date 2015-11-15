@@ -55,7 +55,7 @@ env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
 env.ST2_AUTH_PASSWORD = env.ST2_AUTH_PASSWORD || null;
 
 // Optional authentication token
-env.ST2_API_KEY = env.ST2_API_KEY || null;
+env.ST2_AUTH_TOKEN = env.ST2_AUTH_TOKEN || null;
 
 // Optional API key
 env.ST2_API_KEY = env.ST2_API_KEY || null;
