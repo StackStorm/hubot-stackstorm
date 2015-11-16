@@ -195,7 +195,9 @@ module.exports = function(robot) {
         // Until aliasexecution endpoint didn't get patched with proper status and output, work
         // around this curious design decision.
         if (err.status === 200) {
-          msg.send(err.message);
+          if (err.message && err.message.length) {
+            msg.send(err.message);
+          }
         } else {
           msg.send(util.format('Error: %s', err.message));
         }
