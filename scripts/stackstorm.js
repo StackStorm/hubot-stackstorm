@@ -73,20 +73,6 @@ env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL || 
 // Cap message length to a certain number of characters.
 env.ST2_MAX_MESSAGE_LENGTH = parseInt(env.ST2_MAX_MESSAGE_LENGTH || 500, 10);
 
-// Constants
-// Fun human-friendly commands. Use %s for payload output.
-var START_MESSAGES = [
-    "I'll take it from here! Your execution ID for reference is %s",
-    "Got it! Remember %s as your execution ID",
-    "I'm on it! Your execution ID is %s",
-    "Let me get right on that. Remember %s as your execution ID",
-    "Always something with you. :) I'll take care of that. Your ID is %s",
-    "I have it covered. Your execution ID is %s",
-    "Let me start up the machine! Your execution ID is %s",
-    "I'll throw that task in the oven and get cookin'! Your execution ID is %s",
-    "Want me to take that off your hand? You got it! Don't forget your execution ID: %s"
-];
-
 
 module.exports = function(robot) {
   slack_monkey_patch.patchSendMessage(robot);
