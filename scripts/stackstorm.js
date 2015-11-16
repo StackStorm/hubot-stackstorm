@@ -76,15 +76,19 @@ env.ST2_MAX_MESSAGE_LENGTH = parseInt(env.ST2_MAX_MESSAGE_LENGTH || 500, 10);
 // Constants
 // Fun human-friendly commands. Use %s for payload output.
 var START_MESSAGES = [
-    "I'll take it from here! Your execution ID for reference is %s",
-    "Got it! Remember %s as your execution ID",
-    "I'm on it! Your execution ID is %s",
-    "Let me get right on that. Remember %s as your execution ID",
-    "Always something with you. :) I'll take care of that. Your ID is %s",
-    "I have it covered. Your execution ID is %s",
-    "Let me start up the machine! Your execution ID is %s",
-    "I'll throw that task in the oven and get cookin'! Your execution ID is %s",
-    "Want me to take that off your hand? You got it! Don't forget your execution ID: %s"
+  "I'll take it from here! Your execution ID for reference is %s",
+  "Got it! Remember %s as your execution ID",
+  "I'm on it! Your execution ID is %s",
+  "Let me get right on that. Remember %s as your execution ID",
+  "Always something with you. :) I'll take care of that. Your ID is %s",
+  "I have it covered. Your execution ID is %s",
+  "Let me start up the machine! Your execution ID is %s",
+  "I'll throw that task in the oven and get cookin'! Your execution ID is %s",
+  "Want me to take that off your hand? You got it! Don't forget your execution ID: %s"
+];
+
+var ERROR_MESSAGES = [
+  "I'm sorry, Dave. I'm afraid I can't do that. (%s)"
 ];
 
 
@@ -188,7 +192,7 @@ module.exports = function(robot) {
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
 
-    robot.logger.debug('Sending command payload %s ' + JSON.stringify(payload));
+    robot.logger.debug('Sending command payload:', JSON.stringify(payload));
 
     api.aliasExecution.create(payload)
       .catch(function (err) {
@@ -200,32 +204,41 @@ module.exports = function(robot) {
 
         throw err;
       })
-      .then(function (execution) {
-        if (action_alias.ack && action_alias.ack.enabled === false) {
-          return;
-        }
-
-        if (action_alias.ack && action_alias.ack.format) {
-          return action_alias.ack.format;
-        }
-
-        var history_url = utils.getExecutionHistoryUrl(execution.id);
-
-        var message = util.format(_.sample(START_MESSAGES), execution.id);
-
-        if (history_url) {
-          message += util.format(' (details available at %s)', history_url);
-        }
-
-        return message;
-      })
-      .then(function (message) {
-        if (message) {
-          msg.send(message);
-        }
-      })
       .catch(function (err) {
-        msg.send(util.format('error : %s', err.message));
+        robot.logger.error('Failed to create an alias execution:', err);
+        msg.send(util.format(_.sample(ERROR_MESSAGES), err.message));
+        throw err;
+      })
+      .then(function (execution) {
+        return Promise.resolve(execution)
+          .then(function () {
+            if (action_alias.ack && action_alias.ack.enabled === false) {
+              return;
+            }
+
+            if (action_alias.ack && action_alias.ack.format) {
+              return action_alias.ack.format;
+            }
+
+            var history_url = utils.getExecutionHistoryUrl(execution.id);
+
+            var message = util.format(_.sample(START_MESSAGES), execution.id);
+
+            if (history_url) {
+              message += util.format(' (details available at %s)', history_url);
+            }
+
+            return message;
+          })
+          .then(function (message) {
+            if (message) {
+              msg.send(message);
+            }
+          })
+          .catch(function (err) {
+            robot.logger.error('Failed to acknowledge alias execution creation:', err);
+            msg.send(util.format(_.sample(ERROR_MESSAGES), 'AckError: ' + err.message));
+          });
       });
   };
 
@@ -275,9 +288,17 @@ module.exports = function(robot) {
   var commands_load_interval;
 
   function start() {
-    api.stream.listen().then(function (source) {
+    api.stream.listen().catch(function (err) {
+      robot.logger.error('Unable to connect to stream:', err);
+    }).then(function (source) {
+      source.onerror = function (err) {
+        // TODO: squeeze a little bit more info out of evensource.js
+        robot.logger.error('Stream error:', err);
+      }
       source.addEventListener('st2.announcement__chatops', function (e) {
         var data;
+
+        robot.logger.debug('Chatops message received:', e.data);
 
         if (e.data) {
           data = JSON.parse(e.data).payload;
