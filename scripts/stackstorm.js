@@ -252,20 +252,6 @@ module.exports = function(robot) {
     executeCommand(msg, command_name, format_string, command, action_alias);
   });
 
-  api.stream.listen().then(function (source) {
-    source.addEventListener('st2.announcement__chatops', function (e) {
-      var data;
-
-      if (e.data) {
-        data = JSON.parse(e.data).payload;
-      } else {
-        data = e.data;
-      }
-
-      postDataHandler.postData(data);
-    });
-  });
-
   robot.router.post('/hubot/st2', function(req, res) {
     var data;
 
@@ -289,6 +275,20 @@ module.exports = function(robot) {
   var commands_load_interval;
 
   function start() {
+    api.stream.listen().then(function (source) {
+      source.addEventListener('st2.announcement__chatops', function (e) {
+        var data;
+
+        if (e.data) {
+          data = JSON.parse(e.data).payload;
+        } else {
+          data = e.data;
+        }
+
+        postDataHandler.postData(data);
+      });
+    });
+
     // Add an interval which tries to re-load the commands
     commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
 
