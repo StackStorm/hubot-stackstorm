@@ -118,21 +118,32 @@ module.exports = function(robot) {
     api.setToken({ token: env.ST2_AUTH_TOKEN });
   }
 
-  if (env.ST2_AUTH_URL) {
-    if (env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD) {
-      promise = st2client({
-        auth: utils.parseUrl(env.ST2_AUTH_URL)
-      }).authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
-        .then(function (token) {
-          api.setToken(token);
-        })
-        .catch(function (err) {
-          robot.logger.error('Failed to authenticate: ' + err.message);
+  function authenticate() {
+    api.removeListener('expiry', authenticate);
+    robot.logger.info('Requesting a token...')
 
-          throw err;
-        });
+    var client = st2client({
+      auth: utils.parseUrl(env.ST2_AUTH_URL)
+    })
+
+    return client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
+      .then(function (token) {
+        robot.logger.info('Token received. Expiring ' + token.expiry);
+        api.setToken(token);
+        client.on('expiry', authenticate);
+      })
+      .catch(function (err) {
+        robot.logger.error('Failed to authenticate: ' + err.message);
+
+        throw err;
+      });
+  }
+
+  if (env.ST2_AUTH_URL || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
+    if (env.ST2_AUTH_URL && env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD) {
+      promise = authenticate();
     } else {
-      throw new Error('Both ST2_AUTH_USERNAME and ST2_AUTH_PASSWORD env variables are required when ST2_AUTH_URL is set.');
+      throw new Error('Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
     }
   }
 

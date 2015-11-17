@@ -24,7 +24,7 @@
     "lodash": "~3.8.0",
     "cli-table": "<=1.0.0",
     "rsvp": "3.0.14",
-    "st2client": "^0.4.1",
+    "st2client": "^0.4.2",
     "truncate": "^1.0.4"
   },
   "peerDependencies": {
