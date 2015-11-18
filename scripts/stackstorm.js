@@ -73,20 +73,6 @@ env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL || 
 // Cap message length to a certain number of characters.
 env.ST2_MAX_MESSAGE_LENGTH = parseInt(env.ST2_MAX_MESSAGE_LENGTH || 500, 10);
 
-// Constants
-// Fun human-friendly commands. Use %s for payload output.
-var START_MESSAGES = [
-    "I'll take it from here! Your execution ID for reference is %s",
-    "Got it! Remember %s as your execution ID",
-    "I'm on it! Your execution ID is %s",
-    "Let me get right on that. Remember %s as your execution ID",
-    "Always something with you. :) I'll take care of that. Your ID is %s",
-    "I have it covered. Your execution ID is %s",
-    "Let me start up the machine! Your execution ID is %s",
-    "I'll throw that task in the oven and get cookin'! Your execution ID is %s",
-    "Want me to take that off your hand? You got it! Don't forget your execution ID: %s"
-];
-
 
 module.exports = function(robot) {
   slack_monkey_patch.patchSendMessage(robot);
@@ -195,38 +181,14 @@ module.exports = function(robot) {
         // Until aliasexecution endpoint didn't get patched with proper status and output, work
         // around this curious design decision.
         if (err.status === 200) {
-          return { id: err.message };
+          if (err.message && err.message.length) {
+            msg.send(err.message);
+          }
+        } else {
+          msg.send(util.format('Error: %s', err.message));
         }
-
-        throw err;
-      })
-      .then(function (execution) {
-        if (action_alias.ack && action_alias.ack.enabled === false) {
-          return;
-        }
-
-        if (action_alias.ack && action_alias.ack.format) {
-          return action_alias.ack.format;
-        }
-
-        var history_url = utils.getExecutionHistoryUrl(execution.id);
-
-        var message = util.format(_.sample(START_MESSAGES), execution.id);
-
-        if (history_url) {
-          message += util.format(' (details available at %s)', history_url);
-        }
-
-        return message;
-      })
-      .then(function (message) {
-        if (message) {
-          msg.send(message);
-        }
-      })
-      .catch(function (err) {
-        msg.send(util.format('error : %s', err.message));
       });
+
   };
 
   robot.respond(/([\s\S]+?)$/i, function(msg) {
