@@ -120,11 +120,11 @@ module.exports = function(robot) {
 
   function authenticate() {
     api.removeListener('expiry', authenticate);
-    robot.logger.info('Requesting a token...')
+    robot.logger.info('Requesting a token...');
 
     var client = st2client({
       auth: utils.parseUrl(env.ST2_AUTH_URL)
-    })
+    });
 
     return client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
       .then(function (token) {
@@ -305,7 +305,7 @@ module.exports = function(robot) {
       source.onerror = function (err) {
         // TODO: squeeze a little bit more info out of evensource.js
         robot.logger.error('Stream error:', err);
-      }
+      };
       source.addEventListener('st2.announcement__chatops', function (e) {
         var data;
 
