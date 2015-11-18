@@ -32,8 +32,9 @@ var disableLogger = true,
   controlledLogger = function(msg) {};
 
 var disableAuth = function() {
-  process.env.ST2_AUTH_USERNAME = null;
-  process.env.ST2_AUTH_PASSWORD = null;
+  process.env.ST2_AUTH_URL = '';
+  process.env.ST2_AUTH_USERNAME = '';
+  process.env.ST2_AUTH_PASSWORD = '';
 };
 
 describe("stanley the StackStorm bot", function() {
@@ -80,7 +81,7 @@ describe("stanley the StackStorm bot", function() {
   });
 
   after(function() {
-    stop();
+    stop && stop();
     robot.server.close();
     robot.shutdown();
   });
