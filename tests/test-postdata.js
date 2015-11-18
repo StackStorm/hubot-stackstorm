@@ -62,10 +62,8 @@ describe("slack post data", function() {
           color: env.ST2_SLACK_SUCCESS_COLOR,
           mrkdwn_in: ["text", "pretext"],
           text: input.message,
-          title: "Execution 1",
-          title_link: "st2 execution get 1"
         },
-        text: "stanley :"
+        text: "@stanley: "
       }
     );
   });
@@ -90,10 +88,8 @@ describe("slack post data", function() {
           color: env.ST2_SLACK_FAIL_COLOR,
           mrkdwn_in: ["text", "pretext"],
           text: input.message,
-          title: "Execution 1",
-          title_link: "st2 execution get 1"
         },
-        text: "stanley :"
+        text: "@stanley: "
       }
     );
   });
@@ -118,8 +114,6 @@ describe("slack post data", function() {
           color: env.ST2_SLACK_SUCCESS_COLOR,
           mrkdwn_in: ["text", "pretext"],
           text: input.message,
-          title: "Execution 1",
-          title_link: "st2 execution get 1"
         },
         text: ""
       }
@@ -150,9 +144,7 @@ describe("default post data", function() {
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
-      'stanley :',
-      input.message,
-      util.format('Execution details available at: st2 execution get %s', '1')
+      'stanley: ' + input.message
     );
   });
 
@@ -171,8 +163,7 @@ describe("default post data", function() {
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       'stanley',
-      input.message,
-      util.format('Execution details available at: st2 execution get %s', '1')
+      input.message
     );
   });
 
@@ -190,8 +181,7 @@ describe("default post data", function() {
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
-      input.message,
-      util.format('Execution details available at: st2 execution get %s', '1')
+      input.message
     );
   });
 
