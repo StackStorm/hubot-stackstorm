@@ -39,43 +39,6 @@ describe('isNull', function() {
   });
 });
 
-describe('getExecutionHistoryUrl', function() {
-  it('should return null on empty ST2_WEBUI_URL', function() {
-    process.env.ST2_WEBUI_URL = null;
-    var result = utils.getExecutionHistoryUrl('abcd');
-    expect(result).to.be.equal(null);
-  });
-
-  it('should return null on empty execution_id', function() {
-    process.env.ST2_WEBUI_URL = 'http://localhost:8080';
-    var result = utils.getExecutionHistoryUrl(null);
-    expect(result).to.be.equal(null);
-  });
-
-  it('should return url when env variable and execution id are set', function() {
-    process.env.ST2_WEBUI_URL = 'http://localhost:8080';
-    var result = utils.getExecutionHistoryUrl('abcd');
-    expect(result).to.be.equal('http://localhost:8080/#/history/abcd/general');
-  });
-});
-
-describe('getExecutionIdFromMessage', function() {
-  it('should return null on empty message', function() {
-    var result = utils.getExecutionIdFromMessage(null);
-    expect(result).to.be.equal(null);
-  });
-
-  it('should return null on no match', function() {
-    var result = utils.getExecutionIdFromMessage('fooo');
-    expect(result).to.be.equal(null);
-  });
-
-  it('should return execution id on match', function() {
-    var result = utils.getExecutionIdFromMessage(MOCK_MESSAGE);
-    expect(result).to.be.equal('55701c8b0640fd53cdf4f08');
-  });
-});
-
 describe('parseUrl', function() {
   it('should correctly parse values', function() {
     var result = utils.parseUrl('http://www.example.com/a');
