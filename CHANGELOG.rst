@@ -1,3 +1,14 @@
+0.3.0
+-----
+* Switched to st2client.js
+* Chatops announcements (new feature)
+* Custom formatting for results (new feature)
+* Disabling ack and results for specific aliases (new feature)
+* Connect using API keys when provided (new feature)
+* Better parameters parsing (improvement)
+* Multi-line and milti-word matching (improvement)
+* Start renewing tokens based on expiry time (improvement)
+
 0.2.6
 -----
 * Results are posted to slack as attachments with appropriate colors. (Feature - thomaspicquet)
