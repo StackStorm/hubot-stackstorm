@@ -54,7 +54,7 @@ If you want to use this plugin with a Slack adapter, you also need to install
 
 ```bash
 npm install hubot-slack
-````
+```
 
 After that's done, you are ready to start your bot.
 
@@ -125,8 +125,19 @@ gulp lint
 ### Tests
 
 ```bash
-gulp tests
+gulp test
 ```
+
+## Publishing
+
+Reminder to ourselves, instead of bumping the version manually, use `mverson`.
+
+```
+npm install -g mversion
+mversion patch
+```
+
+This will bump the version in `package.json`, commit and create a tag with format described in `.mversionrc`.
 
 ## Copyright, License, and Contributors Agreement
 
