@@ -204,7 +204,8 @@ module.exports = function(robot) {
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
     var sendAck = function (res) {
-      if (res.actionalias.ack && res.actionalias.ack.enabled === false) {
+      if (res.actionalias &&
+          res.actionalias.ack && res.actionalias.ack.enabled === false) {
         return;
       }
 
@@ -227,12 +228,13 @@ module.exports = function(robot) {
       .catch(function (err) {
         // Compatibility with older StackStorm versions
         if (err.status === 200) {
-          return sendAck({ id: err.message });
+          return sendAck({ execution: { id: err.message } });
         }
         robot.logger.error('Failed to create an alias execution:', err);
         msg.send(util.format(_.sample(ERROR_MESSAGES), err.message));
         throw err;
       });
+
 
   };
 
