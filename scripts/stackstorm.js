@@ -203,29 +203,32 @@ module.exports = function(robot) {
       'source_channel': msg.message.room,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
+    var sendAck = function (res) {
+      if (res.actionalias.ack && res.actionalias.ack.enabled === false) {
+        return;
+      }
+
+      if (res.message) {
+        return msg.send(res.message);
+      }
+
+      var history_url = utils.getExecutionHistoryUrl(res.execution.id);
+      var message = util.format(_.sample(START_MESSAGES), res.execution.id);
+      if (history_url) {
+        message += util.format(' (details available at %s)', history_url);
+      }
+      return msg.send(message);
+    };
 
     robot.logger.debug('Sending command payload:', JSON.stringify(payload));
 
     api.aliasExecution.create(payload)
-      .then(function (res) {
-
-        if (res.actionalias.ack && res.actionalias.ack.enabled === false) {
-          return;
-        }
-
-        if (res.message) {
-          return msg.send(res.message);
-        }
-
-        var history_url = utils.getExecutionHistoryUrl(res.execution.id);
-        var message = util.format(_.sample(START_MESSAGES), res.execution.id);
-        if (history_url) {
-          message += util.format(' (details available at %s)', history_url);
-        }
-        return msg.send(message);
-
-      })
+      .then(sendAck)
       .catch(function (err) {
+        // Compatibility with older StackStorm versions
+        if (err.status === 200) {
+          return sendAck({ id: err.message });
+        }
         robot.logger.error('Failed to create an alias execution:', err);
         msg.send(util.format(_.sample(ERROR_MESSAGES), err.message));
         throw err;
