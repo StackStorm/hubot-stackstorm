@@ -84,7 +84,8 @@ var START_MESSAGES = [
   "I have it covered. Your execution ID is %s",
   "Let me start up the machine! Your execution ID is %s",
   "I'll throw that task in the oven and get cookin'! Your execution ID is %s",
-  "Want me to take that off your hand? You got it! Don't forget your execution ID: %s"
+  "Want me to take that off your hand? You got it! Don't forget your execution ID: %s",
+  "River Tam will get it done with her psychic powers. Your execution ID is %s"
 ];
 
 var ERROR_MESSAGES = [
@@ -202,55 +203,39 @@ module.exports = function(robot) {
       'source_channel': msg.message.room,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
+    var sendAck = function (res) {
+      if (res.actionalias &&
+          res.actionalias.ack && res.actionalias.ack.enabled === false) {
+        return;
+      }
+
+      if (res.message) {
+        return msg.send(res.message);
+      }
+
+      var history_url = utils.getExecutionHistoryUrl(res.execution.id);
+      var message = util.format(_.sample(START_MESSAGES), res.execution.id);
+      if (history_url) {
+        message += util.format(' (details available at %s)', history_url);
+      }
+      return msg.send(message);
+    };
 
     robot.logger.debug('Sending command payload:', JSON.stringify(payload));
 
     api.aliasExecution.create(payload)
+      .then(sendAck)
       .catch(function (err) {
-        // Until aliasexecution endpoint didn't get patched with proper status and output, work
-        // around this curious design decision.
+        // Compatibility with older StackStorm versions
         if (err.status === 200) {
-          return { id: err.message };
+          return sendAck({ execution: { id: err.message } });
         }
-
-        throw err;
-      })
-      .catch(function (err) {
         robot.logger.error('Failed to create an alias execution:', err);
         msg.send(util.format(_.sample(ERROR_MESSAGES), err.message));
         throw err;
-      })
-      .then(function (execution) {
-        return Promise.resolve(execution)
-          .then(function () {
-            if (action_alias.ack && action_alias.ack.enabled === false) {
-              return;
-            }
-
-            if (action_alias.ack && action_alias.ack.format) {
-              return action_alias.ack.format;
-            }
-
-            var history_url = utils.getExecutionHistoryUrl(execution.id);
-
-            var message = util.format(_.sample(START_MESSAGES), execution.id);
-
-            if (history_url) {
-              message += util.format(' (details available at %s)', history_url);
-            }
-
-            return message;
-          })
-          .then(function (message) {
-            if (message) {
-              msg.send(message);
-            }
-          })
-          .catch(function (err) {
-            robot.logger.error('Failed to acknowledge alias execution creation:', err);
-            msg.send(util.format(_.sample(ERROR_MESSAGES), 'AckError: ' + err.message));
-          });
       });
+
+
   };
 
   robot.respond(/([\s\S]+?)$/i, function(msg) {
