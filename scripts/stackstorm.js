@@ -271,7 +271,9 @@ module.exports = function(robot) {
         data = req.body;
       }
 
-      postDataHandler.postData(data);
+      if (data && data.message) {
+        postDataHandler.postData(data);
+      }
 
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
@@ -302,7 +304,9 @@ module.exports = function(robot) {
           data = e.data;
         }
 
-        postDataHandler.postData(data);
+        if (data && data.message) {
+          postDataHandler.postData(data);
+        }
       });
     });
 
