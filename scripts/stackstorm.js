@@ -179,11 +179,13 @@ module.exports = function(robot) {
 
           _.each(formats, function (format) {
             var command = formatCommand(robot.logger, name, format.display || format, description);
-            command_factory.addCommand(command, name, format.display || format, alias);
+            command_factory.addCommand(command, name, format.display || format, alias,
+                                       format.display ? utils.DISPLAY : false);
 
             _.each(format.representation, function (representation) {
               command = formatCommand(robot.logger, name, representation, description);
-              command_factory.addCommand(command, name, representation, alias, true);
+              command_factory.addCommand(command, name, representation, alias,
+                                         utils.REPRESENTATION);
             });
           });
         });
