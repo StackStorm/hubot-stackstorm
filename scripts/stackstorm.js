@@ -123,8 +123,14 @@ module.exports = function(robot) {
     api.removeListener('expiry', authenticate);
     robot.logger.info('Requesting a token...');
 
+    var url = utils.parseUrl(env.ST2_AUTH_URL);
+
     var client = st2client({
-      auth: utils.parseUrl(env.ST2_AUTH_URL)
+      auth: {
+        protocol: url.protocol,
+        host: url.hostname,
+        port: url.port
+      }
     });
 
     return client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
