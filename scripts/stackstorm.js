@@ -214,21 +214,23 @@ module.exports = function(robot) {
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
     var sendAck = function (res) {
-      if (res.actionalias &&
-          res.actionalias.ack && res.actionalias.ack.enabled === false) {
-        return;
+      var history_url = utils.getExecutionHistoryUrl(res.execution.id);
+      var history = history_url ? util.format(' (details available at %s)', history_url) : '';
+
+      if (res.actionalias && res.actionalias.ack) {
+        if (res.actionalias.ack.enabled === false) {
+          return;
+        } else if (res.actionalias.ack.append_url === false) {
+          history = '';
+        }
       }
 
       if (res.message) {
-        return msg.send(res.message);
+        return msg.send(res.message + history);
       }
 
-      var history_url = utils.getExecutionHistoryUrl(res.execution.id);
       var message = util.format(_.sample(START_MESSAGES), res.execution.id);
-      if (history_url) {
-        message += util.format(' (details available at %s)', history_url);
-      }
-      return msg.send(message);
+      return msg.send(message + history);
     };
 
     robot.logger.debug('Sending command payload:', JSON.stringify(payload));
