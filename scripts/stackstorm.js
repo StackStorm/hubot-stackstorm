@@ -106,6 +106,7 @@ module.exports = function(robot) {
     protocol: url.protocol,
     host: url.hostname,
     port: url.port,
+    prefix: url.path,
     rejectUnauthorized: false
   };
 
@@ -129,7 +130,8 @@ module.exports = function(robot) {
       auth: {
         protocol: url.protocol,
         host: url.hostname,
-        port: url.port
+        port: url.port,
+        prefix: url.path
       }
     });
 
