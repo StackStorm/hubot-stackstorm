@@ -170,8 +170,6 @@ module.exports = function(robot) {
 
     api.actionAlias.list()
       .then(function (aliases) {
-        robot.logger.info(aliases.length + ' commands are loaded');
-
         // Remove all the existing commands
         command_factory.removeCommands();
 
@@ -179,6 +177,10 @@ module.exports = function(robot) {
           var name = alias.name;
           var formats = alias.formats;
           var description = alias.description;
+
+          if (alias.enabled === false) {
+            return;
+          }
 
           if (!formats || formats.length === 0) {
             robot.logger.error('No formats specified for command: ' + name);
@@ -192,11 +194,12 @@ module.exports = function(robot) {
 
             _.each(format.representation, function (representation) {
               command = formatCommand(robot.logger, name, representation, description);
-              command_factory.addCommand(command, name, representation, alias,
-                                         utils.REPRESENTATION);
+              command_factory.addCommand(command, name, representation, alias, utils.REPRESENTATION);
             });
           });
         });
+
+        robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
         var error_msg = 'Failed to retrieve commands from "%s": %s';
