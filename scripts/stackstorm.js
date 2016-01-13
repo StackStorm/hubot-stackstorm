@@ -217,7 +217,8 @@ module.exports = function(robot) {
       'format': format_string,
       'command': command,
       'user': name,
-      'source_channel': msg.message.room || msg.message.user.reply_to,
+      'source_channel': msg.message.room,
+      'reply_to': msg.message.reply_to,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
     var sendAck = function (res) {
