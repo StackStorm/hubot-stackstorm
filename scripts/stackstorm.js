@@ -212,12 +212,16 @@ module.exports = function(robot) {
     if (robot.adapterName == "hipchat") {
       name = msg.message.user.mention_name;
     };
+    var room = msg.message.room
+    if (room == undefined) {
+      room = msg.message.user.jid
+    }
     var payload = {
       'name': command_name,
       'format': format_string,
       'command': command,
       'user': name,
-      'source_channel': msg.message.room || msg.message.user.jid,
+      'source_channel': room,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
     var sendAck = function (res) {
