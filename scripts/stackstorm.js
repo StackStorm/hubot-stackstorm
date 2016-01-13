@@ -206,11 +206,17 @@ module.exports = function(robot) {
   };
 
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
+    // Hipchat users aren't pinged by name, they're
+    // pinged by mention_name
+    var name = msg.message.user.name;
+    if (robot.adapterName == "hipchat") {
+      name = msg.message.user.mention_name;
+    };
     var payload = {
       'name': command_name,
       'format': format_string,
       'command': command,
-      'user': msg.message.user.name,
+      'user': name,
       'source_channel': msg.message.room,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
