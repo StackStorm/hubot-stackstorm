@@ -297,7 +297,7 @@ module.exports = function(robot) {
       // is a whisper:
       if (robot.adapterName == 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1 ) {
         data.whisper = true;
-        robot.logger.debug('Set whisper to true for hipchat message')
+        robot.logger.debug('Set whisper to true for hipchat message');
       }
 
       postDataHandler.postData(data);
@@ -335,7 +335,7 @@ module.exports = function(robot) {
         // is a whisper:
         if (robot.adapterName == 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1 ) {
           data.whisper = true;
-          robot.logger.debug('Set whisper to true for hipchat message')
+          robot.logger.debug('Set whisper to true for hipchat message');
         }
 
         postDataHandler.postData(data);
