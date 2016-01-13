@@ -213,9 +213,7 @@ module.exports = function(robot) {
       name = msg.message.user.mention_name;
     };
     var room = msg.message.room;
-    var whisper = false;
     if (room == undefined) {
-      whisper = true;
       room = msg.message.user.jid;
     }
     var payload = {
@@ -223,7 +221,6 @@ module.exports = function(robot) {
       'format': format_string,
       'command': command,
       'user': name,
-      'whisper': whisper,
       'source_channel': room,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
@@ -296,6 +293,11 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
+      // Special handler to try and figure out when a hipchat message
+      // is a whisper:
+      if (robot.adapterName == 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1 ) {
+        data.whisper = true;
+      }
 
       postDataHandler.postData(data);
 
@@ -326,6 +328,12 @@ module.exports = function(robot) {
           data = JSON.parse(e.data).payload;
         } else {
           data = e.data;
+        }
+
+        // Special handler to try and figure out when a hipchat message
+        // is a whisper:
+        if (robot.adapterName == 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1 ) {
+          data.whisper = true;
         }
 
         postDataHandler.postData(data);
