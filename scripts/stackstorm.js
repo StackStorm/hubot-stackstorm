@@ -206,12 +206,22 @@ module.exports = function(robot) {
   };
 
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
+    // Hipchat users aren't pinged by name, they're
+    // pinged by mention_name
+    var name = msg.message.user.name;
+    if (robot.adapterName == "hipchat") {
+      name = msg.message.user.mention_name;
+    };
+    var room = msg.message.room;
+    if (room == undefined) {
+      room = msg.message.user.jid;
+    }
     var payload = {
       'name': command_name,
       'format': format_string,
       'command': command,
-      'user': msg.message.user.name,
-      'source_channel': msg.message.room,
+      'user': name,
+      'source_channel': room,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
     var sendAck = function (res) {
@@ -283,6 +293,12 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
+      // Special handler to try and figure out when a hipchat message
+      // is a whisper:
+      if (robot.adapterName == 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1 ) {
+        data.whisper = true;
+        robot.logger.debug('Set whisper to true for hipchat message');
+      }
 
       postDataHandler.postData(data);
 
@@ -313,6 +329,13 @@ module.exports = function(robot) {
           data = JSON.parse(e.data).payload;
         } else {
           data = e.data;
+        }
+
+        // Special handler to try and figure out when a hipchat message
+        // is a whisper:
+        if (robot.adapterName == 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1 ) {
+          data.whisper = true;
+          robot.logger.debug('Set whisper to true for hipchat message');
         }
 
         postDataHandler.postData(data);
