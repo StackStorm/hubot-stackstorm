@@ -214,7 +214,13 @@ module.exports = function(robot) {
     };
     var room = msg.message.room;
     if (room == undefined) {
-      room = msg.message.user.jid;
+      if (robot.adapterName == "hipchat") {
+        room = msg.message.user.jid;
+      }
+    }
+    if (robot.adapterName == "yammer") {
+      room = String(msg.message.user.thread_id);
+      name = msg.message.user.name[0];
     }
     var payload = {
       'name': command_name,
