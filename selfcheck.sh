@@ -51,133 +51,134 @@ StackStorm logs are stored in:
 "
 
 echo
-echo Starting the Nine-Step Hubot Self-Check Program
-echo ===============================================
+echo -e "Starting the Nine-Step Hubot Self-Check Program"
+echo -e "==============================================="
 echo
 
-if [ "0" = "$($st2 action execute core.local cmd=echo | grep \"execution get\" | wc -l)" ]; then
-    echo \e[31mStackStorm client couldn\'t connect to StackStorm.\e[0m
+if [ "0" = "$($st2 action execute core.local cmd=echo | grep "execution get" | wc -l)" ]; then
+    echo -e "\e[31mStackStorm client couldn't connect to StackStorm.\e[0m"
     echo
-    echo     Before you run the script you need to make sure
-    echo     the StackStorm client can connect to the instance.
+    echo -e "    Before you run the script you need to make sure"
+    echo -e "    the StackStorm client can connect to the instance."
     echo
-    echo     Authenticate with your credentials:
-    echo     \e[1mST2_AUTH_TOKEN=`st2 auth <username> -p <password> -t`\e[0m
+    echo -e "    Authenticate with your credentials:"
+    echo -e "    \e[1mST2_AUTH_TOKEN=`st2 auth <username> -p <password> -t`\e[0m"
     echo
-    echo     Check if you can connect to StackStorm:
-    echo     \e[1mst2 action execute core.local cmd=echo\e[0m
-    echo "$failure"
+    echo -e "    Check if you can connect to StackStorm:"
+    echo -e "    \e[1mst2 action execute core.local cmd=echo\e[0m"
+    echo -e "$failure"
     exit 1
 fi
 
 # Check if Hubot is installed and running
 if [ "true" = "$($docker inspect --format='{{.State.Running}}' hubot)" ]; then
-    echo Step 1: Hubot is running.
+    echo -e "Step 1: Hubot is running."
 else
-    echo \e[31mStep 1 failed: Hubot container is not running on this machine.\e[0m
+    echo -e "\e[31mStep 1 failed: Hubot container is not running on this machine.\e[0m"
     echo
-    echo     Your StackStorm installation could be outdated or incomplete.
-    echo     Try reinstalling or running the update script:
+    echo -e "    Your StackStorm installation could be outdated or incomplete."
+    echo -e "    Try reinstalling or running the update script:"
     echo
-    echo     \e[1msudo update-system
-    echo "$failure"
+    echo -e "    \e[1msudo update-system\e[0m"
+    echo -e "$failure"
     exit 1
 fi
 
 # Check if Hubot-stackstorm is installed
 npm=$($docker exec -it hubot npm list | grep hubot-stackstorm | sed -r "s/.*\s(hubot.*)\\r/\1/")
 if [ "0" = "$(echo "$npm" | wc -c)" ]; then
-    echo \e[31mStep 2 failed: Hubot-stackstorm is not installed inside the container.\e[0m
+    echo -e "\e[31mStep 2 failed: Hubot-stackstorm is not installed inside the container.\e[0m"
     echo
-    echo     It\'s possible the container is outdated or corrupted.
-    echo     Try removing it and restarting the init script:
+    echo -e "    It's possible the container is outdated or corrupted."
+    echo -e "    Try removing it and restarting the init script:"
     echo
-    echo     \e[1msudo service docker-hubot stop\e[0m
-    echo     \e[1msudo docker rmi stackstorm/hubot\e[0m
-    echo     \e[1msudo service docker-hubot start\e[0m
-    echo "$failure"
+    echo -e "    \e[1msudo service docker-hubot stop\e[0m"
+    echo -e "    \e[1msudo docker rmi stackstorm/hubot\e[0m"
+    echo -e "    \e[1msudo service docker-hubot start\e[0m"
+    echo -e "$failure"
     exit 1
 else
-    echo "Step 2: Hubot-stackstorm is installed ($npm)."
+    echo -e "Step 2: Hubot-stackstorm is installed ($npm)."
 fi
 
 # Check if there are any enabled StackStorm aliases
 if [ "0" = "$($st2 action-alias list -a enabled | grep True | wc -l)" ]; then
-    echo \e[31mStep 3 failed: StackStorm doesn\'t seem to have registered and enabled aliases.\e[0m
+    echo -e "\e[31mStep 3 failed: StackStorm doesn't seem to have registered and enabled aliases.\e[0m"
     echo
-    echo     Create one or install a sample pack with aliases.
-    echo     The "st2" pack would be a good example:
+    echo -e "    Create one or install a sample pack with aliases."
+    echo -e "    The \"st2\" pack would be a good example:"
     echo
-    echo     \e[1mst2 action execute packs.install packs=st2\e[0m
-    echo "$failure"
+    echo -e "    \e[1mst2 action execute packs.install packs=st2\e[0m"
+    echo -e "$failure"
     exit 1
 else
-    echo Step 3: StackStorm has aliases that are registered and enabled.
+    echo -e "Step 3: StackStorm has aliases that are registered and enabled."
 fi
 
 # Check that chatops.notify rule is present
 if [ "0" = "$($st2 rule list | grep chatops.notify | wc -l)" ]; then
-    echo \e[31mStep 4 failed: Chatops.notify rule is not present.\e[0m
+    echo -e "\e[31mStep 4 failed: Chatops.notify rule is not present.\e[0m"
     echo
-    echo     ChatOps pack may not be installed or the rule may not be registered.
-    echo     Try to restart StackStorm first:
+    echo -e "    ChatOps pack may not be installed or the rule may not be registered."
+    echo -e "    Try to restart StackStorm first:"
     echo
-    echo     \e[1mst2ctl restart\e[0m
+    echo -e "    \e[1mst2ctl restart\e[0m"
     echo
-    echo     Then register the rule with:
+    echo -e "    Then register the rule with:"
     echo
-    echo     \e[1mst2ctl reload --register-all\e[0m
-    echo "$failure"
+    echo -e "    \e[1mst2ctl reload --register-all\e[0m"
+    echo -e "$failure"
     exit 1
 else
-    echo Step 4: Chatops.notify rule is present.
+    echo -e "Step 4: Chatops.notify rule is present."
 fi
 
 # Check that chatops.notify rule is enabled
 if [ "0" = "$($st2 rule list | grep chatops.notify | grep True | wc -l)" ]; then
-    echo \e[31mStep 5 failed: Chatops.notify rule is present but disabled.\e[0m
+    echo -e "\e[31mStep 5 failed: Chatops.notify rule is present but disabled.\e[0m"
     echo
-    echo     Enable it with the following command:
+    echo -e "    Enable it with the following command:"
     echo
-    echo     \e[1mst2 rule enable chatops.notify\e[0m
-    echo "$failure"
+    echo -e "    \e[1mst2 rule enable chatops.notify\e[0m"
+    echo -e "$failure"
     exit 1
 else
-    echo Step 5: Chatops.notify rule is enabled.
+    echo -e "Step 5: Chatops.notify rule is enabled."
 fi
 
 hubotlog=$({ echo -n; sleep 5; echo 'hubot help'; echo; sleep 2; } | docker exec -i hubot bash -c "export HUBOT_ADAPTER=shell; export EXPRESS_PORT=31337; bin/hubot";)
 
 # Check that Hubot responds to help
 if [ "0" = "$(echo "$hubotlog" | grep "help - Displays" | wc -l)" ]; then
-    echo \e[31mStep 6 failed: Hubot doesn\'t respond to the "help" command.\e[0m
+    echo -e "\e[31mStep 6 failed: Hubot doesn't respond to the \"help\" command.\e[0m"
     echo
-    echo     Try reinstalling the container. This error shouldn\'t happen
-    echo     unless the Hubot installation wasn\'t successful.
+    echo -e "    Try reinstalling the container. This error shouldn't happen"
+    echo -e "    unless the Hubot installation wasn't successful."
     echo
-    echo     \e[1msudo service docker-hubot stop\e[0m
-    echo     \e[1msudo docker rmi stackstorm/hubot\e[0m
-    echo     \e[1msudo service docker-hubot start\e[0m
-    echo "$failure"
+    echo -e "    \e[1msudo service docker-hubot stop\e[0m"
+    echo -e "    \e[1msudo docker rmi stackstorm/hubot\e[0m"
+    echo -e "    \e[1msudo service docker-hubot start\e[0m"
+    echo -e "$failure"
     exit 1
 else
-    echo Step 6: Hubot responds to the "help" command.
+    echo -e "Step 6: Hubot responds to the \"help\" command."
 fi
 
 # Check that hubot-stackstorm at least tried to load commands.
 if [ "0" = "$(echo "$hubotlog" | grep "commands are loaded" | wc -l)" ]; then
-    echo \e[31mStep 7 failed: Hubot doesn\'t try to load commands from StackStorm.\e[0m
+    echo -e "\e[31mStep 7 failed: Hubot doesn't try to load commands from StackStorm.\e[0m"
     echo
-    echo     Try reinstalling the container. This error probably means
-    echo     that the "hubot-stackstorm" plugin couldn\'t load.
+    echo -e "    Try reinstalling the container and checking credentials."
+    echo -e "    This error means the \"hubot-stackstorm\" plugin couldn't"
+    echo -e "    load, connect to StackStorm or authenticate."
     echo
-    echo     \e[1msudo service docker-hubot stop\e[0m
-    echo     \e[1msudo docker rmi stackstorm/hubot\e[0m
-    echo     \e[1msudo service docker-hubot start\e[0m
-    echo "$failure"
+    echo -e "    \e[1msudo service docker-hubot stop\e[0m"
+    echo -e "    \e[1msudo docker rmi stackstorm/hubot\e[0m"
+    echo -e "    \e[1msudo service docker-hubot start\e[0m"
+    echo -e "$failure"
     exit 1
 else
-    echo Step 7: Hubot loads commands from StackStorm.
+    echo -e "Step 7: Hubot loads commands from StackStorm."
 fi
 
 channel=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
@@ -186,27 +187,27 @@ hubotlogs=$(docker logs hubot | grep "$channel")
 
 # Check that post_message is executed successfully.
 if [ "0" = "$(echo "$execution" | grep "succeeded" | wc -l)" ]; then
-    echo \e[31mStep 8 failed: chatops.post_message doesn\'t work.\e[0m
+    echo -e "\e[31mStep 8 failed: chatops.post_message doesn\'t work.\e[0m"
     echo
-    echo     Something is wrong with your StackStorm instance,
-    echo     because "chatops.post_message" couldn\'t finish.
+    echo -e "    Something is wrong with your StackStorm instance,"
+    echo -e "    because \"chatops.post_message\" couldn't finish."
     echo
-    echo     Check StackStorm logs for more information.
-    echo "$failure"
+    echo -e "    Check StackStorm logs for more information."
+    echo -e "$failure"
     exit 1
 else
-    echo Step 8: chatops.post_message execution succeeded.
+    echo -e "Step 8: chatops.post_message execution succeeded."
 fi
 
 # Check that post_message is getting through.
 if [ "0" = "$(echo "$hubotlogs" | wc -l)" ]; then
-    echo \e[31mStep 9 failed: chatops.post_message hasn\'t been received.\e[0m
+    echo -e "\e[31mStep 9 failed: chatops.post_message hasn\'t been received.\e[0m"
     echo
-    echo     Try to check both Hubot and StackStorm logs for more information.
-    echo "$failure"
+    echo -e "    Try to check both Hubot and StackStorm logs for more information."
+    echo -e "$failure"
     exit 1
 else
-    echo Step 9: chatops.post_message has been received.
+    echo -e "Step 9: chatops.post_message has been received."
 fi
 
 echo "$success"
