@@ -62,7 +62,7 @@ if [ "0" = "$($st2 action execute core.local cmd=echo | grep "execution get" | w
     echo -e "    the StackStorm client can connect to the instance."
     echo
     echo -e "    Authenticate with your credentials:"
-    echo -e "    \e[1mST2_AUTH_TOKEN=`st2 auth <username> -p <password> -t`\e[0m"
+    echo -e "    \e[1mST2_AUTH_TOKEN=\`st2 auth <username> -p <password> -t\`\e[0m"
     echo
     echo -e "    Check if you can connect to StackStorm:"
     echo -e "    \e[1mst2 action execute core.local cmd=echo\e[0m"
