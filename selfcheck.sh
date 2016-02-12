@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker="/usr/bin/sudo /usr/bin/docker"
-st2="/usr/bin/st2"
+docker="/usr/bin/sudo /usr/bin/docker 2>/dev/null"
+st2="/usr/bin/st2 2>/dev/null"
 
 failure="
 ===============================================
