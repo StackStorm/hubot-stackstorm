@@ -148,8 +148,8 @@ if [ "0" = $(echo "$status") ]; then
     echo Hubot is working, StackStorm commands are loaded normally
     echo and messages from StackStorm are getting through.
     echo
-    echo If you can\'t see the bot in your chat,
-    echo the most probable cause at this point is wrong credentials.
+    echo If you can\'t see the bot in your chat at this point,
+    echo the most probable cause is incorrect login credentials.
     echo
     echo Check that your bot is using the right credentials to log in.
     echo If you installed StackStorm with the All-In-One Installer,
