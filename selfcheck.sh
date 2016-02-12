@@ -82,22 +82,7 @@ fi
 
 hubotlog=$({ echo -n; sleep 5; echo 'hubot help'; echo; sleep 2; } | docker exec -i hubot bash -c "export HUBOT_ADAPTER=shell; export EXPRESS_PORT=31337; bin/hubot";)
 
-# Check that chatops.notify rule is enabled
-if [ "0" = "$(echo "$hubotlog" | grep "help - Displays" | wc -l)" ]; then
-    echo Step 6 failed: Hubot doesn\'t respond to the "help" command.
-    echo
-    echo Try reinstalling the container. This error shouldn\'t happen
-    echo unless the Hubot installation wasn\'t successful.
-    echo
-    echo sudo service docker-hubot stop
-    echo sudo docker rmi stackstorm/hubot
-    echo sudo service docker-hubot start
-    status=1
-else
-    echo Step 6: Hubot responds to the "help" command.
-fi
-
-# Check that chatops.notify rule is enabled
+# Check that Hubot responds to help
 if [ "0" = "$(echo "$hubotlog" | grep "help - Displays" | wc -l)" ]; then
     echo Step 6 failed: Hubot doesn\'t respond to the "help" command.
     echo
@@ -114,7 +99,7 @@ fi
 
 # Check that hubot-stackstorm at least tried to load commands.
 if [ "0" = "$(echo "$hubotlog" | grep "commands are loaded" | wc -l)" ]; then
-    echo Step 6 failed: Hubot doesn\'t try to load commands from StackStorm.
+    echo Step 7 failed: Hubot doesn\'t try to load commands from StackStorm.
     echo
     echo Try reinstalling the container. This error probably means
     echo that the "hubot-stackstorm" plugin couldn\'t load.
@@ -141,7 +126,7 @@ if [ "0" = "$(echo "$execution" | grep "succeeded" | wc -l)" ]; then
     echo Check StackStorm logs for more information.
     status=1
 else
-    echo Step 8: chatops.post_message succeeded.
+    echo Step 8: chatops.post_message execution succeeded.
 fi
 
 # Check that post_message is getting through.
