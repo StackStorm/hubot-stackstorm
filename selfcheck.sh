@@ -62,7 +62,7 @@ if [ "0" = "$($st2 action execute core.local cmd=echo | grep "execution get" | w
     echo -e "    the StackStorm client can connect to the instance."
     echo
     echo -e "    Authenticate with your credentials:"
-    echo -e "    \e[1mST2_AUTH_TOKEN=\`st2 auth <username> -p <password> -t\`\e[0m"
+    echo -e "    \e[1mexport ST2_AUTH_TOKEN=\`st2 auth <username> -p <password> -t\`\e[0m"
     echo
     echo -e "    Check if you can connect to StackStorm:"
     echo -e "    \e[1mst2 action execute core.local cmd=echo\e[0m"
@@ -151,7 +151,7 @@ else
     echo -e "Step 5: Chatops.notify rule is enabled."
 fi
 
-hubotlog=$({ echo -n; sleep 5; echo 'hubot help'; echo; sleep 2; } | docker exec -i hubot bash -c "export HUBOT_ADAPTER=shell; export EXPRESS_PORT=31337; bin/hubot";)
+hubotlog=$({ echo -n; sleep 5; echo 'hubot help'; echo; sleep 2; } | $docker exec -i hubot bash -c "export HUBOT_ADAPTER=shell; export EXPRESS_PORT=31337; bin/hubot";)
 
 # Check that Hubot responds to help
 if [ "0" = "$(echo "$hubotlog" | grep "help - Displays" | wc -l)" ]; then
@@ -188,7 +188,7 @@ fi
 
 channel=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 execution=$($($st2 action execute chatops.post_message channel="$channel" message="Debug. If you see this you're incredibly lucky but please ignore." | grep "execution get"))
-hubotlogs=$(docker logs hubot | grep "$channel")
+hubotlogs=$($docker logs hubot | grep "$channel")
 
 # Check that post_message is executed successfully.
 if [ "0" = "$(echo "$execution" | grep "succeeded" | wc -l)" ]; then
