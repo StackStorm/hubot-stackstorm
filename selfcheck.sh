@@ -22,7 +22,7 @@ StackStorm logs are stored in:
 \e[1m/var/log/st2/\e[0m
 "
 
-success = "
+success="
 ===============================================
 
 \e[1mEverything seems to be fine!\e[0m
