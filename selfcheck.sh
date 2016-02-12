@@ -2,12 +2,61 @@
 
 docker="/usr/bin/sudo /usr/bin/docker"
 st2="/usr/bin/st2"
-status=0
+
+failure="
+===============================================
+
+Uh oh! Something went wrong!
+
+Please perform the steps outlined in the error message above
+and then re-launch this script.
+
+If you\'re still having trouble, gist the log files
+and come see us in our Slack community:
+https://stackstorm.com/community-signup
+
+You can access Hubot logs with:
+docker logs hubot
+
+StackStorm logs are stored in:
+/var/log/st2/
+"
+
+success = "
+===============================================
+
+Everything seems to be fine!
+
+Hubot is working, StackStorm commands are loaded normally
+and messages from StackStorm are getting through.
+
+If you can\'t see the bot in your chat at this point,
+the most probable cause is incorrect login credentials.
+
+Check that your bot is using the right credentials to log in.
+If you installed StackStorm with the All-In-One Installer,
+the Hubot init script is located at:
+
+/etc/init.d/docker-hubot
+
+If you\'re still having trouble, gist the log files
+and come see us in our Slack community:
+https://stackstorm.com/community-signup
+
+You can access Hubot logs with:
+docker logs hubot
+
+StackStorm logs are stored in:
+/var/log/st2/
+"
 
 echo
 echo Starting the Nine-Step Hubot Self-Check Program
 echo ===============================================
 echo
+
+st2check=$(st2 action execute core.local cmd=echo | grep "execution get" | wc -l)
+
 
 # Check if Hubot is installed and running
 if [ "true" = "$($docker inspect --format='{{.State.Running}}' hubot)" ]; then
@@ -139,57 +188,5 @@ else
     echo Step 9: chatops.post_message has been received.
 fi
 
-if [ "0" = $(echo "$status") ]; then
-    echo
-    echo ===============================================
-    echo
-    echo Everything seems to be fine!
-    echo
-    echo Hubot is working, StackStorm commands are loaded normally
-    echo and messages from StackStorm are getting through.
-    echo
-    echo If you can\'t see the bot in your chat at this point,
-    echo the most probable cause is incorrect login credentials.
-    echo
-    echo Check that your bot is using the right credentials to log in.
-    echo If you installed StackStorm with the All-In-One Installer,
-    echo the Hubot init script is located at:
-    echo
-    echo /etc/init.d/docker-hubot
-    echo
-    echo If you\'re still having trouble, gist the log files
-    echo and come see us in our Slack community:
-    echo https://stackstorm.com/community-signup
-    echo
-    echo You can access Hubot logs with:
-    echo docker logs hubot
-    echo
-    echo StackStorm logs are stored in:
-    echo /var/log/st2/
-    echo
-    exit 0
-else
-    echo
-    echo ===============================================
-    echo
-    echo Uh oh! Something went wrong!
-    echo Please perform the steps outlined in the error message above
-    echo and then re-launch this script.
-    echo
-    echo Please also make sure you can execute StackStorm commands
-    echo with "st2", because the self-check script relies on it to work:
-    echo
-    echo st2 action execute core.local cmd=echo
-    echo
-    echo If you\'re still having trouble, gist the log files
-    echo and come see us in our Slack community:
-    echo https://stackstorm.com/community-signup
-    echo
-    echo You can access Hubot logs with:
-    echo docker logs hubot
-    echo
-    echo StackStorm logs are stored in:
-    echo /var/log/st2/
-    echo
-    exit 1
-fi
+echo "$success"
+exit 0
