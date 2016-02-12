@@ -243,6 +243,11 @@ module.exports = function(robot) {
       }
 
       if (res.message) {
+        var msgs = (res.message + history).split('|');
+        if (msgs.length > 1) {
+          return msg.send(msg.random(msgs));
+        }
+
         return msg.send(res.message + history);
       }
 
