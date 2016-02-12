@@ -76,7 +76,12 @@ if [ "true" = "$($docker inspect --format='{{.State.Running}}' hubot)" ]; then
 else
     echo -e "\e[31mStep 1 failed: Hubot container is not running on this machine.\e[0m"
     echo
-    echo -e "    Your StackStorm installation could be outdated or incomplete."
+    echo -e "    Try launching it with:"
+    echo
+    echo -e "    \e[1mservice docker-hubot start\e[0m"
+    echo
+    echo -e "    If there's no \"docker-hubot\" service, then"
+    echo -e "    your StackStorm installation could be outdated."
     echo -e "    Try reinstalling or running the update script:"
     echo
     echo -e "    \e[1msudo update-system\e[0m"
