@@ -11,7 +11,7 @@ Uh oh! Something went wrong!
 Please perform the steps outlined in the error message above
 and then re-launch this script.
 
-If you\'re still having trouble, gist the log files
+If you're still having trouble, gist the log files
 and come see us in our Slack community:
 \e[4mhttps://stackstorm.com/community-signup\e[0m
 
@@ -30,7 +30,7 @@ success="
 Hubot is working, StackStorm commands are loaded normally
 and messages from StackStorm are getting through.
 
-If you can\'t see the bot in your chat at this point,
+If you can't see the bot in your chat at this point,
 the most probable cause is incorrect login credentials.
 
 Check that your bot is using the right credentials to log in.
@@ -39,7 +39,7 @@ the Hubot init script is located at:
 
 \e[1m/etc/init.d/docker-hubot\e[0m
 
-If you\'re still having trouble, gist the log files
+If you're still having trouble, gist the log files
 and come see us in our Slack community:
 \e[4mhttps://stackstorm.com/community-signup\e[0m
 
@@ -187,7 +187,7 @@ hubotlogs=$(docker logs hubot | grep "$channel")
 
 # Check that post_message is executed successfully.
 if [ "0" = "$(echo "$execution" | grep "succeeded" | wc -l)" ]; then
-    echo -e "\e[31mStep 8 failed: chatops.post_message doesn\'t work.\e[0m"
+    echo -e "\e[31mStep 8 failed: chatops.post_message doesn't work.\e[0m"
     echo
     echo -e "    Something is wrong with your StackStorm instance,"
     echo -e "    because \"chatops.post_message\" couldn't finish."
@@ -201,7 +201,7 @@ fi
 
 # Check that post_message is getting through.
 if [ "0" = "$(echo "$hubotlogs" | wc -l)" ]; then
-    echo -e "\e[31mStep 9 failed: chatops.post_message hasn\'t been received.\e[0m"
+    echo -e "\e[31mStep 9 failed: chatops.post_message hasn't been received.\e[0m"
     echo
     echo -e "    Try to check both Hubot and StackStorm logs for more information."
     echo -e "$failure"
@@ -210,5 +210,5 @@ else
     echo -e "Step 9: chatops.post_message has been received."
 fi
 
-echo "$success"
+echo -e "$success"
 exit 0
