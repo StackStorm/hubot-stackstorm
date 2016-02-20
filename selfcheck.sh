@@ -1,7 +1,9 @@
 #!/bin/bash
 
+
 docker="/usr/bin/sudo /usr/bin/docker"
 st2="/usr/bin/st2"
+
 
 failure="
 ===============================================
@@ -21,6 +23,7 @@ You can access Hubot logs with:
 StackStorm logs are stored in:
 \e[1m/var/log/st2/\e[0m
 "
+
 
 success="
 ===============================================
@@ -50,12 +53,14 @@ StackStorm logs are stored in:
 \e[1m/var/log/st2/\e[0m
 "
 
+
 echo
 echo -e "Starting the Nine-Step Hubot Self-Check Program"
 echo -e "==============================================="
 echo
 
-if [ "0" = "$($st2 action execute core.local cmd=echo 2>/dev/null | grep "execution get" | wc -l)" ]; then
+
+if [ "0" = "$($st2 action execute core.local cmd=echo 2>/dev/null | grep -c "execution get")" ]; then
     echo -e "\e[31mStackStorm client couldn't connect to StackStorm.\e[0m"
     echo
     echo -e "    Before you run the script you need to make sure"
@@ -69,6 +74,7 @@ if [ "0" = "$($st2 action execute core.local cmd=echo 2>/dev/null | grep "execut
     echo -e "$failure"
     exit 1
 fi
+
 
 # Check if Hubot is installed and running
 if [ "true" = "$($docker inspect --format='{{.State.Running}}' hubot 2>/dev/null)" ]; then
@@ -89,6 +95,7 @@ else
     exit 1
 fi
 
+
 # Check if Hubot-stackstorm is installed
 npm=$($docker exec -it hubot npm list 2>/dev/null | grep hubot-stackstorm | sed -r "s/.*\s(hubot.*)\\r/\1/")
 if [ "0" = "$(echo "$npm" | wc -c)" ]; then
@@ -106,8 +113,9 @@ else
     echo -e "Step 2: Hubot-stackstorm is installed ($npm)."
 fi
 
+
 # Check if there are any enabled StackStorm aliases
-if [ "0" = "$($st2 action-alias list -a enabled 2>/dev/null | grep True | wc -l)" ]; then
+if [ "0" = "$($st2 action-alias list -a enabled 2>/dev/null | grep -c True)" ]; then
     echo -e "\e[31mStep 3 failed: StackStorm doesn't seem to have registered and enabled aliases.\e[0m"
     echo
     echo -e "    Create one or install a sample pack with aliases."
@@ -120,8 +128,9 @@ else
     echo -e "Step 3: StackStorm has aliases that are registered and enabled."
 fi
 
+
 # Check that chatops.notify rule is present
-if [ "0" = "$($st2 rule list 2>/dev/null | grep chatops.notify | wc -l)" ]; then
+if [ "0" = "$($st2 rule list 2>/dev/null | grep -c chatops.notify)" ]; then
     echo -e "\e[31mStep 4 failed: Chatops.notify rule is not present.\e[0m"
     echo
     echo -e "    ChatOps pack may not be installed or the rule may not be registered."
@@ -138,8 +147,9 @@ else
     echo -e "Step 4: Chatops.notify rule is present."
 fi
 
+
 # Check that chatops.notify rule is enabled
-if [ "0" = "$($st2 rule list 2>/dev/null | grep chatops.notify | grep True | wc -l)" ]; then
+if [ "0" = "$($st2 rule list 2>/dev/null | grep chatops.notify | grep -c True)" ]; then
     echo -e "\e[31mStep 5 failed: Chatops.notify rule is present but disabled.\e[0m"
     echo
     echo -e "    Enable it with the following command:"
@@ -151,10 +161,12 @@ else
     echo -e "Step 5: Chatops.notify rule is enabled."
 fi
 
+
 hubotlog=$({ echo -n; sleep 5; echo 'hubot help'; echo; sleep 2; } | $docker exec -i hubot bash -c "export HUBOT_ADAPTER=shell; export EXPRESS_PORT=31337; bin/hubot"; 2>/dev/null)
 
+
 # Check that Hubot responds to help
-if [ "0" = "$(echo "$hubotlog" | grep "help - Displays" | wc -l)" ]; then
+if [ "0" = "$(echo "$hubotlog" | grep -c "help - Displays")" ]; then
     echo -e "\e[31mStep 6 failed: Hubot doesn't respond to the \"help\" command.\e[0m"
     echo
     echo -e "    Try reinstalling the container. This error shouldn't happen"
@@ -169,8 +181,9 @@ else
     echo -e "Step 6: Hubot responds to the \"help\" command."
 fi
 
+
 # Check that hubot-stackstorm at least tried to load commands.
-if [ "0" = "$(echo "$hubotlog" | grep "commands are loaded" | wc -l)" ]; then
+if [ "0" = "$(echo "$hubotlog" | grep -c "commands are loaded")" ]; then
     echo -e "\e[31mStep 7 failed: Hubot doesn't try to load commands from StackStorm.\e[0m"
     echo
     echo -e "    Try reinstalling the container and checking credentials."
@@ -186,12 +199,14 @@ else
     echo -e "Step 7: Hubot loads commands from StackStorm."
 fi
 
+
 channel=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 execution=$($($st2 action execute chatops.post_message channel="$channel" message="Debug. If you see this you're incredibly lucky but please ignore." 2>/dev/null | grep "execution get") 2>/dev/null)
 hubotlogs=$($docker logs hubot | grep "$channel")
 
+
 # Check that post_message is executed successfully.
-if [ "0" = "$(echo "$execution" | grep "succeeded" | wc -l)" ]; then
+if [ "0" = "$(echo "$execution" | grep -c "succeeded")" ]; then
     echo -e "\e[31mStep 8 failed: chatops.post_message doesn't work.\e[0m"
     echo
     echo -e "    Something is wrong with your StackStorm instance,"
@@ -204,6 +219,7 @@ else
     echo -e "Step 8: chatops.post_message execution succeeded."
 fi
 
+
 # Check that post_message is getting through.
 if [ "0" = "$(echo "$hubotlogs" | wc -l)" ]; then
     echo -e "\e[31mStep 9 failed: chatops.post_message hasn't been received.\e[0m"
@@ -214,6 +230,7 @@ if [ "0" = "$(echo "$hubotlogs" | wc -l)" ]; then
 else
     echo -e "Step 9: chatops.post_message has been received."
 fi
+
 
 echo -e "$success"
 exit 0
