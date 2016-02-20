@@ -190,6 +190,7 @@ channel=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 execution=$($($st2 action execute chatops.post_message channel="$channel" message="Debug. If you see this you're incredibly lucky but please ignore." 2>/dev/null | grep "execution get") 2>/dev/null)
 hubotlogs=$($docker logs hubot | grep "$channel")
 
+
 # Check that post_message is executed successfully.
 if [ "0" = "$(echo "$execution" | grep "succeeded" | wc -l)" ]; then
     echo -e "\e[31mStep 8 failed: chatops.post_message doesn't work.\e[0m"
@@ -204,6 +205,7 @@ else
     echo -e "Step 8: chatops.post_message execution succeeded."
 fi
 
+
 # Check that post_message is getting through.
 if [ "0" = "$(echo "$hubotlogs" | wc -l)" ]; then
     echo -e "\e[31mStep 9 failed: chatops.post_message hasn't been received.\e[0m"
@@ -214,6 +216,7 @@ if [ "0" = "$(echo "$hubotlogs" | wc -l)" ]; then
 else
     echo -e "Step 9: chatops.post_message has been received."
 fi
+
 
 echo -e "$success"
 exit 0
