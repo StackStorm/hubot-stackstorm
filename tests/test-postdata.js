@@ -62,6 +62,7 @@ describe("slack post data", function() {
           color: env.ST2_SLACK_SUCCESS_COLOR,
           mrkdwn_in: ["text", "pretext"],
           text: input.message,
+          fallback: input.message
         },
         text: "@stanley: "
       }
@@ -88,6 +89,7 @@ describe("slack post data", function() {
           color: env.ST2_SLACK_FAIL_COLOR,
           mrkdwn_in: ["text", "pretext"],
           text: input.message,
+          fallback: input.message
         },
         text: "@stanley: "
       }
@@ -114,6 +116,7 @@ describe("slack post data", function() {
           color: env.ST2_SLACK_SUCCESS_COLOR,
           mrkdwn_in: ["text", "pretext"],
           text: input.message,
+          fallback: input.message
         },
         text: ""
       }
