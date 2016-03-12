@@ -274,9 +274,7 @@ module.exports = function(robot) {
     // e.g. slack replace quote marks with left double quote which would break behavior.
     command = formatter.normalizeCommand(msg.match[1]);
 
-    // Use the lower-case version only for lookup. Other preserve the case so that
-    // user provided case is preserved.
-    result = command_factory.getMatchingCommand(command.toLowerCase());
+    result = command_factory.getMatchingCommand(command);
 
     if (!result) {
       // No command found
