@@ -91,8 +91,8 @@ var ERROR_MESSAGES = [
   "I'm sorry, Dave. I'm afraid I can't do that. (%s)"
 ];
 
-var TWOFACTOR_MESSAGE = "This action requires two-factor authentication!" +
-                        "Auth with Duo Security: `%s2fa %s`";
+var TWOFACTOR_MESSAGE = "This action requires two-factor auth!\n" +
+                        "Authenticate with Duo Security: `%s 2fa %s`";
 
 
 module.exports = function(robot) {
@@ -242,7 +242,7 @@ module.exports = function(robot) {
       .catch(function (err) {
         // Compatibility with older StackStorm versions
         if (err.status === 200) {
-          return sendAck({ execution: { id: err.message } });
+          return sendAck(msg, { execution: { id: err.message } });
         }
         robot.logger.error('Failed to create an alias execution:', err);
         msg.send(util.format(_.sample(ERROR_MESSAGES), err.message));
@@ -278,10 +278,10 @@ module.exports = function(robot) {
 
     if (env.HUBOT_2FA && action_alias.extra && action_alias.extra.security &&
         action_alias.extra.security.twofactor !== undefined) {
-      var uuid = uuid.v4();
-      robot.logger.debug('Requested an action that requires 2FA. Guid: ' + uuid);
-      msg.send(util.format(TWOFACTOR_MESSAGE, [robot.alias, uuid]));
-      twofactor[uuid] = {
+      var twofactor_id = uuid.v4();
+      robot.logger.debug('Requested an action that requires 2FA. Guid: ' + twofactor_id);
+      msg.send(util.format(TWOFACTOR_MESSAGE, robot.alias, twofactor_id));
+      twofactor[twofactor_id] = {
         'msg': msg,
         'payload': payload
       };
