@@ -91,8 +91,10 @@ var ERROR_MESSAGES = [
   "I'm sorry, Dave. I'm afraid I can't do that. (%s)"
 ];
 
-var TWOFACTOR_MESSAGE = "This action requires two-factor auth!\n" +
-                        "Authenticate with Duo Security: `%s 2fa %s`";
+var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Authenticate with Duo Security:\n" +
+                        "```\n" +
+                        "%s 2fa %s\n" +
+                        "```";
 
 
 module.exports = function(robot) {
