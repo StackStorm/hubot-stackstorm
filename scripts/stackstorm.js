@@ -40,7 +40,8 @@ var _ = require('lodash'),
   formatData = require('../lib/format_data.js'),
   postData = require('../lib/post_data.js'),
   CommandFactory = require('../lib/command_factory.js'),
-  st2client = require('st2client')
+  st2client = require('st2client'),
+  uuid = require('node-uuid')
   ;
 
 // Setup the Environment
@@ -89,6 +90,9 @@ var START_MESSAGES = [
 var ERROR_MESSAGES = [
   "I'm sorry, Dave. I'm afraid I can't do that. (%s)"
 ];
+
+var TWOFACTOR_MESSAGE = "This action requires two-factor authentication!" +
+                        "Auth with Duo Security: `%s2fa %s`";
 
 
 module.exports = function(robot) {
@@ -154,6 +158,11 @@ module.exports = function(robot) {
     }
   }
 
+  // Pending 2-factor auth commands
+  if (env.HUBOT_2FA) {
+    var twofactor = {};
+  }
+
   // factory to manage commands
   var command_factory = new CommandFactory(robot);
 
@@ -205,15 +214,51 @@ module.exports = function(robot) {
       });
   };
 
+  var sendAck = function (msg, res) {
+    var history_url = utils.getExecutionHistoryUrl(res.execution.id);
+    var history = history_url ? util.format(' (details available at %s)', history_url) : '';
+
+    if (res.actionalias && res.actionalias.ack) {
+      if (res.actionalias.ack.enabled === false) {
+        return;
+      } else if (res.actionalias.ack.append_url === false) {
+        history = '';
+      }
+    }
+
+    if (res.message) {
+      return msg.send(res.message + history);
+    }
+
+    var message = util.format(_.sample(START_MESSAGES), res.execution.id);
+    return msg.send(message + history);
+  };
+
+  var createExecution = function (msg, payload) {
+    robot.logger.debug('Sending command payload:', JSON.stringify(payload));
+
+    api.aliasExecution.create(payload)
+      .then(function (res) { sendAck(msg, res); })
+      .catch(function (err) {
+        // Compatibility with older StackStorm versions
+        if (err.status === 200) {
+          return sendAck({ execution: { id: err.message } });
+        }
+        robot.logger.error('Failed to create an alias execution:', err);
+        msg.send(util.format(_.sample(ERROR_MESSAGES), err.message));
+        throw err;
+      });
+    };
+
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
     // Hipchat users aren't pinged by name, they're
     // pinged by mention_name
     var name = msg.message.user.name;
     if (robot.adapterName == "hipchat") {
       name = msg.message.user.mention_name;
-    };
+    }
     var room = msg.message.room;
-    if (room == undefined) {
+    if (room === undefined) {
       if (robot.adapterName == "hipchat") {
         room = msg.message.user.jid;
       }
@@ -230,39 +275,19 @@ module.exports = function(robot) {
       'source_channel': room,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
-    var sendAck = function (res) {
-      var history_url = utils.getExecutionHistoryUrl(res.execution.id);
-      var history = history_url ? util.format(' (details available at %s)', history_url) : '';
 
-      if (res.actionalias && res.actionalias.ack) {
-        if (res.actionalias.ack.enabled === false) {
-          return;
-        } else if (res.actionalias.ack.append_url === false) {
-          history = '';
-        }
-      }
-
-      if (res.message) {
-        return msg.send(res.message + history);
-      }
-
-      var message = util.format(_.sample(START_MESSAGES), res.execution.id);
-      return msg.send(message + history);
-    };
-
-    robot.logger.debug('Sending command payload:', JSON.stringify(payload));
-
-    api.aliasExecution.create(payload)
-      .then(sendAck)
-      .catch(function (err) {
-        // Compatibility with older StackStorm versions
-        if (err.status === 200) {
-          return sendAck({ execution: { id: err.message } });
-        }
-        robot.logger.error('Failed to create an alias execution:', err);
-        msg.send(util.format(_.sample(ERROR_MESSAGES), err.message));
-        throw err;
-      });
+    if (env.HUBOT_2FA && action_alias.extra && action_alias.extra.security &&
+        action_alias.extra.security.twofactor !== undefined) {
+      var uuid = uuid.v4();
+      robot.logger.debug('Requested an action that requires 2FA. Guid: ' + uuid);
+      msg.send(util.format(TWOFACTOR_MESSAGE, [robot.alias, uuid]));
+      twofactor[uuid] = {
+        'msg': msg,
+        'payload': payload
+      };
+    } else {
+      createExecution(msg, payload);
+    }
 
 
   };
@@ -345,6 +370,25 @@ module.exports = function(robot) {
         postDataHandler.postData(data);
 
       });
+
+      if (env.HUBOT_2FA) {
+        source.addEventListener('st2.announcement__2fa', function (e) {
+          var data;
+
+          robot.logger.debug('Successfull two-factor auth:', e.data);
+
+          if (e.data) {
+            data = JSON.parse(e.data).payload;
+          } else {
+            data = e.data;
+          }
+
+          var executionData = twofactor[data.uuid];
+          createExecution(executionData.msg, executionData.payload);
+
+        });
+      }
+
     });
 
     // Add an interval which tries to re-load the commands
