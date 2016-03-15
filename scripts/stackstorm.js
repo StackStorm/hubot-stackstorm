@@ -387,6 +387,7 @@ module.exports = function(robot) {
 
           var executionData = twofactor[data.uuid];
           createExecution(executionData.msg, executionData.payload);
+          delete twofactor[data.uuid];
 
         });
       }
