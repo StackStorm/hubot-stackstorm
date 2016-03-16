@@ -91,10 +91,7 @@ var ERROR_MESSAGES = [
   "I'm sorry, Dave. I'm afraid I can't do that. (%s)"
 ];
 
-var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Authenticate with Duo Security:\n" +
-                        "```\n" +
-                        "%s 2fa %s\n" +
-                        "```";
+var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Waiting for your confirmation.";
 
 
 module.exports = function(robot) {
@@ -282,7 +279,13 @@ module.exports = function(robot) {
         action_alias.extra.security.twofactor !== undefined) {
       var twofactor_id = uuid.v4();
       robot.logger.debug('Requested an action that requires 2FA. Guid: ' + twofactor_id);
-      msg.send(util.format(TWOFACTOR_MESSAGE, robot.alias, twofactor_id));
+      msg.send(TWOFACTOR_MESSAGE);
+      api.executions.create({
+        'action': env.HUBOT_2FA,
+        'parameters': {
+          'uuid': twofactor_id
+        }
+      });
       twofactor[twofactor_id] = {
         'msg': msg,
         'payload': payload
