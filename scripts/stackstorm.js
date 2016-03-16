@@ -283,7 +283,10 @@ module.exports = function(robot) {
       api.executions.create({
         'action': env.HUBOT_2FA,
         'parameters': {
-          'uuid': twofactor_id
+          'uuid': twofactor_id,
+          'user': name,
+          'channel': room,
+          'hint': action_alias.description
         }
       });
       twofactor[twofactor_id] = {
