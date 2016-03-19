@@ -31,13 +31,11 @@ var expect = require("chai").expect,
 var disableLogger = true,
   controlledLogger = function(msg) {};
 
-var disableAuth = function() {
-  process.env.ST2_AUTH_URL = '';
-  process.env.ST2_AUTH_USERNAME = '';
-  process.env.ST2_AUTH_PASSWORD = '';
+var enableTwofactor = function() {
+  process.env.HUBOT_2FA = 'somepack.twofactor_action';
 };
 
-describe("stanley the StackStorm bot", function() {
+describe("two-factor auth module", function() {
   var robot, user, adapter, st2bot, stop;
 
   before(function(done) {
@@ -51,7 +49,7 @@ describe("stanley the StackStorm bot", function() {
       robot.logger.debug = controlledLogger;
     }
 
-    disableAuth();
+    enableTwofactor();
 
     robot.adapter.on("connected", function() {
 
@@ -85,20 +83,28 @@ describe("stanley the StackStorm bot", function() {
     robot.shutdown();
   });
 
-  it("responds when asked for help", function(done) {
-    adapter.on("send", function(envelope, strings) {
-      expect(strings[0]).to.be.a('string');
-      done();
-    });
-    adapter.receive(new TextMessage(user, "Hubot help"));
+  it("is enabled when HUBOT_2FA is set", function(done) {
+    expect(st2bot.twofactor).to.be.an('object');
   });
 
-  it("has listeners", function() {
-    expect(robot.listeners).to.have.length(2);
+  it("is fired up when an alias has `extra:security:twofactor`", function(done) {
+    return false;
   });
 
-  it("doesn't have two-factor auth enabled by default", function() {
-    expect(st2bot.twofactor).to.be.an('undefined');
+  it("is not fired up when an alias has `extra:security:twofactor`", function(done) {
+    return false;
+  });
+
+  it("is authenticated when 2fa event with the right uuid is passed", function(done) {
+    return false;
+  });
+
+  it("does nothing when an event with a wrong uuid is received", function(done) {
+    return false;
+  });
+
+  it("does not approve the same event twice", function(done) {
+    return false;
   });
 
 });
