@@ -23,23 +23,28 @@ limitations under the License.
 // needed to get all coffeescript modules to be loaded
 require('coffee-script/register');
 
-var expect = require("chai").expect,
-  path = require("path"),
-  Robot = require("hubot/src/robot"),
-  TextMessage = require("hubot/src/message").TextMessage;
+var fs = require('fs'),
+    expect = require("chai").expect,
+    path = require("path"),
+    Robot = require("hubot/src/robot"),
+    TextMessage = require("hubot/src/message").TextMessage,
+    CommandFactory = require('../lib/command_factory.js'),
+    formatCommand = require('../lib/format_command.js'),
+    utils = require('../lib/utils.js');
+
+var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
+ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
 
 var disableLogger = true,
     logs = [],
     controlledLogger = function(msg) { logs.push(msg); };
 
-var disableAuth = function() {
-  process.env.ST2_AUTH_URL = '';
-  process.env.ST2_AUTH_USERNAME = '';
-  process.env.ST2_AUTH_PASSWORD = '';
+var enableTwofactor = function() {
+  process.env.HUBOT_2FA = 'somepack.twofactor_action';
 };
 
-describe("stanley the StackStorm bot", function() {
-  var robot, user, adapter, st2bot, stop;
+describe("two-factor auth module", function() {
+  var robot, user, adapter, st2bot, stop, command_factory;
 
   before(function(done) {
     robot = new Robot(null, "mock-adapter", true, "Hubot");
@@ -52,7 +57,7 @@ describe("stanley the StackStorm bot", function() {
       robot.logger.debug = controlledLogger;
     }
 
-    disableAuth();
+    enableTwofactor();
 
     robot.adapter.on("connected", function() {
 
@@ -70,7 +75,16 @@ describe("stanley the StackStorm bot", function() {
         });
 
         adapter = robot.adapter;
+        command_factory = new CommandFactory(robot);
+        ALIAS_FIXTURES.forEach(function(alias) {
+          command_factory.addCommand(
+            formatCommand(null, alias.name, alias.formats[0], alias.description),
+            alias.name,
+            alias.formats[0],
+            alias);
+        });
         done();
+
       }).catch(function(err) {
         console.log(err);
         done(err);
@@ -84,22 +98,18 @@ describe("stanley the StackStorm bot", function() {
     stop && stop();
     robot.server.close();
     robot.shutdown();
+    logs = [];
   });
 
-  it("responds when asked for help", function(done) {
-    adapter.on("send", function(envelope, strings) {
-      expect(strings[0]).to.be.a('string');
-      done();
-    });
-    adapter.receive(new TextMessage(user, "Hubot help"));
+  it("is fired up when an alias has `extra:security:twofactor`", function() {
+    expect(utils.enable2FA(ALIAS_FIXTURES[4])).to.be.ok;
   });
 
-  it("has listeners", function() {
-    expect(robot.listeners).to.have.length(2);
-  });
-
-  it("doesn't have two-factor auth enabled by default", function() {
-    expect(logs).not.to.contain('Two-factor auth is enabled');
+  it("is not fired up when an alias has no `extra:security:twofactor`", function() {
+    expect(utils.enable2FA(ALIAS_FIXTURES[0])).to.be.not.ok;
+    expect(utils.enable2FA(ALIAS_FIXTURES[1])).to.be.not.ok;
+    expect(utils.enable2FA(ALIAS_FIXTURES[2])).to.be.not.ok;
+    expect(utils.enable2FA(ALIAS_FIXTURES[3])).to.be.not.ok;
   });
 
 });

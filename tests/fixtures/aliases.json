@@ -24,4 +24,15 @@
     "alias4 fmt1 {{param1}} word {{param2}}",
     "alias4 fmt1 {{param1}}"
   ]
+}, {
+  "name": "twofactor",
+  "description": "alias with two-factor auth",
+  "formats": [
+    "alias5 fmt1"
+  ],
+  "extra": {
+    "security": {
+      "twofactor": true
+    }
+  }
 }]
