@@ -29,7 +29,8 @@ var expect = require("chai").expect,
   TextMessage = require("hubot/src/message").TextMessage;
 
 var disableLogger = true,
-  controlledLogger = function(msg) {};
+    logs = [],
+    controlledLogger = function(msg) { logs.push(msg); };
 
 var disableAuth = function() {
   process.env.ST2_AUTH_URL = '';
@@ -98,7 +99,7 @@ describe("stanley the StackStorm bot", function() {
   });
 
   it("doesn't have two-factor auth enabled by default", function() {
-    expect(st2bot.twofactor).to.be.an('undefined');
+    expect(logs).not.to.contain('Two-factor auth is enabled');
   });
 
 });

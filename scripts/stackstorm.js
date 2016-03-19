@@ -160,6 +160,7 @@ module.exports = function(robot) {
   // Pending 2-factor auth commands
   if (env.HUBOT_2FA) {
     var twofactor = {};
+    robot.logger.info('Two-factor auth is enabled');
   }
 
   // factory to manage commands
@@ -275,8 +276,7 @@ module.exports = function(robot) {
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
 
-    if (env.HUBOT_2FA && action_alias.extra && action_alias.extra.security &&
-        action_alias.extra.security.twofactor !== undefined) {
+    if (utils.enable2FA(action_alias)) {
       var twofactor_id = uuid.v4();
       robot.logger.debug('Requested an action that requires 2FA. Guid: ' + twofactor_id);
       msg.send(TWOFACTOR_MESSAGE);

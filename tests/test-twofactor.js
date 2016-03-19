@@ -23,20 +23,28 @@ limitations under the License.
 // needed to get all coffeescript modules to be loaded
 require('coffee-script/register');
 
-var expect = require("chai").expect,
-  path = require("path"),
-  Robot = require("hubot/src/robot"),
-  TextMessage = require("hubot/src/message").TextMessage;
+var fs = require('fs'),
+    expect = require("chai").expect,
+    path = require("path"),
+    Robot = require("hubot/src/robot"),
+    TextMessage = require("hubot/src/message").TextMessage,
+    CommandFactory = require('../lib/command_factory.js'),
+    formatCommand = require('../lib/format_command.js'),
+    utils = require('../lib/utils.js');
+
+var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
+ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
 
 var disableLogger = true,
-  controlledLogger = function(msg) {};
+    logs = [],
+    controlledLogger = function(msg) { logs.push(msg); };
 
 var enableTwofactor = function() {
   process.env.HUBOT_2FA = 'somepack.twofactor_action';
 };
 
 describe("two-factor auth module", function() {
-  var robot, user, adapter, st2bot, stop;
+  var robot, user, adapter, st2bot, stop, command_factory;
 
   before(function(done) {
     robot = new Robot(null, "mock-adapter", true, "Hubot");
@@ -67,7 +75,16 @@ describe("two-factor auth module", function() {
         });
 
         adapter = robot.adapter;
+        command_factory = new CommandFactory(robot);
+        ALIAS_FIXTURES.forEach(function(alias) {
+          command_factory.addCommand(
+            formatCommand(null, alias.name, alias.formats[0], alias.description),
+            alias.name,
+            alias.formats[0],
+            alias);
+        });
         done();
+
       }).catch(function(err) {
         console.log(err);
         done(err);
@@ -81,30 +98,30 @@ describe("two-factor auth module", function() {
     stop && stop();
     robot.server.close();
     robot.shutdown();
+    logs = [];
   });
 
-  it("is enabled when HUBOT_2FA is set", function(done) {
-    expect(st2bot.twofactor).to.be.an('object');
+  it("is fired up when an alias has `extra:security:twofactor`", function() {
+    // expect(utils.enable2FA(ALIAS_FIXTURES[4])).to.be.ok;
   });
 
-  it("is fired up when an alias has `extra:security:twofactor`", function(done) {
-    return false;
+  it("is not fired up when an alias has no `extra:security:twofactor`", function() {
+    // expect(utils.enable2FA(ALIAS_FIXTURES[0])).to.be.not.ok;
+    // expect(utils.enable2FA(ALIAS_FIXTURES[1])).to.be.not.ok;
+    // expect(utils.enable2FA(ALIAS_FIXTURES[2])).to.be.not.ok;
+    // expect(utils.enable2FA(ALIAS_FIXTURES[3])).to.be.not.ok;
   });
 
-  it("is not fired up when an alias has `extra:security:twofactor`", function(done) {
-    return false;
+  it("is approved when a `2fa` event with the right uuid is passed", function() {
+
   });
 
-  it("is authenticated when 2fa event with the right uuid is passed", function(done) {
-    return false;
+  it("does nothing when an event with a wrong uuid is received", function() {
+
   });
 
-  it("does nothing when an event with a wrong uuid is received", function(done) {
-    return false;
-  });
+  it("does not approve the same event twice", function() {
 
-  it("does not approve the same event twice", function(done) {
-    return false;
   });
 
 });
