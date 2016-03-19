@@ -102,26 +102,14 @@ describe("two-factor auth module", function() {
   });
 
   it("is fired up when an alias has `extra:security:twofactor`", function() {
-    // expect(utils.enable2FA(ALIAS_FIXTURES[4])).to.be.ok;
+    expect(utils.enable2FA(ALIAS_FIXTURES[4])).to.be.ok;
   });
 
   it("is not fired up when an alias has no `extra:security:twofactor`", function() {
-    // expect(utils.enable2FA(ALIAS_FIXTURES[0])).to.be.not.ok;
-    // expect(utils.enable2FA(ALIAS_FIXTURES[1])).to.be.not.ok;
-    // expect(utils.enable2FA(ALIAS_FIXTURES[2])).to.be.not.ok;
-    // expect(utils.enable2FA(ALIAS_FIXTURES[3])).to.be.not.ok;
-  });
-
-  it("is approved when a `2fa` event with the right uuid is passed", function() {
-
-  });
-
-  it("does nothing when an event with a wrong uuid is received", function() {
-
-  });
-
-  it("does not approve the same event twice", function() {
-
+    expect(utils.enable2FA(ALIAS_FIXTURES[0])).to.be.not.ok;
+    expect(utils.enable2FA(ALIAS_FIXTURES[1])).to.be.not.ok;
+    expect(utils.enable2FA(ALIAS_FIXTURES[2])).to.be.not.ok;
+    expect(utils.enable2FA(ALIAS_FIXTURES[3])).to.be.not.ok;
   });
 
 });
