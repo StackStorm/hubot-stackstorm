@@ -268,7 +268,7 @@ module.exports = function(robot) {
       name = msg.message.user.name[0];
     }
     if (robot.adapterName === "spark") {
-      room = String(msg.message.user.room);
+      room = msg.message.user.room;
       name = msg.message.user.name
     }
     var payload = {
