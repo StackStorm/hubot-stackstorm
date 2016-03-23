@@ -268,7 +268,8 @@ module.exports = function(robot) {
       name = msg.message.user.name[0];
     }
     if (robot.adapterName === "spark") {
-      room = "spark" // unsupported
+      room = String(msg.message.user.roomId);
+      name = msg.message.user.name
     }
     var payload = {
       'name': command_name,
