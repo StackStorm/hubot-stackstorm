@@ -88,7 +88,7 @@ var START_MESSAGES = [
 ];
 
 var ERROR_MESSAGES = [
-  "I'm sorry, Dave. I'm afraid I can't do that. (%s)"
+  "I'm sorry, Dave. I'm afraid I can't do that. {~} %s"
 ];
 
 var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Waiting for your confirmation.";
@@ -245,7 +245,16 @@ module.exports = function(robot) {
           return sendAck(msg, { execution: { id: err.message } });
         }
         robot.logger.error('Failed to create an alias execution:', err);
-        msg.send(util.format(_.sample(ERROR_MESSAGES), err.message));
+        var addressee = utils.normalizeAddressee(msg);
+        postDataHandler.postData({
+          whisper: false,
+          user: addressee.name,
+          channel: addressee.room,
+          message: util.format(_.sample(ERROR_MESSAGES), err.message),
+          extra: {
+            color: '#F35A00'
+          }
+        });
         throw err;
       });
     };
