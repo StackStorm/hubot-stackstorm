@@ -251,32 +251,13 @@ module.exports = function(robot) {
     };
 
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
-    // Hipchat users aren't pinged by name, they're
-    // pinged by mention_name
-    var name = msg.message.user.name;
-    if (robot.adapterName === "hipchat") {
-      name = msg.message.user.mention_name;
-    }
-    var room = msg.message.room;
-    if (room === undefined) {
-      if (robot.adapterName === "hipchat") {
-        room = msg.message.user.jid;
-      }
-    }
-    if (robot.adapterName === "yammer") {
-      room = String(msg.message.user.thread_id);
-      name = msg.message.user.name[0];
-    }
-    if (robot.adapterName === "spark") {
-      room = msg.message.user.room;
-      name = msg.message.user.name;
-    }
+    var addressee = utils.normalizeAddressee(msg);
     var payload = {
       'name': command_name,
       'format': format_string,
       'command': command,
-      'user': name,
-      'source_channel': room,
+      'user': addressee.name,
+      'source_channel': addressee.room,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
 
@@ -288,8 +269,8 @@ module.exports = function(robot) {
         'action': env.HUBOT_2FA,
         'parameters': {
           'uuid': twofactor_id,
-          'user': name,
-          'channel': room,
+          'user': addressee.name,
+          'channel': addressee.room,
           'hint': action_alias.description
         }
       });
