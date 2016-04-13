@@ -245,7 +245,7 @@ module.exports = function(robot) {
           return sendAck(msg, { execution: { id: err.message } });
         }
         robot.logger.error('Failed to create an alias execution:', err);
-        var addressee = utils.normalizeAddressee(msg);
+        var addressee = utils.normalizeAddressee(msg, robot.adapterName);
         postDataHandler.postData({
           whisper: false,
           user: addressee.name,
@@ -260,7 +260,7 @@ module.exports = function(robot) {
     };
 
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
-    var addressee = utils.normalizeAddressee(msg);
+    var addressee = utils.normalizeAddressee(msg, robot.adapterName);
     var payload = {
       'name': command_name,
       'format': format_string,
