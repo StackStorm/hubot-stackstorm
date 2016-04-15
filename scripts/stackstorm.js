@@ -284,7 +284,9 @@ module.exports = function(robot) {
     result = command_factory.getMatchingCommand(command.toLowerCase());
 
     if (!result) {
-      // No command found
+      //add a default response if the command is not found
+      msg.send("I'm sorry but I didn't recognise that command. Please try !help for available commands.");
+      // No command found, notifiy slack user
       return;
     }
 
