@@ -96,6 +96,46 @@ describe("slack post data", function() {
     );
   });
 
+  it('should split a long slack-attachment into chunks', function() {
+    this.clock = sinon.useFakeTimers();
+    robot.emit = sinon.spy();
+    var input = {
+      user: 'stanley',
+      channel: '#stackstorm',
+      message: '0'+(new Array(8500).join('1'))+'2',
+      whisper: false
+    };
+    var chunks = input.message.match(/[\s\S]{1,7900}/g);
+    postDataHandler.postData(input);
+    expect(robot.emit).to.have.been.calledWith(
+      'slack-attachment', {
+        channel: input.channel,
+        content: {
+          color: env.ST2_SLACK_SUCCESS_COLOR,
+          mrkdwn_in: ["text", "pretext"],
+          text: chunks[0],
+          fallback: chunks[0]
+        },
+        text: "@stanley: "
+      }
+    );
+    this.clock.tick(500);
+    expect(robot.emit).to.have.been.calledWith(
+      'slack-attachment', {
+        channel: input.channel,
+        content: {
+          color: env.ST2_SLACK_SUCCESS_COLOR,
+          mrkdwn_in: ["text", "pretext"],
+          text: chunks[1],
+          fallback: chunks[1]
+        },
+        text: null
+      }
+    );
+    expect(robot.emit).to.have.been.calledTwice;
+    this.clock.restore();
+  });
+
   it('should whisper a slack-attachment', function() {
     robot.emit = sinon.spy();
     var input = {
