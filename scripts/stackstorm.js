@@ -115,14 +115,24 @@ module.exports = function(robot) {
 
   if (env.ST2_API_KEY) {
     api.setKey({ key: env.ST2_API_KEY });
-  }
-
-  if (env.ST2_AUTH_TOKEN) {
+  } else if (env.ST2_AUTH_TOKEN) {
     api.setToken({ token: env.ST2_AUTH_TOKEN });
   }
 
   function authenticate() {
     api.removeListener('expiry', authenticate);
+
+    // API key gets precedence 1
+    if (env.ST2_API_KEY) {
+      robot.logger.info('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
+      return Promise.resolve();
+    }
+    // Auth token gets precedence 2
+    if (env.ST2_AUTH_TOKEN) {
+      robot.logger.info('Using ST2_AUTH_TOKEN as authentication. Expiry will lead to bot exit.');
+      return Promise.resolve();
+    }
+
     robot.logger.info('Requesting a token...');
 
     var url = utils.parseUrl(env.ST2_AUTH_URL);
