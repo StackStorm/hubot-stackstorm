@@ -159,12 +159,14 @@ module.exports = function(robot) {
       });
   }
 
-  if (env.ST2_AUTH_URL || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
-    if (env.ST2_AUTH_URL && env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD) {
-      promise = authenticate();
-    } else {
+  if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || (env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD)) {
+    // If using username and password then auth_url is required.
+    if ((env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD) && !env.ST2_AUTH_URL) {
       throw new Error('Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
     }
+    promise = authenticate();
+  } else {
+    throw new Error('At least 1 form of authentication must be provided.');
   }
 
   // Pending 2-factor auth commands
