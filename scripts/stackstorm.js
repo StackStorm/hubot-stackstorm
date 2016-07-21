@@ -226,7 +226,7 @@ module.exports = function(robot) {
   };
 
   var sendAck = function (msg, res) {
-    var history_url = utils.getExecutionHistoryUrl(res.execution.id);
+    var history_url = utils.getExecutionHistoryUrl(res.execution);
     var history = history_url ? util.format(' (details available at %s)', history_url) : '';
 
     if (res.actionalias && res.actionalias.ack) {

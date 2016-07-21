@@ -68,3 +68,53 @@ describe('parseUrl', function() {
     expect(result['port']).to.be.equal(443);
   });
 });
+
+
+describe('getExecutionHistoryUrl', function() {
+  var execution_model = {
+    'action': {
+      'name': 'pointlessaction',
+      'runner_type': 'pointlessrunner'
+    },
+    'children': [
+      '54e657f20640fd16887d6857',
+      '54e658290640fd16887d685a'
+    ],
+    'end_timestamp': '2014-09-01T00:00:59.000000Z',
+    'id': '54e657d60640fd16887d6855',
+    'liveaction': {
+      'action': 'pointlessaction'
+    },
+    'runner': {
+      'name': 'pointlessrunner',
+      'runner_module': 'no.module'
+    },
+    'start_timestamp': '2014-09-01T00:00:01.000000Z',
+    'status': 'succeeded',
+    'web_url': 'https://webui.yolocompany.com/#/history/54e657d60640fd16887d6855/general'
+  };
+
+  it('should return url from model', function() {
+    var web_url = utils.getExecutionHistoryUrl(execution_model);
+    expect(web_url).to.be.equal(
+      'https://webui.yolocompany.com/#/history/54e657d60640fd16887d6855/general'
+    );
+  });
+
+  // Backward compatibility. Remove this test when we deprecate ST2_WEB_URL env variable.
+  it('should return url from env if web_url is not present', function() {
+    var web_url;
+    var web_url_bkup = execution_model.web_url;
+
+    process.env.ST2_WEBUI_URL = 'https://hostname-set-in-env';
+    delete execution_model['web_url'];
+
+    web_url = utils.getExecutionHistoryUrl(execution_model);
+    expect(web_url).to.be.equal(
+      'https://hostname-set-in-env/#/history/54e657d60640fd16887d6855/general'
+    );
+
+    execution_model.web_url = web_url_bkup;
+  });
+
+});
