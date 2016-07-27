@@ -257,11 +257,17 @@ module.exports = function(robot) {
         }
         robot.logger.error('Failed to create an alias execution:', err);
         var addressee = utils.normalizeAddressee(msg, robot.adapterName);
+        var message = util.format(_.sample(ERROR_MESSAGES), err.message);
+        if (err.requestId) {
+          message = util.format(
+            message,
+            util.format('; Use request ID %s to grep st2 api logs.', err.requestId));
+        }
         postDataHandler.postData({
           whisper: false,
           user: addressee.name,
           channel: addressee.room,
-          message: util.format(_.sample(ERROR_MESSAGES), err.message),
+          message: message,
           extra: {
             color: '#F35A00'
           }
