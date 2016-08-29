@@ -118,7 +118,7 @@ gulp test
 
 ## Publishing
 
-Reminder to ourselves, instead of bumping the version manually, use `mverson`.
+Reminder to ourselves, instead of bumping the version manually, use `mversion`.
 
 ```
 npm install -g mversion
