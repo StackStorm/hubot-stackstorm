@@ -41,7 +41,7 @@ var _ = require('lodash'),
   postData = require('../lib/post_data.js'),
   CommandFactory = require('../lib/command_factory.js'),
   st2client = require('st2client'),
-  uuid = require('node-uuid')
+  uuid = require('uuid')
   ;
 
 // Setup the Environment
