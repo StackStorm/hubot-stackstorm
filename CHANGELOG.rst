@@ -1,3 +1,7 @@
+0.5.0
+-----
+* Mattermost support
+
 0.3.0
 -----
 * Switched to st2client.js
