@@ -27,6 +27,24 @@ env.ST2_API_KEY = env.ST2_API_KEY || null;
 // Optional, if not provided, we infer it from the API URL
 env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 
+var START_MESSAGES = [
+  "I'll take it from here! Your execution ID for reference is %s",
+  "Got it! Remember %s as your execution ID",
+  "I'm on it! Your execution ID is %s",
+  "Let me get right on that. Remember %s as your execution ID",
+  "Always something with you. :) I'll take care of that. Your ID is %s",
+  "I have it covered. Your execution ID is %s",
+  "Let me start up the machine! Your execution ID is %s",
+  "I'll throw that task in the oven and get cookin'! Your execution ID is %s",
+  "Want me to take that off your hand? You got it! Don't forget your execution ID: %s",
+  "River Tam will get it done with her psychic powers. Your execution ID is %s"
+];
+
+var ERROR_MESSAGES = [
+  "I'm sorry, Dave. I'm afraid I can't do that. {~} %s"
+];
+
+
 function StackStormApi(logger) {
   this.logger = logger;
   var url = utils.parseUrl(env.ST2_API);
@@ -154,7 +172,7 @@ StackStormApi.prototype.createExecution = function (msg, payload) {
     });
 };
 
-StackStormApi.prototype.executeCommand = function (msg, command_name, format_string, command, action_alias) {
+StackStormApi.prototype.executeCommand = function (msg, command_name, format_string, command, addressee) {
   var addressee = utils.normalizeAddressee(msg, this.robot.adapterName);
   var payload = {
     'name': command_name,
@@ -165,7 +183,9 @@ StackStormApi.prototype.executeCommand = function (msg, command_name, format_str
     'notification_route': env.ST2_ROUTE || 'hubot'
   };
 
-  return this.createExecution(msg, payload);
+  this.logger.debug('Sending command payload:', JSON.stringify(payload));
+
+  return this.api.aliasExecution.create(payload);
 };
 
 StackStormApi.prototype.authenticate = function authenticate() {

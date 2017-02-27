@@ -30,28 +30,20 @@
 
 "use strict";
 
-var _ = require('lodash'),
-  util = require('util'),
-  env = _.clone(process.env),
-  Promise = require('rsvp').Promise,
-  utils = require('../lib/utils'),
-  slack_monkey_patch = require('./lib/slack_monkey_patch'),
-  formatCommand = require('./lib/format_command'),
-  formatData = require('./lib/format_data'),
-  postData = require('./lib/post_data'),
-  CommandFactory = require('./lib/command_factory'),
-  StackStormApi = require('./lib/stackstorm_api'),
-  st2client = require('st2client'),
-  uuid = require('node-uuid')
-  ;
-
-
-
-
+var _ = require('lodash');
+var util = require('util');
+var env = _.clone(process.env);
+var Promise = require('rsvp').Promise;
+var utils = require('../lib/utils');
+var formatCommand = require('./lib/format_command');
+var formatData = require('./lib/format_data');
+var messaging_handler = require('./lib/messaging_handler');
+var CommandFactory = require('./lib/command_factory');
+var StackStormApi = require('./lib/stackstorm_api');
+var st2client = require('st2client');
+var uuid = require('node-uuid');
 
 module.exports = function(robot) {
-  slack_monkey_patch.patchSendMessage(robot);
-
   var self = this;
 
   var promise = Promise.resolve();
@@ -63,20 +55,11 @@ module.exports = function(robot) {
   var formatter = formatData.getFormatter(robot.adapterName, robot);
 
   // handler to manage per adapter message post-ing.
-  var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
+  var messagingHandler = messaging_handler.getMessagingHandler(robot.adapterName, robot, formatter);
 
-  var stackstorm_api = new StackStormApi(robot.logger)
-
-
+  var stackstorm_api = new StackStormApi(robot.logger);
 
 
-  function stop() {
-    clearInterval(commands_load_interval);
-    api.stream.listen().then(function (source) {
-      source.removeAllListeners();
-      source.close();
-    });
-  }
 
   // Authenticate with StackStorm backend and then call start.
   // On a failure to authenticate log the error but do not quit.
