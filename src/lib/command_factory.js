@@ -17,10 +17,10 @@ limitations under the License.
 
 "use strict";
 
-var _ = require('lodash'),
-  utils = require('./utils.js'),
-  formatCommand = require('./format_command.js'),
-  CommandExecutor = require('./command_executor');
+var _ = require('lodash');
+var utils = require('./utils.js');
+var formatCommand = require('./format_command.js');
+var CommandExecutor = require('./command_executor');
 
 
 var getRegexForFormatString = function (format) {
@@ -39,15 +39,9 @@ var getRegexForFormatString = function (format) {
   return regex;
 };
 
-
-/**
- * Manage command for stackstorm, storing them in robot and providing
- * lookups given command literals.
- */
 function CommandFactory(robot) {
   this.robot = robot;
   this.st2_action_aliases = [];
-  this.command_executor = new CommandExecutor(robot);
 }
 
 CommandFactory.prototype.addCommand = function (action_alias, formatter) {
@@ -94,9 +88,8 @@ CommandFactory.prototype.addCommand = function (action_alias, formatter) {
       }
     });
     return false;
-  }, { id: action_alias.name }, function (response) {
-    this.command_executor.execute(response, );
-    executeCommand(msg, command_name, format_string, command, action_alias);
+  }, { id: action_alias.name }, function (msg) {
+    executeCommand(msg, command_name, format_string, command, addressee);
   });
 };
 

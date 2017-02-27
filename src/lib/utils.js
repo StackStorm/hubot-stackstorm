@@ -25,8 +25,6 @@ var WEBUI_EXECUTION_HISTORY_URL = '%s/#/history/%s/general';
 var MESSAGE_EXECUTION_ID_REGEX = new RegExp('.*execution: (.+).*');
 var CLI_EXECUTION_GET_CMD = 'st2 execution get %s';
 var PRETEXT_DELIMITER = '{~}';
-var DISPLAY = 1;
-var REPRESENTATION = 2;
 
 
 function isNull(value) {

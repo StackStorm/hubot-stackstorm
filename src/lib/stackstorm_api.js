@@ -1,13 +1,12 @@
 "use strict";
 
-var _ = require('lodash'),
-  util = require('util'),
-  env = _.clone(process.env),
-  Promise = require('rsvp').Promise,
-  utils = require('./utils.js'),
-  st2client = require('st2client'),
-  EventEmitter = require('events').EventEmitter
-  ;
+var _ = require('lodash');
+var util = require('util');
+var env = _.clone(process.env);
+var Promise = require('rsvp').Promise;
+var utils = require('./utils.js');
+var st2client = require('st2client');
+var EventEmitter = require('events').EventEmitter;
 
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
