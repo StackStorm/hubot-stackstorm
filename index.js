@@ -18,7 +18,7 @@ limitations under the License.
 var fs = require('fs');
 var path = require('path');
 
-var SCRIPTS_PATH = path.resolve(__dirname, 'scripts');
+var SCRIPTS_PATH = path.resolve(__dirname, 'src');
 
 
 module.exports = function(robot, scripts) {

@@ -19,7 +19,7 @@ limitations under the License.
 
 var _ = require('lodash');
 
-module.exports = function(logger, name, format, description) {
+module.exports = function(name, format, description) {
   var context, template_str, compiled_template, command;
 
   if (!format) {

@@ -87,44 +87,7 @@ function splitMessage(message) {
   };
 }
 
-function enable2FA(action_alias) {
-  return env.HUBOT_2FA &&
-         action_alias.extra && action_alias.extra.security &&
-         action_alias.extra.security.twofactor !== undefined;
-}
-
-function normalizeAddressee(msg, adapter) {
-  var name = msg.message.user.name;
-  if (adapter === "hipchat") {
-    // Hipchat users aren't pinged by name, they're
-    // pinged by mention_name
-    name = msg.message.user.mention_name;
-  }
-  var room = msg.message.room;
-  if (room === undefined) {
-    if (adapter === "hipchat") {
-      room = msg.message.user.jid;
-    }
-  }
-  if (adapter === "yammer") {
-    room = String(msg.message.user.thread_id);
-    name = msg.message.user.name[0];
-  }
-  if (adapter === "spark") {
-    room = msg.message.user.room;
-    name = msg.message.user.name;
-  }
-  return {
-    name: name,
-    room: room
-  };
-}
-
 exports.isNull = isNull;
 exports.getExecutionHistoryUrl = getExecutionHistoryUrl;
 exports.parseUrl = parseUrl;
 exports.splitMessage = splitMessage;
-exports.enable2FA = enable2FA;
-exports.normalizeAddressee = normalizeAddressee;
-exports.DISPLAY = DISPLAY;
-exports.REPRESENTATION = REPRESENTATION;

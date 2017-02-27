@@ -22,14 +22,27 @@ var env = process.env,
   utils = require('./utils.js');
 
 /*
-  SlackDataPostHandler.
+  SlackMessagingHandler.
 */
-function SlackDataPostHandler(robot, formatter) {
+function SlackMessagingHandler(robot, formatter) {
   this.robot = robot;
   this.formatter = formatter;
+
+  var sendMessageRaw = function(message) {
+    /*jshint validthis:true */
+    message['channel'] = this.id;
+    message['parse'] = 'none';
+    this._client._send(message);
+  };
+
+  if (robot.adapter && robot.adapter.constructor && robot.adapter.constructor.name === 'SlackBot') {
+    for (var channel in robot.adapter.client.channels) {
+      robot.adapter.client.channels[channel].sendMessage = sendMessageRaw.bind(robot.adapter.client.channels[channel]);
+    }
+  }
 }
 
-SlackDataPostHandler.prototype.postData = function(data) {
+SlackMessagingHandler.prototype.postData = function(data) {
   var recipient, attachment_color, split_message,
       attachment, pretext = "";
 
@@ -80,15 +93,22 @@ SlackDataPostHandler.prototype.postData = function(data) {
   }
 };
 
+SlackMessagingHandler.normalizeAddressee = function(msg) {
+  return {
+    name: msg.message.user.name,
+    room: msg.message.room
+  };
+};
+
 /*
-  HipchatDataPostHandler.
+  HipchatMessagingHandler.
 */
-function HipchatDataPostHandler(robot, formatter) {
+function HipchatMessagingHandler(robot, formatter) {
   this.robot = robot;
   this.formatter = formatter;
 }
 
-HipchatDataPostHandler.prototype.postData = function(data) {
+HipchatMessagingHandler.prototype.postData = function(data) {
   var recipient, split_message, formatted_message,
       pretext = "";
 
@@ -123,15 +143,27 @@ HipchatDataPostHandler.prototype.postData = function(data) {
   }
 };
 
+SlackMessagingHandler.normalizeAddressee = function(msg) {
+  var name = msg.message.user.name;
+  var room = msg.message.room;
+  if (room === undefined) {
+    room = msg.message.user.jid;
+  }
+  return {
+    name: name,
+    room: room
+  };
+};
+
 /*
-  Yammer Handler.
+  YammerMessagingHandler.
 */
-function YammerDataPostHandler(robot, formatter) {
+function YammerMessagingHandler(robot, formatter) {
   this.robot = robot;
   this.formatter = formatter;
 }
 
-YammerDataPostHandler.prototype.postData = function(data) {
+YammerMessagingHandler.prototype.postData = function(data) {
   var recipient, split_message, formatted_message,
       text = "";
 
@@ -156,15 +188,22 @@ YammerDataPostHandler.prototype.postData = function(data) {
   this.robot.send.call(this.robot, recipient, formatted_message);
 };
 
+YammerMessagingHandler.normalizeAddressee = function(msg) {
+  return {
+    name: String(msg.message.user.thread_id),
+    room: msg.message.room
+  };
+};
+
 /*
-  DefaultDataPostHandler.
+  DefaultMessagingHandler.
 */
-function DefaultFormatter(robot, formatter) {
+function DefaultMessagingHandler(robot, formatter) {
   this.robot = robot;
   this.formatter = formatter;
 }
 
-DefaultFormatter.prototype.postData = function(data) {
+DefaultMessagingHandler.prototype.postData = function(data) {
   var recipient, split_message, formatted_message,
       text = "";
 
@@ -189,20 +228,27 @@ DefaultFormatter.prototype.postData = function(data) {
   this.robot.messageRoom.call(this.robot, recipient, formatted_message);
 };
 
-var dataPostHandlers = {
-  'slack': SlackDataPostHandler,
-  'hipchat': HipchatDataPostHandler,
-  'yammer': YammerDataPostHandler,
-  'default': DefaultFormatter
+DefaultMessagingHandler.normalizeAddressee = function(msg) {
+  return {
+    room: msg.message.user.room,
+    name: msg.message.user.name
+  };
 };
 
-module.exports.getDataPostHandler = function(adapterName, robot, formatter) {
-  if (!(adapterName in dataPostHandlers)) {
+var messagingHandlers = {
+  'slack': SlackMessagingHandler,
+  'hipchat': HipchatMessagingHandler,
+  'yammer': YammerMessagingHandler,
+  'default': DefaultMessagingHandler
+};
+
+module.exports.getMessagingHandler = function(adapterName, robot, formatter) {
+  if (!(adapterName in messagingHandlers)) {
     robot.logger.warning(
       util.format('No post handler found for %s. Using DefaultFormatter.', adapterName));
     adapterName = 'default';
   }
   robot.logger.debug(
     util.format('Using %s post data handler.', adapterName));
-  return new dataPostHandlers[adapterName](robot, formatter);
+  return new messagingHandlers[adapterName](robot, formatter);
 };
