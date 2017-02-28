@@ -19,9 +19,27 @@ limitations under the License.
 
 var _ = require('lodash');
 var utils = require('./utils.js');
-var formatCommand = require('./format_command.js');
-var CommandExecutor = require('./command_executor');
+var util = require('util');
+var EventEmitter = require('events').EventEmitter;
 
+var formatCommand = function(name, format, description) {
+  var context, template_str, compiled_template, command;
+
+  if (!format) {
+    throw (Error('format should be non-empty.'));
+  }
+
+  context = {
+    'format': format,
+    'description': description
+  };
+
+  template_str = '${format} - ${description}';
+  compiled_template = _.template(template_str);
+  command = compiled_template(context);
+
+  return command;
+};
 
 var getRegexForFormatString = function (format) {
   var extra_params, regex_str, regex;
@@ -41,55 +59,64 @@ var getRegexForFormatString = function (format) {
 
 function CommandFactory(robot) {
   this.robot = robot;
-  this.st2_action_aliases = [];
+  EventEmitter.call(this);
 }
 
-CommandFactory.prototype.addCommand = function (action_alias, formatter) {
+util.inherits(CommandFactory, EventEmitter);
+
+CommandFactory.prototype.addCommand = function (action_alias, messaging_handler) {
+  var self = this;
+
   if (action_alias.enabled === false) {
     return;
   }
 
   if (!action_alias.formats || action_alias.formats.length === 0) {
-    this.robot.logger.error('No formats specified for command: ' + action_alias.name);
+    self.robot.logger.error('No formats specified for command: ' + action_alias.name);
     return;
   }
 
   var regexes = [];
+  var commands_regex_map = {};
+  var action_alias_name = action_alias.name;
 
   _.each(action_alias.formats, function (format) {
-    action_alias.formatted_command = formatCommand(action_alias.name, format.display || format, action_alias.description);
-
-    var context = {
-      robotName: this.robot.name,
-      command: action_alias.formatted_command
-    };
-
+    var formatted_string = formatCommand(action_alias.name, format.display || format, action_alias.description);
     var compiled_template = _.template('hubot ${command}');
-    action_alias.command_string = compiled_template(context);
+    self.robot.commands.push(compiled_template({ robotName: self.robot.name, command: formatted_string }));
 
-    this.robot.commands.push(action_alias.formatted_command);
     if (format.display) {
       _.each(format.representation, function (representation) {
-        regexes.push(getRegexForFormatString(representation));
+        commands_regex_map[formatted_string] = getRegexForFormatString(representation);
       });
     } else {
-      regexes.push(getRegexForFormatString(format));
+      commands_regex_map[formatted_string] = getRegexForFormatString(format);
     }
   });
 
-  action_alias.regexes = regexes;
-  this.st2_action_aliases.push(action_alias);
+  var format_strings = Object.keys(commands_regex_map);
 
-  this.robot.listen(function (msg) {
-    var command = formatter.normalizeCommand(msg.text);
-    _.each(regexes, function (regex) {
+  self.robot.listen(function (msg) {
+    var i, format_string, regex;
+    var command = messaging_handler.normalizeCommand(msg.text);
+    for (i = 0; i < format_strings.length; i++) {
+      format_string = format_strings[i];
+      regex = commands_regex_map[format_string];
       if (regex.test(command)) {
+        msg['st2_command_format_string'] = format_string;
+        msg['normalized_command'] = command;
         return true;
       }
-    });
+    }
     return false;
-  }, { id: action_alias.name }, function (msg) {
-    executeCommand(msg, command_name, format_string, command, addressee);
+  }, { id: action_alias_name }, function (msg) {
+    self.emit('st2.command_match', {
+      msg: msg,
+      alias_name: action_alias_name,
+      command_format_string: msg.message['st2_command_format_string'],
+      command: msg.message['normalized_command'],
+      addressee: messaging_handler.normalizeAddressee(msg)
+    });
   });
 };
 

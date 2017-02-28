@@ -40,31 +40,79 @@ var formatData = require('./lib/format_data');
 var messaging_handler = require('./lib/messaging_handler');
 var CommandFactory = require('./lib/command_factory');
 var StackStormApi = require('./lib/stackstorm_api');
-var st2client = require('st2client');
 var uuid = require('node-uuid');
 
-module.exports = function(robot) {
+module.exports = function (robot) {
   var self = this;
 
-  var promise = Promise.resolve();
+  var stackstormApi = new StackStormApi(robot.logger);
+  var commandFactory = new CommandFactory(robot);
+  var messagingHandler = messaging_handler.getMessagingHandler(robot.adapterName, robot);
 
-  // factory to manage commands
-  var command_factory = new CommandFactory(robot);
+  robot.router.post('/hubot/st2', function (req, res) {
+    var data;
 
-  // formatter to manage per adapter message formatting.
-  var formatter = formatData.getFormatter(robot.adapterName, robot);
+    try {
+      if (req.body.payload) {
+        data = JSON.parse(req.body.payload);
+      } else {
+        data = req.body;
+      }
+      // Special handler to try and figure out when a hipchat message
+      // is a whisper:
+      // TODO: move this logic to the messaging handler
+      if (robot.adapterName === 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1) {
+        data.whisper = true;
+        robot.logger.debug('Set whisper to true for hipchat message');
+      }
 
-  // handler to manage per adapter message post-ing.
-  var messagingHandler = messaging_handler.getMessagingHandler(robot.adapterName, robot, formatter);
+      messagingHandler.postData(data);
 
-  var stackstorm_api = new StackStormApi(robot.logger);
-
-
-
-  // Authenticate with StackStorm backend and then call start.
-  // On a failure to authenticate log the error but do not quit.
-  return promise.then(function () {
-    start();
-    return stop;
+      res.send('{"status": "completed", "msg": "Message posted successfully"}');
+    } catch (e) {
+      robot.logger.error("Unable to decode JSON: " + e);
+      robot.logger.error(e.stack);
+      res.send('{"status": "failed", "msg": "An error occurred trying to post the message: ' + e + '"}');
+    }
   });
+
+  stackstormApi.on('st2.chatops_announcement', function (data) {
+    // TODO: move this logic to the messaging handler
+    if (robot.adapterName === 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1) {
+      data.whisper = true;
+      robot.logger.debug('Set whisper to true for hipchat message');
+    }
+
+    messagingHandler.postData(data);
+  });
+
+  stackstormApi.on('st2.execution_error', function (data) {
+    messagingHandler.postData({
+      whisper: false,
+      user: data.addressee.name,
+      channel: data.addressee.room,
+      message: data.message,
+      extra: {
+        color: '#F35A00'
+      }
+    });
+  });
+
+  commandFactory.on('st2.command_match', function (data) {
+    stackstormApi.executeCommand(data.msg, data.alias_name, data.format_string, data.command, data.addressee);
+  });
+
+  return stackstormApi.authenticate()
+    .then(function () {
+      return stackstormApi.getAliases();
+    })
+    .then(function (aliases) {
+      _.each(aliases, function (alias) {
+        commandFactory.addCommand(alias, messagingHandler);
+      });
+    })
+    .then(function () {
+      return stackstormApi.startListener();
+    });
+
 };

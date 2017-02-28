@@ -76,38 +76,36 @@ function StackStormApi(logger) {
 
 util.inherits(StackStormApi, EventEmitter);
 
-StackStormApi.prototype.start = function start() {
+StackStormApi.prototype.startListener = function start() {
   var self = this;
-  self.api.stream.listen().catch(function (err) {
-    self.logger.error('Unable to connect to stream:', err);
-  }).then(function (source) {
-    source.onerror = function (err) {
-      // TODO: squeeze a little bit more info out of evensource.js
-      self.logger.error('Stream error:', err);
-    };
-    source.addEventListener('st2.announcement__chatops', function (e) {
-      var data;
+  return self.api.stream.listen()
+    .catch(function (err) {
+      self.logger.error('Unable to connect to stream:', err);
+    })
+    .then(function (source) {
+      source.onerror = function (err) {
+        // TODO: squeeze a little bit more info out of evensource.js
+        self.logger.error('Stream error:', err);
+      };
+      source.addEventListener('st2.announcement__chatops', function (e) {
+        var data;
 
-      self.logger.debug('Chatops message received:', e.data);
+        self.logger.debug('Chatops message received:', e.data);
 
-      if (e.data) {
-        data = JSON.parse(e.data).payload;
-      } else {
-        data = e.data;
-      }
+        if (e.data) {
+          data = JSON.parse(e.data).payload;
+        } else {
+          data = e.data;
+        }
 
-      self.emit('chatops_announcement', data);
-
-      // Special handler to try and figure out when a hipchat message
-      // is a whisper:
-
-      // TODO: move to postdata logic or in the event listener
-      // if (this.robot.adapterName === 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1) {
-      //   data.whisper = true;
-      //   this.robot.logger.debug('Set whisper to true for hipchat message');
-      // }
+        self.emit('st2.chatops_announcement', data);
+      });
+      return source;
+    })
+    .then(function (source) {
+      // source.removeAllListeners();
+      // source.close();
     });
-  });
 };
 
 StackStormApi.prototype.getAliases = function () {
@@ -140,41 +138,11 @@ StackStormApi.prototype.sendAck = function (msg, res) {
   return msg.send(message + history);
 };
 
-StackStormApi.prototype.createExecution = function (msg, payload) {
-  this.logger.debug('Sending command payload:', JSON.stringify(payload));
-
-  return this.api.aliasExecution.create(payload)
-    .then(function (res) { this.sendAck(msg, res); })
-    .catch(function (err) {
-      // Compatibility with older StackStorm versions
-      if (err.status === 200) {
-        return this.sendAck(msg, { execution: { id: err.message } });
-      }
-      this.logger.error('Failed to create an alias execution:', err);
-      var addressee = utils.normalizeAddressee(msg, robot.adapterName);
-      var message = util.format(_.sample(ERROR_MESSAGES), err.message);
-      if (err.requestId) {
-        message = util.format(
-          message,
-          util.format('; Use request ID %s to grep st2 api logs.', err.requestId));
-      }
-      this.postDataHandler.postData({
-        whisper: false,
-        user: addressee.name,
-        channel: addressee.room,
-        message: message,
-        extra: {
-          color: '#F35A00'
-        }
-      });
-      throw err;
-    });
-};
-
-StackStormApi.prototype.executeCommand = function (msg, command_name, format_string, command, addressee) {
-  var addressee = utils.normalizeAddressee(msg, this.robot.adapterName);
+// TODO: decouple the msg object from stackstorm api, this should use an event emitter
+StackStormApi.prototype.executeCommand = function (msg, alias_name, format_string, command, addressee) {
+  var self = this;
   var payload = {
-    'name': command_name,
+    'name': alias_name,
     'format': format_string,
     'command': command,
     'user': addressee.name,
@@ -184,7 +152,28 @@ StackStormApi.prototype.executeCommand = function (msg, command_name, format_str
 
   this.logger.debug('Sending command payload:', JSON.stringify(payload));
 
-  return this.api.aliasExecution.create(payload);
+  return this.api.aliasExecution.create(payload)
+    .then(function (res) { this.sendAck(msg, res); })
+    .catch(function (err) {
+      if (err.status === 200) {
+        return this.sendAck(msg, { execution: { id: err.message } });
+      }
+      this.logger.error('Failed to create an alias execution:', err);
+      var message = util.format(_.sample(ERROR_MESSAGES), err.message);
+      if (err.requestId) {
+        message = util.format(
+          message,
+          util.format('; Use request ID %s to grep st2 api logs.', err.requestId));
+      }
+      self.emit('st2.execution_error', {
+        name: alias_name,
+        format_string: format_string,
+        message: message,
+        addressee: addressee,
+        command: command
+      });
+      throw err;
+    });
 };
 
 StackStormApi.prototype.authenticate = function authenticate() {
@@ -222,7 +211,6 @@ StackStormApi.prototype.authenticate = function authenticate() {
     })
     .catch(function (err) {
       this.logger.error('Failed to authenticate: ' + err.message);
-
       throw err;
     });
 };
