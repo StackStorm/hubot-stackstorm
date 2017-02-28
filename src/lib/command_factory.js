@@ -64,6 +64,7 @@ function CommandFactory(robot) {
 
 util.inherits(CommandFactory, EventEmitter);
 
+// TODO: decouple messaging_handler from command factory
 CommandFactory.prototype.addCommand = function (action_alias, messaging_handler) {
   var self = this;
 
