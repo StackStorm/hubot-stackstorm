@@ -22,7 +22,7 @@ var utils = require('./utils.js');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 
-var formatCommand = function(name, format, description) {
+var formatHelpCommand = function(name, format, description) {
   var context, template_str, compiled_template, command;
 
   if (!format) {
@@ -34,7 +34,7 @@ var formatCommand = function(name, format, description) {
     'description': description
   };
 
-  template_str = '${format} - ${description}';
+  template_str = 'hubot ${format} - ${description}';
   compiled_template = _.template(template_str);
   command = compiled_template(context);
 
@@ -58,7 +58,8 @@ var getRegexForFormatString = function (format) {
 };
 
 function CommandFactory(robot) {
-  this.robot = robot;
+  var self = this;
+  self.robot = robot;
   EventEmitter.call(this);
 }
 
@@ -82,9 +83,8 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
   var action_alias_name = action_alias.name;
 
   _.each(action_alias.formats, function (format) {
-    var formatted_string = formatCommand(action_alias.name, format.display || format, action_alias.description);
-    var compiled_template = _.template('hubot ${command}');
-    self.robot.commands.push(compiled_template({ robotName: self.robot.name, command: formatted_string }));
+    var formatted_string = format.display || format;
+    self.robot.commands.push(formatHelpCommand(action_alias.name, formatted_string, action_alias.description));
 
     if (format.display) {
       _.each(format.representation, function (representation) {
@@ -99,6 +99,9 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
 
   self.robot.listen(function (msg) {
     var i, format_string, regex;
+    if (!msg.text) {
+      return false;
+    }
     var command = messaging_handler.normalizeCommand(msg.text);
     for (i = 0; i < format_strings.length; i++) {
       format_string = format_strings[i];
@@ -110,7 +113,7 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
       }
     }
     return false;
-  }, { id: action_alias_name }, function (msg) {
+  }, { id: 'st2.' + action_alias_name }, function (msg) {
     self.emit('st2.command_match', {
       msg: msg,
       alias_name: action_alias_name,

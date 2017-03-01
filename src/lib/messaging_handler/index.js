@@ -6,7 +6,7 @@ var util = require('util');
 var fs = require('fs');
 var path = require('path');
 
-var filenames = fs.readdirSync('./');
+var filenames = fs.readdirSync(__dirname);
 
 var messagingHandlers = {};
 
@@ -16,7 +16,7 @@ filenames.forEach(function(filename) {
   }
 
   var message_handler = filename.replace(/\.[^/.]+$/, "");
-  messagingHandlers[message_handler] = require('./' + filename);
+  messagingHandlers[message_handler] = require(path.join(__dirname, filename));
 });
 
 module.exports.getMessagingHandler = function(adapterName, robot) {

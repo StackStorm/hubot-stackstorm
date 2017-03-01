@@ -5,14 +5,17 @@ var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
 var truncate = require('truncate');
-var hubot_alias = env.HUBOT_ALIAS;
+
+var hubot_alias_regex = new RegExp('^' + env.HUBOT_ALIAS);
 
 function DefaultMessagingHandler(robot) {
-  this.robot = robot;
-  this.truncate_length = env.ST2_MAX_MESSAGE_LENGTH;
+  var self = this;
+  self.robot = robot;
+  self.truncate_length = env.ST2_MAX_MESSAGE_LENGTH;
 }
 
 DefaultMessagingHandler.prototype.postData = function(data) {
+  var self = this;
   var recipient, split_message, formatted_message,
       text = "";
 
@@ -23,8 +26,8 @@ DefaultMessagingHandler.prototype.postData = function(data) {
     text = (data.user && !data.whisper) ? util.format('%s: ', data.user) : "";
   }
 
-  recipient = this.formatRecepient(recipient);
-  text += this.formatData(data.message);
+  recipient = self.formatRecepient(recipient);
+  text += self.formatData(data.message);
 
   // Ignore the delimiter in the default formatter and just concat parts.
   split_message = utils.splitMessage(text);
@@ -34,7 +37,7 @@ DefaultMessagingHandler.prototype.postData = function(data) {
     formatted_message = split_message.pretext || split_message.text;
   }
 
-  this.robot.messageRoom.call(this.robot, recipient, formatted_message);
+  self.robot.messageRoom.call(self.robot, recipient, formatted_message);
 };
 
 DefaultMessagingHandler.normalizeAddressee = function(msg) {
@@ -45,11 +48,13 @@ DefaultMessagingHandler.normalizeAddressee = function(msg) {
 };
 
 DefaultMessagingHandler.prototype.formatData = function(data) {
+  var self = this;
+
   if (utils.isNull(data)) {
     return "";
   }
-  if (this.truncate_length > 0) {
-    data = truncate(data, this.truncate_length);
+  if (self.truncate_length > 0) {
+    data = truncate(data, self.truncate_length);
   }
   return data;
 };
@@ -59,7 +64,7 @@ DefaultMessagingHandler.prototype.formatRecepient = function(recepient) {
 };
 
 DefaultMessagingHandler.prototype.normalizeCommand = function(command) {
-  return command.replace(/^${hubot_alias}/, "").trim();
+  return command.replace(hubot_alias_regex, "").trim();
 };
 
 module.exports = DefaultMessagingHandler;

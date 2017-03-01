@@ -35,8 +35,6 @@ var util = require('util');
 var env = _.clone(process.env);
 var Promise = require('rsvp').Promise;
 var utils = require('./lib/utils');
-var formatCommand = require('./lib/format_command');
-var formatData = require('./lib/format_data');
 var messaging_handler = require('./lib/messaging_handler');
 var CommandFactory = require('./lib/command_factory');
 var StackStormApi = require('./lib/stackstorm_api');
@@ -99,7 +97,7 @@ module.exports = function (robot) {
   });
 
   commandFactory.on('st2.command_match', function (data) {
-    stackstormApi.executeCommand(data.msg, data.alias_name, data.format_string, data.command, data.addressee);
+    stackstormApi.executeCommand(data.msg, data.alias_name, data.command_format_string, data.command, data.addressee);
   });
 
   return stackstormApi.authenticate()
@@ -110,6 +108,7 @@ module.exports = function (robot) {
       _.each(aliases, function (alias) {
         commandFactory.addCommand(alias, messagingHandler);
       });
+      return aliases;
     })
     .then(function () {
       return stackstormApi.startListener();

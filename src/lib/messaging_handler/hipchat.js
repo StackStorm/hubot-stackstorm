@@ -8,12 +8,14 @@ var DefaultMessagingHandler = require('./default');
 
 
 function HipchatMessagingHandler(robot) {
-  DefaultMessagingHandler.call(this, robot);
+  var self = this;
+  DefaultMessagingHandler.call(self, robot);
 }
 
 util.inherits(HipchatMessagingHandler, DefaultMessagingHandler);
 
 HipchatMessagingHandler.prototype.postData = function(data) {
+  var self = this;
   var recipient, split_message, formatted_message,
       pretext = "";
 
@@ -23,7 +25,7 @@ HipchatMessagingHandler.prototype.postData = function(data) {
   }
 
   if (recipient.indexOf('@') === -1 ) {
-    recipient = this.formatRecepient(recipient);
+    recipient = self.formatRecepient(recipient);
   }
   split_message = utils.splitMessage(data.message);
   if (pretext) {
@@ -34,16 +36,16 @@ HipchatMessagingHandler.prototype.postData = function(data) {
       same message, so split them */
   if (split_message.pretext) {
     if (data.whisper) {
-      this.robot.send.call(this.robot, data.channel, split_message.pretext);
+      self.robot.send.call(self.robot, data.channel, split_message.pretext);
     } else {
-      this.robot.messageRoom.call(this.robot, recipient, split_message.pretext);
+      self.robot.messageRoom.call(self.robot, recipient, split_message.pretext);
     }
   }
   if (split_message.text) {
     if (data.whisper) {
-      this.robot.send.call(this.robot, data.channel, this.formatData(split_message.text));
+      self.robot.send.call(self.robot, data.channel, self.formatData(split_message.text));
     } else {
-      this.robot.messageRoom.call(this.robot, recipient, this.formatData(split_message.text));
+      self.robot.messageRoom.call(self.robot, recipient, self.formatData(split_message.text));
     }
   }
 };
@@ -76,7 +78,8 @@ HipchatMessagingHandler.prototype.formatRecepient = function(recepient) {
 };
 
 HipchatMessagingHandler.prototype.normalizeCommand = function(command) {
-  return HipchatMessagingHandler.super_.prototype.normalizeCommand.call(this, command);
+  var self = this;
+  return HipchatMessagingHandler.super_.prototype.normalizeCommand.call(self, command);
 };
 
 module.exports = HipchatMessagingHandler;

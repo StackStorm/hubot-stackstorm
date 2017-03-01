@@ -11,7 +11,6 @@ var EventEmitter = require('events').EventEmitter;
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
 env.ST2_ROUTE = env.ST2_ROUTE || null;
-env.ST2_ROUTE = env.ST2_WEBUI_URL || null;
 
 // Optional authentication info
 env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
@@ -45,7 +44,8 @@ var ERROR_MESSAGES = [
 
 
 function StackStormApi(logger) {
-  this.logger = logger;
+  var self = this;
+  self.logger = logger;
   var url = utils.parseUrl(env.ST2_API);
 
   var opts = {
@@ -56,11 +56,11 @@ function StackStormApi(logger) {
     rejectUnauthorized: false
   };
 
-  this.api = st2client(opts);
+  self.api = st2client(opts);
   if (env.ST2_API_KEY) {
-    this.api.setKey({ key: env.ST2_API_KEY });
+    self.api.setKey({ key: env.ST2_API_KEY });
   } else if (env.ST2_AUTH_TOKEN) {
-    this.api.setToken({ token: env.ST2_AUTH_TOKEN });
+    self.api.setToken({ token: env.ST2_AUTH_TOKEN });
   }
 
   if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
@@ -109,11 +109,13 @@ StackStormApi.prototype.startListener = function start() {
 };
 
 StackStormApi.prototype.getAliases = function () {
-  this.logger.info('Loading commands....');
-  return this.api.actionAlias.list()
+  var self = this;
+
+  self.logger.info('Getting Action Aliases....');
+  return self.api.actionAlias.list()
     .catch(function (err) {
       var error_msg = 'Failed to retrieve commands from "%s": %s';
-      this.logger.error(util.format(error_msg, env.ST2_API, err.message));
+      self.logger.error(util.format(error_msg, env.ST2_API, err.message));
       return [];
     });
 };
@@ -150,15 +152,15 @@ StackStormApi.prototype.executeCommand = function (msg, alias_name, format_strin
     'notification_route': env.ST2_ROUTE || 'hubot'
   };
 
-  this.logger.debug('Sending command payload:', JSON.stringify(payload));
+  self.logger.debug('Sending command payload:', JSON.stringify(payload));
 
-  return this.api.aliasExecution.create(payload)
-    .then(function (res) { this.sendAck(msg, res); })
+  return self.api.aliasExecution.create(payload)
+    .then(function (res) { self.sendAck(msg, res); })
     .catch(function (err) {
       if (err.status === 200) {
-        return this.sendAck(msg, { execution: { id: err.message } });
+        return self.sendAck(msg, { execution: { id: err.message } });
       }
-      this.logger.error('Failed to create an alias execution:', err);
+      self.logger.error('Failed to create an alias execution:', err);
       var message = util.format(_.sample(ERROR_MESSAGES), err.message);
       if (err.requestId) {
         message = util.format(
@@ -177,20 +179,21 @@ StackStormApi.prototype.executeCommand = function (msg, alias_name, format_strin
 };
 
 StackStormApi.prototype.authenticate = function authenticate() {
-  this.api.removeListener('expiry', authenticate);
+  var self = this;
+  self.api.removeListener('expiry', authenticate);
 
   // API key gets precedence 1
   if (env.ST2_API_KEY) {
-    this.logger.info('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
+    self.logger.info('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
     return Promise.resolve();
   }
   // Auth token gets precedence 2
   if (env.ST2_AUTH_TOKEN) {
-    this.logger.info('Using ST2_AUTH_TOKEN as authentication. Expiry will lead to bot exit.');
+    self.logger.info('Using ST2_AUTH_TOKEN as authentication. Expiry will lead to bot exit.');
     return Promise.resolve();
   }
 
-  this.logger.info('Requesting a token...');
+  self.logger.info('Requesting a token...');
 
   var url = utils.parseUrl(env.ST2_AUTH_URL);
 
@@ -205,12 +208,14 @@ StackStormApi.prototype.authenticate = function authenticate() {
 
   return client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
     .then(function (token) {
-      this.logger.info('Token received. Expiring ' + token.expiry);
-      this.api.setToken(token);
-      client.on('expiry', this.authenticate);
+      self.logger.info('Token received. Expiring ' + token.expiry);
+      self.api.setToken(token);
+      client.on('expiry', self.authenticate);
     })
     .catch(function (err) {
-      this.logger.error('Failed to authenticate: ' + err.message);
+      self.logger.error('Failed to authenticate: ' + err.message);
       throw err;
     });
 };
+
+module.exports = StackStormApi;

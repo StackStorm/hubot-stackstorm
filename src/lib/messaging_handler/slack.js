@@ -7,6 +7,7 @@ var utils = require('./../utils');
 var DefaultMessagingHandler = require('./default');
 
 function SlackMessagingHandler(robot) {
+  var self = this;
   DefaultMessagingHandler.call(this, robot);
 
   var sendMessageRaw = function(message) {
@@ -26,6 +27,8 @@ function SlackMessagingHandler(robot) {
 util.inherits(SlackMessagingHandler, DefaultMessagingHandler);
 
 SlackMessagingHandler.prototype.postData = function(data) {
+  var self = this;
+
   var recipient, attachment_color, split_message,
       attachment, pretext = "";
 
@@ -45,7 +48,7 @@ SlackMessagingHandler.prototype.postData = function(data) {
     }
   }
 
-  split_message = utils.splitMessage(this.formatData(data.message));
+  split_message = utils.splitMessage(self.formatData(data.message));
 
   if (split_message.text) {
     var content = {
@@ -55,7 +58,7 @@ SlackMessagingHandler.prototype.postData = function(data) {
     if (data.extra && data.extra.slack) {
       for (var attrname in data.extra.slack) { content[attrname] = data.extra.slack[attrname]; }
     }
-    var robot = this.robot;
+    var robot = self.robot;
     var chunks = split_message.text.match(/[\s\S]{1,7900}/g);
     var sendChunk = function (i) {
       content.text = chunks[i];
@@ -72,7 +75,7 @@ SlackMessagingHandler.prototype.postData = function(data) {
     };
     sendChunk(0);
   } else {
-    this.robot.messageRoom.call(this.robot, recipient, pretext + split_message.pretext);
+    self.robot.messageRoom.call(self.robot, recipient, pretext + split_message.pretext);
   }
 };
 
@@ -97,7 +100,8 @@ SlackMessagingHandler.prototype.formatRecepient = function(recepient) {
 };
 
 SlackMessagingHandler.prototype.normalizeCommand = function(command) {
-  command = SlackMessagingHandler.super_.prototype.normalizeCommand.call(this, command);
+  var self = this;
+  command = SlackMessagingHandler.super_.prototype.normalizeCommand.call(self, command);
   // replace left double quote with regular quote
   command = command.replace(/\u201c/g, '\u0022');
   // replace right double quote with regular quote

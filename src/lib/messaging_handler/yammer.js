@@ -7,12 +7,14 @@ var utils = require('./../utils');
 var DefaultMessagingHandler = require('./default');
 
 function YammerMessagingHandler(robot) {
-  DefaultMessagingHandler.call(this, robot);
+  var self = this;
+  DefaultMessagingHandler.call(self, robot);
 }
 
 util.inherits(YammerMessagingHandler, DefaultMessagingHandler);
 
 YammerMessagingHandler.prototype.postData = function(data) {
+  var self = this;
   var recipient, split_message, formatted_message,
       text = "";
 
@@ -23,8 +25,8 @@ YammerMessagingHandler.prototype.postData = function(data) {
     text = (data.user && !data.whisper) ? util.format('@%s: ', data.user) : "";
   }
 
-  recipient = this.formatRecepient(recipient);
-  text += this.formatData(data.message);
+  recipient = self.formatRecepient(recipient);
+  text += self.formatData(data.message);
 
   // Ignore the delimiter in the default formatter and just concat parts.
   split_message = utils.splitMessage(text);
@@ -34,7 +36,7 @@ YammerMessagingHandler.prototype.postData = function(data) {
     formatted_message = split_message.pretext || split_message.text;
   }
 
-  this.robot.send.call(this.robot, recipient, formatted_message);
+  self.robot.send.call(self.robot, recipient, formatted_message);
 };
 
 YammerMessagingHandler.prototype.normalizeAddressee = function(msg) {
