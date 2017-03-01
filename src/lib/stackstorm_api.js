@@ -11,6 +11,7 @@ var EventEmitter = require('events').EventEmitter;
 // Setup the Environment
 env.ST2_API = env.ST2_API || 'http://localhost:9101';
 env.ST2_ROUTE = env.ST2_ROUTE || null;
+env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 
 // Optional authentication info
 env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
@@ -121,6 +122,7 @@ StackStormApi.prototype.getAliases = function () {
 };
 
 StackStormApi.prototype.sendAck = function (msg, res) {
+  res.execution.web_url = env.ST2_WEBUI_URL;
   var history_url = utils.getExecutionHistoryUrl(res.execution);
   var history = history_url ? util.format(' (details available at %s)', history_url) : '';
 
@@ -141,11 +143,11 @@ StackStormApi.prototype.sendAck = function (msg, res) {
 };
 
 // TODO: decouple the msg object from stackstorm api, this should use an event emitter
-StackStormApi.prototype.executeCommand = function (msg, alias_name, format_string, command, addressee) {
+StackStormApi.prototype.executeCommand = function (msg, alias_name, command_format_string, command, addressee) {
   var self = this;
   var payload = {
     'name': alias_name,
-    'format': format_string,
+    'format': command_format_string,
     'command': command,
     'user': addressee.name,
     'source_channel': addressee.room,
@@ -169,7 +171,7 @@ StackStormApi.prototype.executeCommand = function (msg, alias_name, format_strin
       }
       self.emit('st2.execution_error', {
         name: alias_name,
-        format_string: format_string,
+        format_string: command_format_string,
         message: message,
         addressee: addressee,
         command: command
