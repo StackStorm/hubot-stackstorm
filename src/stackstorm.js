@@ -49,23 +49,13 @@ module.exports = function (robot) {
 
   robot.router.post('/hubot/st2', function (req, res) {
     var data;
-
     try {
       if (req.body.payload) {
         data = JSON.parse(req.body.payload);
       } else {
         data = req.body;
       }
-      // Special handler to try and figure out when a hipchat message
-      // is a whisper:
-      // TODO: move this logic to the messaging handler
-      if (robot.adapterName === 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1) {
-        data.whisper = true;
-        robot.logger.debug('Set whisper to true for hipchat message');
-      }
-
       messagingHandler.postData(data);
-
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
       robot.logger.error("Unable to decode JSON: " + e);
@@ -75,12 +65,6 @@ module.exports = function (robot) {
   });
 
   stackstormApi.on('st2.chatops_announcement', function (data) {
-    // TODO: move this logic to the messaging handler
-    if (robot.adapterName === 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1) {
-      data.whisper = true;
-      robot.logger.debug('Set whisper to true for hipchat message');
-    }
-
     messagingHandler.postData(data);
   });
 
@@ -108,10 +92,12 @@ module.exports = function (robot) {
       _.each(aliases, function (alias) {
         commandFactory.addCommand(alias, messagingHandler);
       });
-      return aliases;
     })
     .then(function () {
       return stackstormApi.startListener();
     });
-
+    // .then(function (source) {
+    //   source.removeAllListeners();
+    //   source.close();
+    // });
 };

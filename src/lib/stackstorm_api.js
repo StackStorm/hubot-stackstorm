@@ -25,6 +25,9 @@ env.ST2_API_KEY = env.ST2_API_KEY || null;
 // Optional, if not provided, we infer it from the API URL
 env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 
+env.ST2_ALIAS_PACK_RESTRICTION = env.ST2_ALIAS_PACK_RESTRICTION || null;
+
+
 var START_MESSAGES = [
   "I'll take it from here! Your execution ID for reference is %s",
   "Got it! Remember %s as your execution ID",
@@ -102,10 +105,6 @@ StackStormApi.prototype.startListener = function start() {
       });
       return source;
     })
-    .then(function (source) {
-      // source.removeAllListeners();
-      // source.close();
-    });
 };
 
 StackStormApi.prototype.getAliases = function () {
@@ -113,6 +112,21 @@ StackStormApi.prototype.getAliases = function () {
 
   self.logger.info('Getting Action Aliases....');
   return self.api.actionAlias.list()
+    .then(function (aliases) {
+      if (env.ST2_ALIAS_PACK_RESTRICTION) {
+        self.logger.info('Alias Restrictions are in place, only retrieving aliases from the following pack(s): ' + env.ST2_ALIAS_PACK_RESTRICTION);
+        var return_aliases = [];
+        var restrictions = env.ST2_ALIAS_PACK_RESTRICTION.split(',');
+        _.each(aliases, function(alias) {
+          if (restrictions.indexOf(alias.pack) > -1) {
+            return_aliases.push(alias);
+          }
+        });
+        return return_aliases;
+      } else {
+        return aliases;
+      }
+    })
     .catch(function (err) {
       var error_msg = 'Failed to retrieve commands from "%s": %s';
       self.logger.error(util.format(error_msg, env.ST2_API, err.message));

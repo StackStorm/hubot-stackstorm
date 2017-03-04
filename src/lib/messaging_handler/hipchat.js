@@ -16,6 +16,12 @@ util.inherits(HipchatMessagingHandler, DefaultMessagingHandler);
 
 HipchatMessagingHandler.prototype.postData = function(data) {
   var self = this;
+
+  if (!data.whisper && data.channel.indexOf('@') > -1) {
+      data.whisper = true;
+      self.robot.logger.debug('Set whisper to true for hipchat message');
+  }
+
   var recipient, split_message, formatted_message,
       pretext = "";
 
