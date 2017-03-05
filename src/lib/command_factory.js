@@ -97,6 +97,17 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
 
   var format_strings = Object.keys(commands_regex_map);
 
+  var listener_opts = {
+    source: 'st2',
+    id: 'st2.' + action_alias_name
+  }
+
+  if (action_alias.extra && action_alias.extra.hubot_auth) {
+    listener_opts.auth = true;
+    listener_opts.roles = action_alias.extra.hubot_auth.roles;
+    listener_opts.rooms = action_alias.extra.hubot_auth.rooms;
+  }
+
   self.robot.listen(function (msg) {
     var i, format_string, regex;
     if (!msg.text) {
@@ -113,7 +124,7 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
       }
     }
     return false;
-  }, { id: 'st2.' + action_alias_name }, function (msg) {
+  }, listener_opts, function (msg) {
     self.emit('st2.command_match', {
       msg: msg,
       alias_name: action_alias_name,
