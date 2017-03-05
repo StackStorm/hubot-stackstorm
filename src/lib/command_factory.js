@@ -103,7 +103,7 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
   }
 
   if (action_alias.extra && action_alias.extra.hubot_auth) {
-    listener_opts.auth = true;
+    listener_opts.auth = 'true';
     listener_opts.roles = action_alias.extra.hubot_auth.roles;
     listener_opts.rooms = action_alias.extra.hubot_auth.rooms;
   }
