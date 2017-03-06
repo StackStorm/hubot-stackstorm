@@ -26,7 +26,9 @@
     "rsvp": "3.0.14",
     "st2client": "^0.4.3",
     "truncate": "^1.0.4",
-    "node-uuid": "~1.4.0"
+    "node-uuid": "~1.4.0",
+    "mongodb": "^2.0.52",
+    "mongodb-url": "^1.0.3"
   },
   "peerDependencies": {
     "hubot": "2.x"
