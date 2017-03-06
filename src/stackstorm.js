@@ -43,8 +43,6 @@ var uuid = require('node-uuid');
 module.exports = function (robot) {
   var self = this;
 
-  robot.brain.set('foo', 'bar');
-  robot.brain.save();
   var stackstormApi = new StackStormApi(robot.logger);
   var commandFactory = new CommandFactory(robot);
   var messagingHandler = messaging_handler.getMessagingHandler(robot.adapterName, robot);
