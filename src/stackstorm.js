@@ -100,8 +100,4 @@ module.exports = function (robot) {
     .then(function () {
       return stackstormApi.startListener();
     });
-    // .then(function (source) {
-    //   source.removeAllListeners();
-    //   source.close();
-    // });
 };

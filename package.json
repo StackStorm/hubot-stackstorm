@@ -1,12 +1,13 @@
 {
-  "name": "hubot-stackstorm",
-  "description": "A hubot plugin for integrating with StackStorm event-driven infrastructure automation platform.",
-  "version": "0.4.5",
-  "author": "StackStorm, Inc. <info@stackstorm.com>",
+  "name": "hubot-stackstorm-auth",
+  "description": "A hubot plugin for integrating with StackStorm event-driven infrastructure automation platform with role based auth.",
+  "version": "0.1.0",
+  "author": "Silver Blueprints, LLC. <admin@silverblueprints.com>",
   "license": "Apache-2.0",
   "keywords": [
     "hubot",
     "hubot-scripts",
+    "auth",
     "stackstorm",
     "st2",
     "automation",
@@ -15,10 +16,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/StackStorm/hubot-stackstorm.git"
+    "url": "git@github.com:silverbp/hubot-stackstorm-auth.git"
   },
   "bugs": {
-    "url": "https://github.com/StackStorm/hubot-stackstorm/issues"
+    "url": "https://github.com/silverbp/hubot-stackstorm-auth/issues"
   },
   "dependencies": {
     "lodash": "~3.8.0",
