@@ -18,6 +18,7 @@ limitations under the License.
 "use strict";
 
 var _ = require('lodash');
+var env = process.env;
 var utils = require('./utils.js');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
@@ -53,7 +54,7 @@ var getRegexForFormatString = function (format) {
   extra_params = '(\\s+(\\S+)\\s*=("([\\s\\S]*?)"|\'([\\s\\S]*?)\'|({[\\s\\S]*?})|(\\S+))\\s*)*';
   regex_str = format.replace(/(\s*){{\s*\S+\s*=\s*(?:({.+?}|.+?))\s*}}(\s*)/g, '\\s*($1([\\s\\S]+?)$3)?\\s*');
   regex_str = regex_str.replace(/\s*{{.+?}}\s*/g, '\\s*([\\s\\S]+?)\\s*');
-  regex = new RegExp('^\\s*' + regex_str + extra_params + '\\s*$', 'i');
+  regex = new RegExp('^\\' + env.HUBOT_ALIAS + '\\s*' + regex_str + extra_params + '\\s*$', 'i');
   return regex;
 };
 
