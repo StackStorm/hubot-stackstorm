@@ -64,8 +64,7 @@ DefaultMessagingHandler.prototype.formatRecepient = function(recepient) {
 };
 
 DefaultMessagingHandler.prototype.normalizeCommand = function(command) {
-  return command;
-  // return command.replace(hubot_alias_regex, "").trim();
+  return command.replace(hubot_alias_regex, "").trim();
 };
 
 module.exports = DefaultMessagingHandler;

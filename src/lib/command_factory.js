@@ -118,7 +118,7 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
     for (i = 0; i < format_strings.length; i++) {
       format_string = format_strings[i];
       regex = commands_regex_map[format_string];
-      if (regex.test(command)) {
+      if (regex.test(msg.text)) {
         msg['st2_command_format_string'] = format_string;
         msg['normalized_command'] = command;
         return true;
