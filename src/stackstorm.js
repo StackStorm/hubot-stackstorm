@@ -39,12 +39,12 @@ var messaging_handler = require('./lib/messaging_handler');
 var CommandFactory = require('./lib/command_factory');
 var StackStormApi = require('./lib/stackstorm_api');
 var uuid = require('node-uuid');
-var mongodb_brain = require('./lib/mongodb_brain');
+// var mongodb_brain = require('./lib/mongodb_brain');
 
 module.exports = function (robot) {
   var self = this;
 
-  mongodb_brain(robot);
+  // mongodb_brain(robot);
 
   var stackstormApi = new StackStormApi(robot.logger);
   var commandFactory = new CommandFactory(robot);
