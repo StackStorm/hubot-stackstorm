@@ -1,7 +1,7 @@
 {
   "name": "hubot-stackstorm-auth",
   "description": "A hubot plugin for integrating with StackStorm event-driven infrastructure automation platform with role based auth.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Silver Blueprints, LLC. <admin@silverblueprints.com>",
   "license": "Apache-2.0",
   "keywords": [
