@@ -107,6 +107,9 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
     listener_opts.auth = 'true';
     listener_opts.roles = action_alias.extra.hubot_auth.roles;
     listener_opts.rooms = action_alias.extra.hubot_auth.rooms;
+    if (action_alias.extra.hubot_auth.env) {
+      listener_opts.env = action_alias.extra.hubot_auth.env
+    }
   }
 
   self.robot.listen(function (msg) {
