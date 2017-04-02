@@ -9,19 +9,6 @@ var DefaultMessagingHandler = require('./default');
 function SlackMessagingHandler(robot) {
   var self = this;
   DefaultMessagingHandler.call(this, robot);
-
-  var sendMessageRaw = function(message) {
-    /*jshint validthis:true */
-    message['channel'] = this.id;
-    message['parse'] = 'none';
-    this._client._send(message);
-  };
-
-  if (robot.adapter && robot.adapter.constructor && robot.adapter.constructor.name === 'SlackBot') {
-    for (var channel in robot.adapter.client.channels) {
-      robot.adapter.client.channels[channel].sendMessage = sendMessageRaw.bind(robot.adapter.client.channels[channel]);
-    }
-  }
 }
 
 util.inherits(SlackMessagingHandler, DefaultMessagingHandler);
@@ -80,9 +67,10 @@ SlackMessagingHandler.prototype.postData = function(data) {
 };
 
 SlackMessagingHandler.prototype.normalizeAddressee = function(msg) {
+  var room_name = robot.adapter.client.rtm.dataStore.getChannelById(msg.message.room).name
   return {
     name: msg.message.user.name,
-    room: msg.message.room
+    room: room_name
   };
 };
 
