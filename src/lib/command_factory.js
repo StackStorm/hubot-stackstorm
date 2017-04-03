@@ -84,15 +84,16 @@ CommandFactory.prototype.addCommand = function (action_alias, messaging_handler)
   var action_alias_name = action_alias.name;
 
   _.each(action_alias.formats, function (format) {
-    var formatted_string = format.display || format;
-    self.robot.commands.push(formatHelpCommand(action_alias.name, formatted_string, action_alias.description));
-
-    if (format.display) {
-      _.each(format.representation, function (representation) {
-        commands_regex_map[formatted_string] = getRegexForFormatString(representation);
-      });
+    if (typeof format === 'string') {
+      self.robot.commands.push(formatHelpCommand(action_alias.name, format, action_alias.description));
+      commands_regex_map[format] = getRegexForFormatString(format);
     } else {
-      commands_regex_map[formatted_string] = getRegexForFormatString(format);
+      if (format.display) {
+        self.robot.commands.push(formatHelpCommand(action_alias.name, format.display, action_alias.description));
+      }
+      _.each(format.representation, function (representation) {
+        commands_regex_map[representation] = getRegexForFormatString(representation);
+      });
     }
   });
 
