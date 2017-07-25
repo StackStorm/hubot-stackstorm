@@ -121,7 +121,7 @@ describe('HipChatFormatter', function() {
 
 describe('DefaultFormatter', function() {
   var adapterName = 'unknown';
-  var robot = new DummyRobot('dummy', false);
+  var robot = new DummyRobot('dummy', null, false);
 
   it('should create a snippet for non-empty', function() {
     var formatter = formatData.getFormatter(adapterName, robot);
