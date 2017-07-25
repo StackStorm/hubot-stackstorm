@@ -29,7 +29,6 @@ MockSlackClient.prototype.send = function(envelope, message) {
 function MockSlackAdapter(logger) {
     this.logger = logger;
     this.client = new MockSlackClient(logger);
-    console.log(this.client.send);
 }
 
 module.exports =  MockSlackAdapter;
