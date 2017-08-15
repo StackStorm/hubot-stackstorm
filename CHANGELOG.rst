@@ -1,3 +1,7 @@
+0.6.0
+-----
+* Update Slack to use new chat postMessage API from 'hubot-slack' v4
+
 0.5.1
 -----
 * Update uuid to version 3.0.0
