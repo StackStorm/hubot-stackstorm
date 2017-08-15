@@ -1,3 +1,8 @@
+0.5.1
+-----
+* #130: Update uuid to version 3.0.0 (@marcbachmann)
+* #136: Add support for sending file attachments via the extra dict to the spark adapter (@tonybaloney)
+
 0.5.0
 -----
 * Mattermost support
