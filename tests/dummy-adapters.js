@@ -15,49 +15,20 @@
 limitations under the License.
 */
 
+
 "use strict";
 
-var Log = require('log');
-
-function Logger(enabled) {
-  this.enabled = enabled;
-  this.log = new Log('debug');
-
-  this.error = function(msg) {
-    if (!this.enabled) {
-      return;
-    }
-    this.log.error(msg);
-  };
-
-  this.warning = function(msg) {
-    if (!this.enabled) {
-      return;
-    }
-    this.log.warning(msg);
-  };
-
-  this.info = function(msg) {
-    if (!this.enabled) {
-      return;
-    }
-    this.log.info(msg);
-  };
-
-  this.debug = function(msg) {
-    if (!this.enabled) {
-      return;
-    }
-    this.log.debug(msg);
-  };
-
+function MockSlackClient(logger) {
+    this.logger = logger;
 }
 
-function Robot(name, adapter, enable_logging) {
-  this.logger = new Logger(enable_logging);
-  this.name = name;
-  this.commands = [];
-  this.adapter = adapter;
+MockSlackClient.prototype.send = function(envelope, message) {
+    this.logger.info('Sending ' + JSON.stringify(message) + ' to ' + JSON.stringify(envelope));
+};
+
+function MockSlackAdapter(logger) {
+    this.logger = logger;
+    this.client = new MockSlackClient(logger);
 }
 
-module.exports = Robot;
+module.exports =  MockSlackAdapter;
