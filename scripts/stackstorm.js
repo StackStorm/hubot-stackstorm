@@ -321,6 +321,9 @@ module.exports = function(robot) {
     result = command_factory.getMatchingCommand(command);
 
     if (!result) {
+      if (command.startsWith("help")) {
+          return;
+      }
       var message = util.format(_.sample(ERROR_MESSAGES), "Command not found: " + command);
       return msg.send(message);
     }
