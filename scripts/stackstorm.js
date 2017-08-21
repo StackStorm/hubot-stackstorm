@@ -321,8 +321,8 @@ module.exports = function(robot) {
     result = command_factory.getMatchingCommand(command);
 
     if (!result) {
-      // No command found
-      return;
+      var message = util.format(_.sample(ERROR_MESSAGES), "Command not found");
+      return msg.send(message);
     }
 
     command_name = result[0];
