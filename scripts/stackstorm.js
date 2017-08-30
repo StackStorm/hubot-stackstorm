@@ -213,6 +213,36 @@ module.exports = function(robot) {
             _.each(format.representation, function (representation) {
               command = formatCommand(robot.logger, name, representation, description);
               command_factory.addCommand(command, name, representation, alias, utils.REPRESENTATION);
+
+              var re = command_factory.getRegexForFormatString(representation);
+
+              // Convert the representation to a regex and add a listener for it
+              // to run the command
+              robot.hear(re, function(msg) {
+                var command, result, command_name, format_string, action_alias;
+
+                // Normalize the command and remove special handling provided by the chat service.
+                // e.g. slack replaces quote marks with left double quotes which would break behavior.
+                command = formatter.normalizeCommand(msg.match[1]);
+
+                result = command_factory.getMatchingCommand(command);
+                if (!result) {
+                  // No command found
+                  return;
+                } else {
+                  robot.logger.debug("Matched command: " + result[0] + " (format: '" + result[1] + "', alias: " + result[2].name + ")");
+                }
+
+                command_name = result[0];
+                format_string = result[1];
+                action_alias = result[2];
+
+                robot.logger.debug("command_name: " + command_name);
+                robot.logger.debug("format_string: " + format_string);
+                robot.logger.debug("action_alias.name: " + action_alias.name);
+
+                executeCommand(msg, command_name, format_string, command, action_alias);
+              });
             });
           });
         });
