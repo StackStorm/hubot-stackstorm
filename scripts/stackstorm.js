@@ -195,6 +195,8 @@ module.exports = function(robot) {
           var name = alias.name;
           var formats = alias.formats;
           var description = alias.description;
+          var command;
+          var re;
 
           if (alias.enabled === false) {
             return;
@@ -206,13 +208,54 @@ module.exports = function(robot) {
           }
 
           _.each(formats, function (format) {
-            var command = formatCommand(robot.logger, name, format.display || format, description);
+            command = formatCommand(robot.logger, name, format.display || format, description);
             command_factory.addCommand(command, name, format.display || format, alias,
                                        format.display ? utils.DISPLAY : false);
 
             _.each(format.representation, function (representation) {
+              var re;
+
               command = formatCommand(robot.logger, name, representation, description);
               command_factory.addCommand(command, name, representation, alias, utils.REPRESENTATION);
+
+              re = command_factory.getRegexForFormatString(representation);
+              // Convert the representation to a regex and add a listener for it
+              // to run the command
+              robot.hear(re, function(msg) {
+                var command, results;
+
+                // We use msg.message instead of msg.match[1] because we want
+                // search through *all* possible matches, not just the match
+                // that fired this
+                command = formatter.normalizeCommand(msg.message.toString());
+
+                results = command_factory.getMatchingCommands(command);
+                if (!results.length) {
+                  robot.logger.debug("No commands matched '" + command + "'");
+                  return;
+                }
+
+                var process_result = function (result, multiple_matches) {
+                  robot.logger.debug("Executing command from: " + result);
+                  var command_name = result[0],
+                      format_string = result[1],
+                      action_alias = result[2];
+
+                  if (multiple_matches) {
+                    command = result[3];
+                  }
+
+                  executeCommand(msg, command_name, format_string, command, action_alias);
+                };
+
+                if (results.length === 1) {
+                  process_result(results[0], false);
+                } else {
+                  _.each(results, function (result) {
+                    process_result(result, true);
+                  });
+                }
+              });
             });
           });
         });
