@@ -26,7 +26,8 @@
     "rsvp": "3.0.14",
     "st2client": "^0.4.3",
     "truncate": "^1.0.4",
-    "uuid": "^3.0.0"
+    "uuid": "^3.0.0",
+    "xregexp": "^3.2.0"
   },
   "peerDependencies": {
     "hubot": "2.x"

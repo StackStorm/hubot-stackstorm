@@ -195,6 +195,8 @@ module.exports = function(robot) {
           var name = alias.name;
           var formats = alias.formats;
           var description = alias.description;
+          var command;
+          var re;
 
           if (alias.enabled === false) {
             return;
@@ -206,42 +208,67 @@ module.exports = function(robot) {
           }
 
           _.each(formats, function (format) {
-            var command = formatCommand(robot.logger, name, format.display || format, description);
+            command = formatCommand(robot.logger, name, format.display || format, description);
             command_factory.addCommand(command, name, format.display || format, alias,
-                                       format.display ? utils.DISPLAY : false);
+                                       (format.display ? utils.DISPLAY : 0)
+                                       | (format.regex_flags && format.regex_flags.includes('g') ? utils.G : 0));
 
             _.each(format.representation, function (representation) {
+              var re;
+
               command = formatCommand(robot.logger, name, representation, description);
               command_factory.addCommand(command, name, representation, alias, utils.REPRESENTATION);
 
-              var re = command_factory.getRegexForFormatString(representation);
-
+              re = command_factory.getRegexForFormatString(representation);
               // Convert the representation to a regex and add a listener for it
               // to run the command
               robot.hear(re, function(msg) {
-                var command, result, command_name, format_string, action_alias;
+                var command, result, results;
 
-                // Normalize the command and remove special handling provided by the chat service.
-                // e.g. slack replaces quote marks with left double quotes which would break behavior.
-                command = formatter.normalizeCommand(msg.match[1]);
-
+                // We use msg.message instead of msg.match[1] because we want
+                // search through *all* possible matches, not just the match
+                // that fired this
+                command = formatter.normalizeCommand(msg.message.toString());
                 result = command_factory.getMatchingCommand(command);
-                if (!result) {
-                  // No command found
-                  return;
+
+                if (result) {
+                  robot.logger.debug("Executing command from: " + result);
+                  /*
+                   * command_name = result[0]
+                   * format_string = result[1]
+                   * command
+                   * action_alias = result[2]
+                   *
+                   * We use the full command here because the regex should only
+                   * match once.
+                   */
+                  executeCommand(msg, result[0], result[1], command, result[2]);
                 } else {
-                  robot.logger.debug("Matched command: " + result[0] + " (format: '" + result[1] + "', alias: " + result[2].name + ")");
+                  robot.logger.debug("No commands match '" + command + "', searching global commands");
+
+                  results = command_factory.getMatchingCommands(command);
+                  if (results) {
+                    _.each(results, function (result) {
+                      robot.logger.debug("Executing command from: " + result);
+                      /*
+                       * command_name = result[0]
+                       * format_string = result[1]
+                       * command = result[3]
+                       * action_alias = result[2]
+                       *
+                       * We use result[3] here instead of the full command
+                       * because we only want to send the part of the full
+                       * command that matched the regex. This will change as
+                       * we iterate through each match, and we dispatch each
+                       * individual match to StackStorm.
+                       */
+                      executeCommand(msg, result[0], result[1], result[3], result[2]);
+                    });
+                  } else {
+                    robot.logger.debug("No commands matched '" + command + "'");
+                    return;
+                  }
                 }
-
-                command_name = result[0];
-                format_string = result[1];
-                action_alias = result[2];
-
-                robot.logger.debug("command_name: " + command_name);
-                robot.logger.debug("format_string: " + format_string);
-                robot.logger.debug("action_alias.name: " + action_alias.name);
-
-                executeCommand(msg, command_name, format_string, command, action_alias);
               });
             });
           });
@@ -310,7 +337,7 @@ module.exports = function(robot) {
     var addressee = utils.normalizeAddressee(msg, robot.adapterName);
     var payload = {
       'name': command_name,
-      'format': format_string,
+      'format': format_string.toString().replace(/\(\?</g, '(?P<'),
       'command': command,
       'user': addressee.name,
       'source_channel': addressee.room,
