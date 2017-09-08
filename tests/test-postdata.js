@@ -24,6 +24,8 @@ var chai = require("chai"),
   env = process.env,
   expect = chai.expect,
   Robot = require('./dummy-robot.js'),
+  MockSlackAdapter = require('./dummy-adapters.js'),
+  Log = require('log'),
   formatData = require('../lib/format_data.js'),
   postData = require('../lib/post_data.js'),
   sinon = require('sinon'),
@@ -34,16 +36,16 @@ chai.use(sinonChai);
 
 describe("slack post data", function() {
   var robot, formatter, postDataHandler;
-
-  robot = new Robot(false);
+  var logger = new Log('info');
+  robot = new Robot(false, new MockSlackAdapter(logger));
   formatter = formatData.getFormatter('slack', robot);
   postDataHandler = postData.getDataPostHandler('slack', robot, formatter);
 
   env.ST2_SLACK_SUCCESS_COLOR = 'dfdfdf';
   env.ST2_SLACK_FAIL_COLOR = 'danger';
 
-  it('should post success formatted slack-attachment', function() {
-    robot.emit = sinon.spy();
+  it('should post success formatted slack attachment', function() {
+    robot.adapter.client.send = sinon.spy();
     var input = {
       user: 'stanley',
       channel: '#stackstorm',
@@ -54,23 +56,25 @@ describe("slack post data", function() {
       whisper: false
     };
     postDataHandler.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment', {
-        channel: input.channel,
-        content: {
-          color: env.ST2_SLACK_SUCCESS_COLOR,
-          mrkdwn_in: ["text", "pretext"],
-          text: input.message,
-          fallback: input.message
-        },
-        text: "@stanley: "
+    expect(robot.adapter.client.send).to.have.been.calledOnce;
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
+      {
+        "attachments":[
+          {
+            "color": "dfdfdf",
+            "mrkdwn_in": ["text","pretext"],
+            "pretext": "@stanley: ",
+            "text": input.message,
+            "fallback": input.message
+          }
+        ]
       }
     );
   });
 
-  it('should post fail formatted slack-attachment', function() {
-    robot.emit = sinon.spy();
+  it('should post fail formatted slack attachment', function() {
+    robot.adapter.client.send = sinon.spy();
     var input = {
       user: 'stanley',
       channel: '#stackstorm',
@@ -81,24 +85,26 @@ describe("slack post data", function() {
       whisper: false
     };
     postDataHandler.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment', {
-        channel: input.channel,
-        content: {
-          color: env.ST2_SLACK_FAIL_COLOR,
-          mrkdwn_in: ["text", "pretext"],
-          text: input.message,
-          fallback: input.message
-        },
-        text: "@stanley: "
+    expect(robot.adapter.client.send).to.have.been.calledOnce;
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
+      {
+        "attachments": [
+          {
+            "color": "danger",
+            "text": input.message,
+            "fallback": input.message,
+            "mrkdwn_in": ["text", "pretext"],
+            "pretext": "@stanley: "
+          }
+        ]
       }
     );
   });
 
   it('should split a long slack-attachment into chunks', function() {
     this.clock = sinon.useFakeTimers();
-    robot.emit = sinon.spy();
+    robot.adapter.client.send = sinon.spy();
     var input = {
       user: 'stanley',
       channel: '#stackstorm',
@@ -107,37 +113,41 @@ describe("slack post data", function() {
     };
     var chunks = input.message.match(/[\s\S]{1,7900}/g);
     postDataHandler.postData(input);
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment', {
-        channel: input.channel,
-        content: {
-          color: env.ST2_SLACK_SUCCESS_COLOR,
-          mrkdwn_in: ["text", "pretext"],
-          text: chunks[0],
-          fallback: chunks[0]
-        },
-        text: "@stanley: "
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
+      {
+        "attachments": [
+          {
+            "color": env.ST2_SLACK_SUCCESS_COLOR,
+            "mrkdwn_in": ["text", "pretext"],
+            "pretext": "@stanley: ",
+            "text": chunks[0],
+            "fallback": chunks[0]
+          }
+        ]
       }
     );
     this.clock.tick(500);
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment', {
-        channel: input.channel,
-        content: {
-          color: env.ST2_SLACK_SUCCESS_COLOR,
-          mrkdwn_in: ["text", "pretext"],
-          text: chunks[1],
-          fallback: chunks[1]
-        },
-        text: null
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
+      {
+        "attachments": [
+          {
+            "pretext": null,
+            "color": env.ST2_SLACK_SUCCESS_COLOR,
+            "mrkdwn_in": ["text", "pretext"],
+            "text": chunks[1],
+            "fallback": chunks[1]
+          }
+        ]
       }
     );
-    expect(robot.emit).to.have.been.calledTwice;
+    expect(robot.adapter.client.send).to.have.been.calledTwice;
     this.clock.restore();
   });
 
   it('should whisper a slack-attachment', function() {
-    robot.emit = sinon.spy();
+    robot.adapter.client.send = sinon.spy();
     var input = {
       user: 'stanley',
       channel: '#stackstorm',
@@ -148,17 +158,19 @@ describe("slack post data", function() {
       whisper: true
     };
     postDataHandler.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment', {
-        channel: input.user,
-        content: {
-          color: env.ST2_SLACK_SUCCESS_COLOR,
-          mrkdwn_in: ["text", "pretext"],
-          text: input.message,
-          fallback: input.message
-        },
-        text: ""
+    expect(robot.adapter.client.send).to.have.been.calledOnce;
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "user": "stanley" },
+      {
+        "attachments":[
+          {
+            "color": "dfdfdf",
+            "mrkdwn_in": ["text","pretext"],
+            "pretext": "",
+            "text": input.message,
+            "fallback": input.message
+          }
+        ]
       }
     );
   });
