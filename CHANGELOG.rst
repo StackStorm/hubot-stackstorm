@@ -1,3 +1,7 @@
+0.7.0
+-----
+* Add RocketChat support
+
 0.6.0
 -----
 * Update Slack to use new chat postMessage API from 'hubot-slack' v4

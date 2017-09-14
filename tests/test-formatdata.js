@@ -119,6 +119,38 @@ describe('HipChatFormatter', function() {
   });
 });
 
+describe('RocketChatFormatter', function() {
+  var adapterName = 'rocketchat';
+
+  it('should echo back for non-empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('DATA', null);
+    expect(o).to.be.an('string');
+    expect(o).to.equal('DATA');
+  });
+
+  it('should be an empty string for empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('', null);
+    expect(o).to.be.an('string');
+    expect(o).to.equal('');
+  });
+
+  it('should correctly format recepient', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatRecepient('Estee');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('Estee');
+  });
+
+  it('should normalize command', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.normalizeCommand('run local "uname -a"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run local "uname -a"');
+  });
+});
+
 describe('DefaultFormatter', function() {
   var adapterName = 'unknown';
   var robot = new DummyRobot('dummy', null, false);
