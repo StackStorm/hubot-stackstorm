@@ -2,6 +2,11 @@
 *.sublime-project
 *.sublime-workspace
 
-node_modules/
-
+.coverrun
 npm-debug.log
+
+.coverdata/
+coverage/
+debug/
+node_modules/
+reports/
