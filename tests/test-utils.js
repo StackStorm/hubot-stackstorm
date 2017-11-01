@@ -48,7 +48,7 @@ describe('parseUrl', function() {
     expect(result['path']).to.be.equal('/a');
   });
 
-  it('should correctly parrse ports', function() {
+  it('should correctly parse ports', function() {
     var result = utils.parseUrl('http://www.example.com:8080');
     expect(result['port']).to.be.equal(8080);
 
@@ -66,6 +66,44 @@ describe('parseUrl', function() {
     var result = utils.parseUrl('https://www.example.com/a');
     expect(result['protocol']).to.be.equal('https');
     expect(result['port']).to.be.equal(443);
+  });
+});
+
+
+describe('getTextChunks', function() {
+  it('should split strings based on length', function() {
+    var result = utils.getTextChunks("12345678909876543210", 10);
+    expect(result).to.be.an.instanceOf(Array);
+    expect(result).to.have.lengthOf(2);
+    expect(result[0]).to.be.equal("1234567890");
+    expect(result[1]).to.be.equal("9876543210");
+  });
+
+  it('should raggedly split strings based on length', function() {
+    var result = utils.getTextChunks("12345678909876543210ABCDE", 10);
+    expect(result).to.be.an.instanceOf(Array);
+    expect(result).to.have.lengthOf(3);
+    expect(result[0]).to.be.equal("1234567890");
+    expect(result[1]).to.be.equal("9876543210");
+    expect(result[2]).to.be.equal("ABCDE");
+  });
+
+  it('should return an empty array when given an empty string', function () {
+    var result = utils.getTextChunks("", 111);
+    expect(result).to.be.an.instanceOf(Array);
+    expect(result).to.have.lengthOf(0);
+    expect(result).to.have.same.members([]);
+  });
+});
+
+
+describe('constructFromAttrs', function() {
+  it('should construct a new object', function () {
+    var result = utils.constructFromAttrs(
+      {from: "FROM", to: "TO"},
+      ['from', 'shouldnt_error']);
+    expect(result).to.have.property('from', 'FROM');
+    expect(result).to.not.have.property('shouldnt_error');
   });
 });
 
