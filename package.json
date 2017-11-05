@@ -24,7 +24,7 @@
     "cli-table": "<=1.0.0",
     "lodash": "~3.8.0",
     "rsvp": "3.0.14",
-    "st2client": "^0.4.3",
+    "st2client": "^1.1.1",
     "truncate": "^1.0.4",
     "uuid": "^3.0.0"
   },
