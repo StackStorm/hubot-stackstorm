@@ -66,6 +66,9 @@ env.ST2_SLACK_FAIL_COLOR = env.ST2_SLACK_FAIL_COLOR || 'danger';
 // Optional, if not provided, we infer it from the API URL
 env.ST2_AUTH_URL = env.ST2_AUTH_URL || null;
 
+// Optional, if not provided, we infer it from the API URL
+env.ST2_STREAM_URL = env.ST2_STREAM_URL || null;
+
 // Command reload interval in seconds
 env.ST2_COMMANDS_RELOAD_INTERVAL = parseInt(env.ST2_COMMANDS_RELOAD_INTERVAL || 120, 10);
 
@@ -110,6 +113,16 @@ module.exports = function(robot) {
     prefix: url.path,
     rejectUnauthorized: false
   };
+
+  if (env.ST2_STREAM_URL) {
+    var stream_url = utils.parseUrl(env.ST2_STREAM_URL);
+    opts.stream = {
+      protocol: stream_url.protocol,
+      host: stream_url.hostname,
+      port: stream_url.port,
+      prefix: stream_url.path
+    };
+  }
 
   var api = st2client(opts);
 
