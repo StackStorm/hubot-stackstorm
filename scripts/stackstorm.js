@@ -184,7 +184,7 @@ module.exports = function(robot) {
   var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
   var loadCommands = function() {
-    robot.logger.info('Loading commands....');
+    robot.logger.info('[loadCommands] Loading commands....');
 
     api.actionAlias.list()
       .then(function (aliases) {
@@ -232,7 +232,7 @@ module.exports = function(robot) {
                 result = command_factory.getMatchingCommand(command);
 
                 if (result) {
-                  robot.logger.debug("Executing command from: " + result);
+                  robot.logger.debug("[hear] Executing command from: " + result);
                   /*
                    * command_name = result[0]
                    * format_string = result[1]
@@ -247,12 +247,12 @@ module.exports = function(robot) {
                   msg.finish();
 
                 } else {
-                  robot.logger.debug("No commands match '" + command + "', searching global commands");
+                  robot.logger.debug("[hear] No commands match '" + command + "', searching global commands");
 
                   results = command_factory.getMatchingCommands(command);
                   if (results) {
                     _.each(results, function (result) {
-                      robot.logger.debug("Executing command from: " + result);
+                      robot.logger.debug("[hear] Executing command from: " + result);
                       /*
                        * command_name = result[0]
                        * format_string = result[1]
@@ -271,7 +271,7 @@ module.exports = function(robot) {
                     msg.finish();
 
                   } else {
-                    robot.logger.debug("No commands matched '" + command + "'");
+                    robot.logger.debug("[hear] No commands matched '" + command + "'");
                     return;
                   }
                 }
@@ -280,10 +280,10 @@ module.exports = function(robot) {
           });
         });
 
-        robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
+        robot.logger.info('[loadCommands] ' + command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        var error_msg = 'Failed to retrieve commands from "%s": %s';
+        var error_msg = '[loadCommands] Failed to retrieve commands from "%s": %s';
         robot.logger.error(util.format(error_msg, env.ST2_API, err.message));
       });
   };
