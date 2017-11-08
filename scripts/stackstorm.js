@@ -243,6 +243,9 @@ module.exports = function(robot) {
                    * match once.
                    */
                   executeCommand(msg, result[0], result[1], command, result[2]);
+
+                  msg.finish();
+
                 } else {
                   robot.logger.debug("No commands match '" + command + "', searching global commands");
 
@@ -264,6 +267,9 @@ module.exports = function(robot) {
                        */
                       executeCommand(msg, result[0], result[1], result[3], result[2]);
                     });
+
+                    msg.finish();
+
                   } else {
                     robot.logger.debug("No commands matched '" + command + "'");
                     return;
