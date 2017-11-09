@@ -22,7 +22,7 @@
 var chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  messages = require('../lib/messages.js'),
+  messages = require('../lib/slack-messages.js'),
   utils = require('../lib/utils.js');
 
 
