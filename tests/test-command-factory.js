@@ -32,6 +32,18 @@ var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
 ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
 
 
+// Polyfill from:
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
+if (RegExp.prototype.flags === undefined) {
+  Object.defineProperty(RegExp.prototype, 'flags', {
+    configurable: true,
+    get: function() {
+      return this.toString().match(/[gimuy]*$/)[0];
+    }
+  });
+}
+
+
 function getCleanCommandFactory() {
   var robot = new Robot(false);
   return new CommandFactory(robot);
@@ -140,7 +152,7 @@ describe('command factory', function() {
     expect(rgx.flags).to.includes('i');
   });
 
-  it('should add keep existing regex flags', function () {
+  it('should add \'i\' and keep existing regex flags', function () {
     var command_factory, rgx;
 
     command_factory = getCleanCommandFactory();
