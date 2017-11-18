@@ -69,6 +69,7 @@ specified when running hubot:
 * `ST2_AUTH_USERNAME` - API credentials - username (optional).
 * `ST2_AUTH_PASSWORD` - API credentials - password (optional).
 * `ST2_AUTH_URL` - URL to the StackStorm Auth API (optional).
+* `ST2_STREAM_URL` - URL to the StackStorm Stream API (optional).
 * `ST2_COMMANDS_RELOAD_INTERVAL` - How often the list of available commands
   should be reloaded. Defaults to every 120 seconds (optional).
 * `ST2_MAX_MESSAGE_LENGTH` - Message truncation to preserve chat context. Default is 500 characters of length. 0 means no limit (optional).
