@@ -1,3 +1,9 @@
+0.8.0
+-----
+* Add support for specifying Stream URL
+* Update st2client to 1.1.1
+* Drop Node.js 0.12 support
+
 0.7.0
 -----
 * Add RocketChat support
