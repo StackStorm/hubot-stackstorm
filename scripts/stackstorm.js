@@ -197,7 +197,7 @@ module.exports = function(robot) {
   var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
   var loadCommands = function() {
-    robot.logger.info('Loading commands....');
+    robot.logger.info('[loadCommands] Loading commands....');
 
     api.actionAlias.list()
       .then(function (aliases) {
@@ -208,6 +208,8 @@ module.exports = function(robot) {
           var name = alias.name;
           var formats = alias.formats;
           var description = alias.description;
+          var command;
+          var re;
 
           if (alias.enabled === false) {
             return;
@@ -219,21 +221,82 @@ module.exports = function(robot) {
           }
 
           _.each(formats, function (format) {
-            var command = formatCommand(robot.logger, name, format.display || format, description);
+            command = formatCommand(robot.logger, name, format.display || format, description);
             command_factory.addCommand(command, name, format.display || format, alias,
-                                       format.display ? utils.DISPLAY : false);
+                                       (format.display ? utils.DISPLAY : 0)
+                                       | (format.regex_flags && format.regex_flags.includes('g') ? utils.G : 0));
 
             _.each(format.representation, function (representation) {
+              var re;
+
               command = formatCommand(robot.logger, name, representation, description);
               command_factory.addCommand(command, name, representation, alias, utils.REPRESENTATION);
+
+              re = command_factory.getRegexForFormatString(representation);
+              // Convert the representation to a regex and add a listener for it
+              // to run the command
+              robot.hear(re, function(msg) {
+                var command, result, results;
+
+                // We use msg.message instead of msg.match[1] because we want
+                // search through *all* possible matches, not just the match
+                // that fired this
+                command = formatter.normalizeCommand(msg.message.toString());
+                result = command_factory.getMatchingCommand(command);
+
+                if (result) {
+                  robot.logger.debug("[hear] Executing command from: " + result);
+                  /*
+                   * command_name = result[0]
+                   * format_string = result[1]
+                   * command
+                   * action_alias = result[2]
+                   *
+                   * We use the full command here because the regex should only
+                   * match once.
+                   */
+                  executeCommand(msg, result[0], result[1], command, result[2]);
+
+                  msg.finish();
+
+                } else {
+                  robot.logger.debug("[hear] No commands match '" + command + "', searching global commands");
+
+                  results = command_factory.getMatchingCommands(command);
+                  if (results) {
+                    _.each(results, function (result) {
+                      robot.logger.debug("[hear] Executing command from: " + result);
+                      /*
+                       * command_name = result[0]
+                       * format_string = result[1]
+                       * command = result[3]
+                       * action_alias = result[2]
+                       *
+                       * We use result[3] here instead of the full command
+                       * because we only want to send the part of the full
+                       * command that matched the regex. This will change as
+                       * we iterate through each match, and we dispatch each
+                       * individual match to StackStorm.
+                       */
+                      executeCommand(msg, result[0], result[1], result[3], result[2]);
+                    });
+
+                    msg.finish();
+
+                  } else {
+                    robot.logger.debug("[hear] No commands matched '" + command + "'");
+                    return;
+                  }
+                }
+              });
             });
           });
         });
 
-        robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
+        robot.logger.info('[loadCommands] ' + command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        var error_msg = 'Failed to retrieve commands from "%s": %s';
+        var error_msg = '[loadCommands] Failed to retrieve commands from "%s": %s';
         robot.logger.error(util.format(error_msg, env.ST2_API, err.message));
       });
   };
@@ -293,7 +356,7 @@ module.exports = function(robot) {
     var addressee = utils.normalizeAddressee(msg, robot.adapterName);
     var payload = {
       'name': command_name,
-      'format': format_string,
+      'format': format_string.toString().replace(/\(\?</g, '(?P<'),
       'command': command,
       'user': addressee.name,
       'source_channel': addressee.room,

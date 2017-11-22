@@ -35,4 +35,18 @@
       "twofactor": true
     }
   }
+}, {
+  "name": "regex2",
+  "description": "alias with regex format",
+  "formats": [
+    "regex fmt2 (?P<param1>[A-Z][A-Z0-9]+-[0-9]+) trailing words"
+  ],
+  "regex_flags": "g"
+}, {
+  "name": "regex",
+  "description": "alias with regex format",
+  "formats": [
+    "regex fmt1 (?P<param1>[A-Z][A-Z0-9]+-[0-9]+) trailing words"
+  ],
+  "regex_flags": "g"
 }]

@@ -20,7 +20,8 @@ limitations under the License.
 var gulp = require('gulp'),
   jshint = require('gulp-jshint'),
   plumber = require('gulp-plumber'),
-  mocha = require('gulp-mocha');
+  mocha = require('gulp-mocha'),
+  cover = require('gulp-coverage');
 
 gulp.task('lint', function () {
   return gulp.src(['scripts/**/*.js', 'lib/**/*.js', 'tests/**/*.js'])
@@ -33,9 +34,16 @@ gulp.task('test', function () {
   return gulp.src('tests/**/*.js', {
       read: false
     })
+    .pipe(cover.instrument({
+      pattern: ['scripts/**/*.js', 'lib/**/*.js', 'tests/**/*.js'],
+      debugDirectory: 'debug'
+    }))
     .pipe(mocha({
       reporter: 'spec'
-    }));
+    }))
+    .pipe(cover.gather())
+    .pipe(cover.format())
+    .pipe(gulp.dest('reports'));
 });
 
 gulp.task('default', ['lint', 'test']);

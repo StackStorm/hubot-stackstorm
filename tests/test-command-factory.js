@@ -25,10 +25,23 @@ var fs = require('fs'),
   expect = chai.expect,
   CommandFactory = require('../lib/command_factory.js'),
   Robot = require('./dummy-robot.js'),
-  formatCommand = require('../lib/format_command.js');
+  formatCommand = require('../lib/format_command.js'),
+  utils = require('../lib/utils.js');
 
 var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
 ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
+
+
+// Polyfill from:
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
+if (RegExp.prototype.flags === undefined) {
+  Object.defineProperty(RegExp.prototype, 'flags', {
+    configurable: true,
+    get: function() {
+      return this.toString().match(/[gimuy]*$/)[0];
+    }
+  });
+}
 
 
 function getCleanCommandFactory() {
@@ -50,6 +63,40 @@ describe('command factory', function() {
       alias);
 
     expect(command_factory.robot.commands).to.have.length(1);
+  });
+
+  it('should not have any commands with null formats', function() {
+    var command_factory, alias;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      null,
+      alias);
+
+    expect(command_factory.robot.commands).to.have.length(0);
+  });
+
+  it('should add and then remove all commands from robot', function() {
+    var command_factory, alias;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      alias.formats[0],
+      alias);
+
+    expect(command_factory.robot.commands).to.have.length(1);
+
+    command_factory.removeCommands();
+
+    expect(command_factory.robot.commands).to.have.length(0);
   });
 
   it('should add multiple commands to robot', function() {
@@ -94,6 +141,34 @@ describe('command factory', function() {
     match = command_factory.getMatchingCommand('alias1 fmt1 value1 breaking words');
     expect(match[0]).to.equal('alias1');
 
+  });
+
+  it('should add \'i\' to regex flags', function () {
+    var command_factory, rgx;
+
+    command_factory = getCleanCommandFactory();
+
+    rgx = command_factory.getRegexForFormatString('asdf');
+    expect(rgx.flags).to.includes('i');
+  });
+
+  it('should add \'i\' and keep existing regex flags', function () {
+    var command_factory, rgx;
+
+    command_factory = getCleanCommandFactory();
+
+    rgx = command_factory.getRegexForFormatString('asdf', 'g');
+    expect(rgx.flags).to.includes('g');
+    expect(rgx.flags).to.includes('i');
+  });
+
+  it('should not duplicate \'i\' flags', function () {
+    var command_factory, rgx;
+
+    command_factory = getCleanCommandFactory();
+
+    rgx = command_factory.getRegexForFormatString('asdf', 'i');
+    expect(rgx.flags).to.includes('i');
   });
 
   it('should match command literals with blank spaces in values', function() {
@@ -169,4 +244,39 @@ describe('command factory', function() {
 
   });
 
+  it('should match multiple times if regex_flags contains \'g\'', function() {
+    var alias, command_factory, matches;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[5];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      alias.formats[0],
+      alias,
+      utils.REPRESENTATION | utils.G);
+
+    alias = ALIAS_FIXTURES[6];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      alias.formats[0],
+      alias,
+      utils.REPRESENTATION | utils.G);
+
+    matches = command_factory.getMatchingCommands('regex fmt1 ASDF-1234 trailing words regex fmt1 FDSA-4321 trailing words');
+    expect(matches).to.have.length(2);
+    expect(matches[0][3]).to.equal('regex fmt1 ASDF-1234 trailing words');
+    expect(matches[1][3]).to.equal('regex fmt1 FDSA-4321 trailing words');
+  });
+
+  it('should match nothing if not global regexes are loaded', function() {
+    var alias, command_factory, matches;
+
+    command_factory = getCleanCommandFactory();
+    matches = command_factory.getMatchingCommands('regex fmt1 ASDF-1234 trailing words regex fmt1 FDSA-4321 trailing words');
+    expect(matches).to.equal(null);
+  });
 });
