@@ -1,29 +1,32 @@
-0.8.0
------
-* Add support for specifying Stream URL
-* Update st2client to 1.1.1
-* Drop Node.js 0.12 support
+Changelog
+=========
+
+in development
+--------------
+* Add support for specifying Stream URL (new feature)
+* Update st2client to 1.1.1 (improvement)
+* Drop Node.js 0.12 support (change)
 
 0.7.0
 -----
-* Add RocketChat support
+* Add RocketChat support (new feature)
 
 0.6.0
 -----
-* Update Slack to use new chat postMessage API from 'hubot-slack' v4
+* Update Slack to use new chat postMessage API from 'hubot-slack' v4 (new feature)
 
 0.5.1
 -----
-* Update uuid to version 3.0.0
-* Add support for sending file attachments via the extra dict to the spark adapter
+* Update uuid to version 3.0.0 (improvement)
+* Add support for sending file attachments via the extra dict to the spark adapter (improvement)
 
 0.5.0
 -----
-* Mattermost support
+* Mattermost support (new feature)
 
 0.3.0
 -----
-* Switched to st2client.js
+* Switched to st2client.js (new feature)
 * Chatops announcements (new feature)
 * Custom formatting for results (new feature)
 * Disabling ack and results for specific aliases (new feature)
