@@ -5,7 +5,7 @@ in development
 --------------
 * Add support for specifying Stream URL (new feature)
 * Update st2client to 1.1.1 (improvement)
-* Support button attachements for mattermost adapter (improvement)
+* Add support for button attachments in mattermost adapter (improvement)
 * Drop Node.js 0.12 support (change)
 
 0.7.0
