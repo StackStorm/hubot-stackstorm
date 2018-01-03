@@ -73,6 +73,117 @@ describe("slack post data", function() {
     );
   });
 
+  it('should post success formatted slack attachment with an impersonated author', function() {
+    robot.adapter.client.send = sinon.spy();
+    var message = util.format('%s\nstatus : %s\nexecution: %s',
+                              'Short message',
+                              'succeeded',
+                              '1'),
+        input = {
+      user: 'stanley',
+      channel: '#stackstorm',
+      message: message,
+      whisper: false,
+      extra: {
+        slack: {
+          icon_emoji: ":slack:",
+          username: "SlackBot",
+          attachments: [
+            {
+              color: "dfdfdf",
+              mrkdwn_in: ["text","pretext"],
+              pretext: "@stanley: ",
+              text: message,
+              fallback: message
+            }
+          ]
+        }
+      }
+    };
+    postDataHandler.postData(input);
+    expect(robot.adapter.client.send).to.have.been.calledOnce;
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
+      input.extra.slack
+    );
+  });
+
+  it('should send attachments separately', function() {
+    this.clock = sinon.useFakeTimers();
+    robot.adapter.client.send = sinon.spy();
+    var message = util.format('%s\nstatus : %s\nexecution: %s',
+                              'Short message',
+                              'succeeded',
+                              '1'),
+        input = {
+      user: 'stanley',
+      channel: '#stackstorm',
+      message: message,
+      whisper: false,
+      extra: {
+        slack: {
+          icon_emoji: ":slack:",
+          username: "SlackBot",
+          attachments: [
+            {
+              color: "5fff5f",
+              text: 'A'+(new Array(3500).join('B'))+'C'
+            }, {
+              color: "ff5f5f",
+              text: 'X'+(new Array(3500).join('Y'))+'Z'
+            }
+          ]
+        }
+      }
+    };
+    postDataHandler.postData(input);
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
+      { icon_emoji: ":slack:", username: "SlackBot", attachments: [
+        { color: "5fff5f", text: 'A'+(new Array(3500).join('B'))+'C' }
+      ]}
+    );
+    this.clock.tick(500);
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
+      { icon_emoji: ":slack:", username: "SlackBot", attachments: [
+        { color: "ff5f5f", text: 'X'+(new Array(3500).join('Y'))+'Z' }
+      ]}
+    );
+    expect(robot.adapter.client.send).to.have.been.calledTwice;
+    this.clock.restore();
+  });
+
+  it('should post success formatted slack attachment with a specified author', function() {
+    robot.adapter.client.send = sinon.spy();
+    var message = util.format('%s\nstatus : %s\nexecution: %s',
+                              'Short message',
+                              'succeeded',
+                              '1'),
+        input = {
+      user: 'stanley',
+      channel: '#stackstorm',
+      message: message,
+      whisper: false,
+      extra: {
+        color: "e5e5e5",
+        slack: {
+          color: "dfdfdf",
+          mrkdwn_in: ["text","pretext"],
+          pretext: "@stanley: ",
+          text: message,
+          fallback: message
+        }
+      }
+    };
+    postDataHandler.postData(input);
+    expect(robot.adapter.client.send).to.have.been.calledOnce;
+    expect(robot.adapter.client.send).to.have.been.calledWith(
+      { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
+      { "attachments": [ input.extra.slack ] }
+    );
+  });
+
   it('should post fail formatted slack attachment', function() {
     robot.adapter.client.send = sinon.spy();
     var input = {
