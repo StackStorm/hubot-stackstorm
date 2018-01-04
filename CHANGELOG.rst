@@ -3,6 +3,7 @@ Changelog
 
 in development
 --------------
+* Break up messages multiple ways (if necessary) to avoid Slack API limits (improvement)
 * Add support for specifying Stream URL (new feature)
 * Update st2client to 1.1.1 (improvement)
 * Add support for button attachments in mattermost adapter (improvement)
