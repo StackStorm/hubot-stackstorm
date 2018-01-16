@@ -1,6 +1,10 @@
 Changelog
 =========
 
+in development
+--------------
+
+
 0.8.0
 -----
 * Break up messages multiple ways (if necessary) to avoid Slack API limits (improvement)
