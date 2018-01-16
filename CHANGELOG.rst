@@ -1,8 +1,8 @@
 Changelog
 =========
 
-in development
---------------
+0.8.0
+-----
 * Break up messages multiple ways (if necessary) to avoid Slack API limits (improvement)
 * Add support for specifying Stream URL (new feature)
 * Update st2client to 1.1.1 (improvement)
