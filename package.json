@@ -22,6 +22,8 @@
   },
   "dependencies": {
     "cli-table": "<=1.0.0",
+    "coffee-register": "^2.2.0",
+    "coffeescript": "^2.3.2",
     "lodash": "^4.17.11",
     "rsvp": "^4.8.4",
     "st2client": "^1.1.1",
@@ -34,7 +36,6 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "coffee-script": "^1.12.7",
     "gulp": "^3.9.0",
     "gulp-jshint": "^2.1.0",
     "gulp-mocha": "^6.0.0",

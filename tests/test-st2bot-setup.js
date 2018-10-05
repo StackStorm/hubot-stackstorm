@@ -21,7 +21,7 @@ limitations under the License.
 "use strict";
 
 // needed to get all coffeescript modules to be loaded
-require('coffee-script/register');
+require('coffee-register');
 
 var expect = require("chai").expect,
   path = require("path"),
