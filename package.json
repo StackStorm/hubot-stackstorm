@@ -29,7 +29,7 @@
     "uuid": "^3.0.0"
   },
   "peerDependencies": {
-    "hubot": "2.x"
+    "hubot": "3.x"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -40,7 +40,7 @@
     "gulp-mocha": "^6.0.0",
     "gulp-plumber": "^1.2.0",
     "hubot": "^3.1.1",
-    "hubot-help": "^0.1.1",
+    "hubot-help": "^0.2.2",
     "hubot-mock-adapter": "^1.1.1",
     "jshint": "^2.7.0",
     "jshint-stylish": "^2.0.0",
