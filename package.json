@@ -25,7 +25,7 @@
     "lodash": "^4.17.11",
     "rsvp": "^4.8.4",
     "st2client": "^1.1.1",
-    "truncate": "^1.0.4",
+    "truncate": "^2.0.1",
     "uuid": "^3.0.0"
   },
   "peerDependencies": {
