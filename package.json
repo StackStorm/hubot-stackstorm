@@ -47,12 +47,23 @@
     "jshint-stylish": "^2.0.0",
     "log": "1.4.0",
     "nock": "^10.0.0",
+    "nyc": "^13.0.1",
     "sinon": "^6.3.5",
     "sinon-chai": "^3.2.0"
   },
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/gulp"
+    "test": "node_modules/.bin/nyc mocha \"tests/**/*.js\""
+  },
+  "nyc": {
+    "temp-directory": "./coverage/.nyc_output",
+    "include": [
+      "lib",
+      "scripts"
+    ],
+    "exclude": [
+      "tests"
+    ]
   },
   "engines": {
     "node": ">=4.0.0"
