@@ -6,8 +6,10 @@ in development
 
 0.9.0
 -----
-* Update dependencies (improvement)
-* Upgrade from hubot 2 to 3 (improvement)
+* Update dependencies (change)
+* Upgrade from hubot 2 to 3 (change)
+* Drop support for Node.js < 6 (change)
+* Add support for Node.js >= 6 (change)
 
 0.8.0
 -----
