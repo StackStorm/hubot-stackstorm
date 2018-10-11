@@ -6,10 +6,21 @@ in development
 
 0.9.0
 -----
-* Update dependencies (change)
-* Upgrade from hubot 2 to 3 (change)
-* Drop support for Node.js < 6 (change)
-* Add support for Node.js >= 6 (change)
+* Update hubot to 3.1.1 (change)
+* Update hubot-mock-adapter to 1.1.1 (change)
+* Update chai to 4.2.0 and chai-as-promised to 7.1.1 (change)
+* Update gulp plugins (gulp-jshint to 2.1.0, gulp-mocha to 6.0.0, gulp-plumber
+  to 1.2.0) (change)
+* Update to coffee-script 1.12.7 (change)
+* Update to lodash 4.17.11 (change)
+* Update to nock 10.0.0 (change)
+* Update to rsvp 4.8.4 (change)
+* Update to sinon 6.3.5 and sinon-chai 3.2.0 (change)
+* Update to truncate 2.0.1 (change)
+* Update to hubot 3 and hubot-help 0.2.2 (change)
+* Migrate to coffeescript 2.3.2 and coffee-register 2.2.0 (change)
+* Update supported version of node to >= 6, <= 10 (change)
+* Add coverage support with nyc (change)
 
 0.8.0
 -----
