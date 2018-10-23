@@ -6,6 +6,7 @@ in development
 
 0.9.0
 -----
+* Remove support for HipChat (removal)
 * Update hubot to 3.1.1 (change)
 * Migrate to coffeescript 2.3.2 and coffee-register 2.2.0 (change)
 * Update supported version of node to >= 6, <= 10 (change)
