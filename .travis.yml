@@ -7,3 +7,12 @@ node_js:
   - "9"
   - "10"
   - node
+
+matrix:
+  # Report status as soon as just the required tests run
+  fast_finish: true
+  allow_failures:
+    # We do not support < 8 or > 10, but we can still test it
+    - node_js: "6"
+    - node_js: "7"
+    - node_js: node
