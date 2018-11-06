@@ -9,7 +9,7 @@ in development
 * Remove support for Yammer (removal)
 * Update hubot to 3.1.1 (change)
 * Migrate to coffeescript 2.3.2 and coffee-register 2.2.0 (change)
-* Update supported version of node to >= 6, <= 10 (change)
+* Update supported version of node to >= 8, <= 10 (change)
 * Add coverage support with nyc (change)
 
 0.8.0
