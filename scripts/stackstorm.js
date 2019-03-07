@@ -290,7 +290,7 @@ module.exports = function(robot) {
         });
         throw err;
       });
-    };
+  };
 
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
     var addressee = formatter.normalizeAddressee(msg);
@@ -300,6 +300,7 @@ module.exports = function(robot) {
       'command': command,
       'user': addressee.name,
       'source_channel': addressee.room,
+      'source_context': msg.envelope,
       'notification_route': env.ST2_ROUTE || 'hubot'
     };
 
@@ -323,8 +324,6 @@ module.exports = function(robot) {
     } else {
       sendAliasExecutionRequest(msg, payload);
     }
-
-
   };
 
   robot.respond(/([\s\S]+?)$/i, function(msg) {
@@ -406,10 +405,8 @@ module.exports = function(robot) {
           var executionData = twofactor[data.uuid];
           sendAliasExecutionRequest(executionData.msg, executionData.payload);
           delete twofactor[data.uuid];
-
         });
       }
-
     });
 
     // Add an interval which tries to re-load the commands
