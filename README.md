@@ -63,7 +63,7 @@ After that's done, you are ready to start your bot.
 To configure the plugin behavior, the following environment variable can be
 specified when running hubot:
 
-* `ST2_API` - URL to the StackStorm API endpoint.
+* `ST2_API_URL` - URL to the StackStorm API endpoint.
 * `ST2_WEBUI_URL` - Base URL to the WebUI. If provided, link to the execution
   history will be provided in the chat after every execution (optional).
 * `ST2_AUTH_USERNAME` - API credentials - username (optional).
