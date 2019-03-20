@@ -45,14 +45,7 @@ var _ = require('lodash'),
   ;
 
 // Setup the Environment
-env.ST2_API_URL = env.ST2_API_URL || null;
-if (!env.ST2_API_URL) {
-  if (env.ST2_API) {
-    robot.logger.warning("ST2_API is now deprecated and will be removed in a future release. Instead, please use the ST2_API_URL environment variable.");
-  }
-  env.ST2_API_URL = env.ST2_API || 'http://localhost:9101';
-}
-
+env.ST2_API_URL = env.ST2_API || env.ST2_API_URL || 'http://localhost:9101';
 env.ST2_ROUTE = env.ST2_ROUTE || null;
 env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 
@@ -111,6 +104,9 @@ module.exports = function(robot) {
 
   var promise = Promise.resolve();
 
+  if (env.ST2_API) {
+    robot.logger.warning("ST2_API is deprecated and will be removed in a future releases. Instead, please use the ST2_API_URL environment variable.");
+  }
   var url = utils.parseUrl(env.ST2_API_URL);
 
   var opts = {

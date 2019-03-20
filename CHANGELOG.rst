@@ -4,9 +4,13 @@ Changelog
 in development
 --------------
 
-0.9.1
+0.9.2
 -----
 * Rename ENV variable `ST2_API` -> `ST2_API_URL` for consistency, keep `ST2_API` for backwards compatibility (improvement)
+
+0.9.1
+-----
+* Erroneous version
 
 0.9.0
 -----
