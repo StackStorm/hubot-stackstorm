@@ -20,7 +20,7 @@
 //
 //
 // Configuration:
-//   ST2_API - FQDN + port to StackStorm endpoint
+//   ST2_API_URL - FQDN + port to StackStorm endpoint
 //   ST2_ROUTE - StackStorm notification route name
 //   ST2_COMMANDS_RELOAD_INTERVAL - Reload interval for commands
 //
@@ -45,7 +45,14 @@ var _ = require('lodash'),
   ;
 
 // Setup the Environment
-env.ST2_API = env.ST2_API || 'http://localhost:9101';
+env.ST2_API_URL = env.ST2_API_URL || null;
+if (!env.ST2_API_URL) {
+  if (env.ST2_API) {
+    robot.logger.warning("ST2_API is now deprecated and will be removed in a future release. Instead, please use the ST2_API_URL environment variable.");
+  }
+  env.ST2_API_URL = env.ST2_API || 'http://localhost:9101';
+}
+
 env.ST2_ROUTE = env.ST2_ROUTE || null;
 env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 
@@ -104,7 +111,7 @@ module.exports = function(robot) {
 
   var promise = Promise.resolve();
 
-  var url = utils.parseUrl(env.ST2_API);
+  var url = utils.parseUrl(env.ST2_API_URL);
 
   var opts = {
     protocol: url.protocol,
@@ -234,7 +241,7 @@ module.exports = function(robot) {
       })
       .catch(function (err) {
         var error_msg = 'Failed to retrieve commands from "%s": %s';
-        robot.logger.error(util.format(error_msg, env.ST2_API, err.message));
+        robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
       });
   };
 
