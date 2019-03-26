@@ -272,7 +272,7 @@ module.exports = function(robot) {
           return sendAck(msg, { execution: { id: err.message } });
         }
         robot.logger.error('Failed to create an alias execution:', err);
-        var addressee = utils.normalizeAddressee(msg, robot.adapterName);
+        var addressee = formatter.normalizeAddressee(msg);
         var message = util.format(_.sample(ERROR_MESSAGES), err.message);
         if (err.requestId) {
           message = util.format(
@@ -293,7 +293,7 @@ module.exports = function(robot) {
     };
 
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
-    var addressee = utils.normalizeAddressee(msg, robot.adapterName);
+    var addressee = formatter.normalizeAddressee(msg);
     var payload = {
       'name': command_name,
       'format': format_string,
@@ -357,13 +357,6 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      // Special handler to try and figure out when a hipchat message
-      // is a whisper:
-      if (robot.adapterName === 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1 ) {
-        data.whisper = true;
-        robot.logger.debug('Set whisper to true for hipchat message');
-      }
-
       postDataHandler.postData(data);
 
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
@@ -395,15 +388,7 @@ module.exports = function(robot) {
           data = e.data;
         }
 
-        // Special handler to try and figure out when a hipchat message
-        // is a whisper:
-        if (robot.adapterName === 'hipchat' && !data.whisper && data.channel.indexOf('@') > -1 ) {
-          data.whisper = true;
-          robot.logger.debug('Set whisper to true for hipchat message');
-        }
-
         postDataHandler.postData(data);
-
       });
 
       if (env.HUBOT_2FA) {
