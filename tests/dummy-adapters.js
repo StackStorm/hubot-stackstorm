@@ -31,4 +31,13 @@ function MockSlackAdapter(logger) {
     this.client = new MockSlackClient(logger);
 }
 
-module.exports =  MockSlackAdapter;
+function MockBotFrameworkAdapter(logger) {
+    this.logger = logger;
+}
+
+MockBotFrameworkAdapter.prototype.send = function(envelope, message) {
+    this.logger.info('Sending ' + JSON.stringify(message) + ' to ' + JSON.stringify(envelope));
+};
+
+module.exports.MockSlackAdapter =  MockSlackAdapter;
+module.exports.MockBotFrameworkAdapter =  MockBotFrameworkAdapter;

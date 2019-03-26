@@ -24,13 +24,16 @@ var chai = require("chai"),
   env = process.env,
   expect = chai.expect,
   Robot = require('./dummy-robot.js'),
-  MockSlackAdapter = require('./dummy-adapters.js'),
+  dummyAdapters = require('./dummy-adapters.js'),
   Log = require('log'),
   formatData = require('../lib/format_data.js'),
   postData = require('../lib/post_data.js'),
   sinon = require('sinon'),
   sinonChai = require('sinon-chai'),
   util = require('util');
+
+var MockSlackAdapter = dummyAdapters.MockSlackAdapter;
+var MockBotFrameworkAdapter = dummyAdapters.MockBotFrameworkAdapter;
 
 chai.use(sinonChai);
 
@@ -355,7 +358,69 @@ describe("slack post data", function() {
       }
     );
   });
+});
 
+describe("msteams post data", function () {
+  var robot, formatter, logMessage, postDataHandler;
+  var logger = new Log('debug');
+  robot = new Robot(false, new MockBotFrameworkAdapter(logger));
+  formatter = formatData.getFormatter('botframework', robot);
+  postDataHandler = postData.getDataPostHandler('botframework', robot, formatter);
+
+  it('should just send', function () {
+    robot.adapter.send = sinon.spy();
+    var data = {
+      context: {
+        value: "Context value"
+      },
+      message: "Hello world!"
+    };
+
+    postDataHandler.postData(data);
+    expect(robot.adapter.send).to.have.been.calledOnce;
+    expect(robot.adapter.send).to.have.been.calledWith(data.context, data.message);
+  });
+
+  it('should warn about data.extra.botframework', function () {
+    robot.logger.warning = sinon.spy();
+    robot.adapter.send = sinon.spy();
+    var data = {
+      context: {
+        value: "Context value with extra.botframework"
+      },
+      extra: {
+        botframework: "BotFramework"
+      },
+      message: "Hello world with extra.botframework!"
+    };
+
+    postDataHandler.postData(data);
+    expect(robot.logger.warning).to.have.been.calledOnce;
+    logMessage = util.format('The extra.botframework attribute of aliases is not used yet.');
+    expect(robot.logger.warning).to.have.been.calledWith(logMessage);
+    expect(robot.adapter.send).to.have.been.calledOnce;
+    expect(robot.adapter.send).to.have.been.calledWith(data.context, data.message);
+  });
+
+  it('should send pretext separately', function () {
+    this.clock = sinon.useFakeTimers();
+    robot.adapter.send = sinon.spy();
+    var pretext = 'Pretext header',
+        text = 'text value';
+    var data = {
+      context: {
+        value: "Context value"
+      },
+      message: pretext + "{~}" + text
+    };
+
+    postDataHandler.postData(data);
+    expect(robot.adapter.send).to.have.been.calledWith(data.context, pretext);
+    this.clock.tick(500);
+    expect(robot.adapter.send).to.have.been.calledWith(data.context, text);
+    this.clock.restore();
+    expect(robot.adapter.send).to.have.been.calledTwice;
+  });
 });
 
 describe("mattermost post data", function() {
