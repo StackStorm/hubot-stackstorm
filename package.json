@@ -63,6 +63,10 @@
     ],
     "exclude": [
       "tests"
+    ],
+    "reporter": [
+      "html",
+      "text"
     ]
   },
   "engines": {

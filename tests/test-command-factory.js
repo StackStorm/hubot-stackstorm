@@ -25,7 +25,8 @@ var fs = require('fs'),
   expect = chai.expect,
   CommandFactory = require('../lib/command_factory.js'),
   Robot = require('./dummy-robot.js'),
-  formatCommand = require('../lib/format_command.js');
+  formatCommand = require('../lib/format_command.js'),
+  utils = require('../lib/utils.js');
 
 var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
 ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
@@ -50,6 +51,146 @@ describe('command factory', function() {
       alias);
 
     expect(command_factory.robot.commands).to.have.length(1);
+  });
+
+  it('should add commands to robot and remove them', function() {
+    var command_factory, alias;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      alias.formats[0],
+      alias);
+
+    expect(command_factory.robot.commands).to.have.length(1);
+
+    command_factory.removeCommands();
+
+    expect(command_factory.robot.commands).to.have.length(0);
+  });
+
+  it('should add command with empty format to robot', function() {
+    var command_factory, alias;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      false,
+      alias);
+
+    expect(command_factory.robot.commands).to.have.length(0);
+  });
+
+  it('should add command then remove nonexistent command', function() {
+    var command_factory, alias;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      false,
+      alias);
+
+    expect(command_factory.robot.commands).to.have.length(0);
+  });
+
+  it('should add commands to robot with flag REPRESENTATION', function() {
+    var command_factory, alias;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      alias.formats[0],
+      alias,
+      utils.REPRESENTATION);
+
+    expect(command_factory.robot.commands).to.have.length(0);
+    expect(Object.keys(command_factory.st2_commands_name_map)).to.have.length(1);
+  });
+
+  it('should add commands to robot with flag DISPLAY', function() {
+    var command_factory, alias;
+
+    command_factory = getCleanCommandFactory();
+    alias = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      alias.formats[0],
+      alias,
+      utils.DISPLAY);
+
+    expect(command_factory.robot.commands).to.have.length(1);
+    expect(Object.keys(command_factory.st2_commands_name_map)).to.have.length(0);
+  });
+
+  it('should add commands to robot with flag REPRESENTATION and then DISPLAY', function() {
+    var command_factory, alias1, alias2;
+
+    command_factory = getCleanCommandFactory();
+    alias1 = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias1.name, alias1.formats[0], alias1.description),
+      alias1.name,
+      alias1.formats[0],
+      alias1,
+      utils.REPRESENTATION);
+
+    alias2 = ALIAS_FIXTURES[1];
+
+    command_factory.addCommand(
+      formatCommand(null, alias2.name, alias2.formats[0], alias2.description),
+      alias2.name,
+      alias2.formats[0],
+      alias2,
+      utils.DISPLAY);
+
+    expect(command_factory.robot.commands).to.have.length(1);
+    expect(Object.keys(command_factory.st2_commands_name_map)).to.have.length(1);
+  });
+
+  it('should add commands to robot with flag REPRESENTATION and then DISPLAY then remove them all', function() {
+    var command_factory, alias1, alias2;
+
+    command_factory = getCleanCommandFactory();
+    alias1 = ALIAS_FIXTURES[0];
+
+    command_factory.addCommand(
+      formatCommand(null, alias1.name, alias1.formats[0], alias1.description),
+      alias1.name,
+      alias1.formats[0],
+      alias1,
+      utils.REPRESENTATION);
+
+    alias2 = ALIAS_FIXTURES[1];
+
+    command_factory.addCommand(
+      formatCommand(null, alias2.name, alias2.formats[0], alias2.description),
+      alias2.name,
+      alias2.formats[0],
+      alias2,
+      utils.DISPLAY);
+
+    expect(command_factory.robot.commands).to.have.length(1);
+    expect(Object.keys(command_factory.st2_commands_name_map)).to.have.length(1);
+
+    command_factory.removeCommands();
+
+    expect(command_factory.robot.commands).to.have.length(1);
+    expect(Object.keys(command_factory.st2_commands_name_map)).to.have.length(0);
   });
 
   it('should add multiple commands to robot', function() {

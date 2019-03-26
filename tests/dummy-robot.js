@@ -50,7 +50,6 @@ function Logger(enabled) {
     }
     this.log.debug(msg);
   };
-
 }
 
 function Robot(name, adapter, enable_logging) {
@@ -58,6 +57,14 @@ function Robot(name, adapter, enable_logging) {
   this.name = name;
   this.commands = [];
   this.adapter = adapter;
+
+  this.messageRoom = function(recipient, data) {
+    return;
+  }
+
+  this.emit = function(event, data) {
+    return;
+  }
 }
 
 module.exports = Robot;

@@ -70,20 +70,58 @@ describe('SlackFormatter', function() {
     expect(o).to.equal('run local "uname -a"');
   });
 
-  it('should normalize command with special double quote', function() {
+  it('should normalize command with special double quotes', function() {
     var formatter = formatData.getFormatter(adapterName, null);
-    var o = formatter.normalizeCommand('run remote \u201cuname -a" \u201clocalhost, 127.0.0.1"');
+    var o = formatter.normalizeCommand('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote "uname -a" "localhost, 127.0.0.1"');
   });
 
-  it('should normalize command with special single quote', function() {
+  it('should normalize command with special single quotes', function() {
     var formatter = formatData.getFormatter(adapterName, null);
-    var o = formatter.normalizeCommand('run remote \u2018uname -a\' \u2018localhost, 127.0.0.1\'');
+    var o = formatter.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote \'uname -a\' \'localhost, 127.0.0.1\'');
   });
+});
 
+describe('MattermostFormatter', function() {
+  var adapterName = 'mattermost';
+
+  it('should echo back for non-empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('DATA', null);
+    expect(o).to.be.an('string');
+    expect(o).to.equal('DATA');
+  });
+
+  it('should be an empty string for empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('', null);
+    expect(o).to.be.an('string');
+    expect(o).to.equal('');
+  });
+
+  it('should correctly format recepient', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatRecepient('Estee');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('Estee');
+  });
+
+  it('should normalize command with special double quotes', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.normalizeCommand('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run remote "uname -a" "localhost, 127.0.0.1"');
+  });
+
+  it('should normalize command with special single quotes', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run remote \'uname -a\' \'localhost, 127.0.0.1\'');
+  });
 });
 
 describe('HipChatFormatter', function() {
@@ -109,6 +147,15 @@ describe('HipChatFormatter', function() {
     var o = formatter.formatRecepient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('234x_Estee@conf.hipchat.com');
+  });
+
+  it('should correctly format recepient with conf.btf.hipchat.com', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    env.HUBOT_HIPCHAT_JID = '234x_y234@conf.hipchat.com';
+    env.HUBOT_HIPCHAT_XMPP_DOMAIN = "btf.hipchat.com";
+    var o = formatter.formatRecepient('Estee');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('234x_Estee@conf.btf.hipchat.com');
   });
 
   it('should normalize command', function() {
@@ -151,6 +198,58 @@ describe('RocketChatFormatter', function() {
   });
 });
 
+describe('SparkFormatter', function() {
+  var adapterName = 'spark';
+
+  it('should echo back for non-empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('DATA');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('DATA');
+  });
+
+  it('should be an empty string for empty', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('');
+  });
+
+  it('should truncate text more than a certain length', function() {
+    var old_ST2_MAX_MESSAGE_LENGTH = env.ST2_MAX_MESSAGE_LENGTH;
+    env.ST2_MAX_MESSAGE_LENGTH = 4;
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('asdfqwerty');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('asdf...');
+    env.ST2_MAX_MESSAGE_LENGTH = old_ST2_MAX_MESSAGE_LENGTH;
+  });
+
+  it('should not truncate text more than a certain length', function() {
+    var old_ST2_MAX_MESSAGE_LENGTH = env.ST2_MAX_MESSAGE_LENGTH;
+    env.ST2_MAX_MESSAGE_LENGTH = 0;
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatData('asdfqwerty');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('asdfqwerty');
+    env.ST2_MAX_MESSAGE_LENGTH = old_ST2_MAX_MESSAGE_LENGTH;
+  });
+
+  it('should correctly format recepient', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.formatRecepient('Estee');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('Estee');
+  });
+
+  it('should normalize command', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var o = formatter.normalizeCommand('run local "uname -a"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run local "uname -a"');
+  });
+});
+
 describe('DefaultFormatter', function() {
   var adapterName = 'unknown';
   var robot = new DummyRobot('dummy', null, false);
@@ -171,6 +270,17 @@ describe('DefaultFormatter', function() {
 
     expect(o).to.be.an('string');
     expect(o).to.equal('abcd efgh ...');
+  });
+
+  it('should truncate text more than a certain length', function() {
+    var org_max_length = env.ST2_MAX_MESSAGE_LENGTH;
+    env.ST2_MAX_MESSAGE_LENGTH = 0;
+    var formatter = formatData.getFormatter(adapterName, robot);
+    var o = formatter.formatData('abcd efgh ijklm', null);
+    env.ST2_MAX_MESSAGE_LENGTH = org_max_length;
+
+    expect(o).to.be.an('string');
+    expect(o).to.equal('abcd efgh ijklm');
   });
 
   it('should be an empty string for empty', function() {
