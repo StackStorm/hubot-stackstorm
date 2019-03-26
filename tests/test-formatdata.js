@@ -83,6 +83,23 @@ describe('SlackFormatter', function() {
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote \'uname -a\' \'localhost, 127.0.0.1\'');
   });
+
+  it('should normalize the addressee', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var msg = {
+      message: {
+        room: "SlackRoomName",
+        user: {
+          name: "SlackUserName"
+        }
+      }
+    };
+    var o = formatter.normalizeAddressee(msg);
+    expect(o.name).to.be.an('string');
+    expect(o.name).to.equal('SlackUserName');
+    expect(o.room).to.be.an('string');
+    expect(o.room).to.equal('SlackRoomName');
+  });
 });
 
 describe('MattermostFormatter', function() {
@@ -121,6 +138,23 @@ describe('MattermostFormatter', function() {
     var o = formatter.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote \'uname -a\' \'localhost, 127.0.0.1\'');
+  });
+
+  it('should normalize the addressee', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var msg = {
+      message: {
+        room: "MattermostRoomName",
+        user: {
+          name: "MattermostUserName"
+        }
+      }
+    };
+    var o = formatter.normalizeAddressee(msg);
+    expect(o.name).to.be.an('string');
+    expect(o.name).to.equal('MattermostUserName');
+    expect(o.room).to.be.an('string');
+    expect(o.room).to.equal('MattermostRoomName');
   });
 });
 
@@ -164,6 +198,24 @@ describe('HipChatFormatter', function() {
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
   });
+
+  it('should normalize the addressee', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    // HipChat packages the room and user name differently
+    var msg = {
+      message: {
+        user: {
+          jid: "HipChatRoomName",
+          mention_name: "HipChatUserName"
+        }
+      }
+    };
+    var o = formatter.normalizeAddressee(msg);
+    expect(o.name).to.be.an('string');
+    expect(o.name).to.equal('HipChatUserName');
+    expect(o.room).to.be.an('string');
+    expect(o.room).to.equal('HipChatRoomName');
+  });
 });
 
 describe('RocketChatFormatter', function() {
@@ -195,6 +247,23 @@ describe('RocketChatFormatter', function() {
     var o = formatter.normalizeCommand('run local "uname -a"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
+  });
+
+  it('should normalize the addressee', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var msg = {
+      message: {
+        room: "RocketChatRoomName",
+        user: {
+          name: "RocketChatUserName"
+        }
+      }
+    };
+    var o = formatter.normalizeAddressee(msg);
+    expect(o.name).to.be.an('string');
+    expect(o.name).to.equal('RocketChatUserName');
+    expect(o.room).to.be.an('string');
+    expect(o.room).to.equal('RocketChatRoomName');
   });
 });
 
@@ -247,6 +316,23 @@ describe('SparkFormatter', function() {
     var o = formatter.normalizeCommand('run local "uname -a"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
+  });
+
+  it('should normalize the addressee', function() {
+    var formatter = formatData.getFormatter(adapterName, null);
+    var msg = {
+      message: {
+        user: {
+          room: "SparkRoomName",
+          name: "SparkUserName"
+        }
+      }
+    };
+    var o = formatter.normalizeAddressee(msg);
+    expect(o.name).to.be.an('string');
+    expect(o.name).to.equal('SparkUserName');
+    expect(o.room).to.be.an('string');
+    expect(o.room).to.equal('SparkRoomName');
   });
 });
 
@@ -302,5 +388,22 @@ describe('DefaultFormatter', function() {
     var o = formatter.normalizeCommand('run local "uname -a"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
+  });
+
+  it('should normalize the addressee', function() {
+    var formatter = formatData.getFormatter(adapterName, robot);
+    var msg = {
+      message: {
+        room: "DefaultRoomName",
+        user: {
+          name: "DefaultUserName"
+        }
+      }
+    };
+    var o = formatter.normalizeAddressee(msg);
+    expect(o.name).to.be.an('string');
+    expect(o.name).to.equal('DefaultUserName');
+    expect(o.room).to.be.an('string');
+    expect(o.room).to.equal('DefaultRoomName');
   });
 });
