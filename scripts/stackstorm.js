@@ -261,7 +261,7 @@ module.exports = function(robot) {
     return msg.send(message + history);
   };
 
-  var createExecution = function (msg, payload) {
+  var sendAliasExecutionRequest = function (msg, payload) {
     robot.logger.debug('Sending command payload:', JSON.stringify(payload));
 
     api.aliasExecution.create(payload)
@@ -321,7 +321,7 @@ module.exports = function(robot) {
         'payload': payload
       };
     } else {
-      createExecution(msg, payload);
+      sendAliasExecutionRequest(msg, payload);
     }
 
 
@@ -404,7 +404,7 @@ module.exports = function(robot) {
           }
 
           var executionData = twofactor[data.uuid];
-          createExecution(executionData.msg, executionData.payload);
+          sendAliasExecutionRequest(executionData.msg, executionData.payload);
           delete twofactor[data.uuid];
 
         });
