@@ -22,7 +22,8 @@
 var chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  utils = require('../lib/utils.js');
+  utils = require('../lib/utils.js'),
+  env = process.env;
 
 var MOCK_MESSAGE = 'Action st2.sensors.list completed.\nstatus : succeeded \nexecution: 55701c8b0640fd53cdf4f08 \nresult :';
 
@@ -139,6 +140,54 @@ describe('getExecutionHistoryUrl', function() {
     );
   });
 
+  it('should return null from false execution ID', function() {
+    var input = {
+      web_url: false,
+      id: false
+    };
+    var old_ST2_WEBUI_URL = env.ST2_WEBUI_URL;
+    env.ST2_WEBUI_URL = 'https://webui.yolocompany.com/#/history/54e657d60640fd16887d6855/general';
+    var web_url = utils.getExecutionHistoryUrl(input);
+    expect(web_url).to.be.null;
+    env.ST2_WEBUI_URL = old_ST2_WEBUI_URL;
+  });
+
+  it('should return null from null execution ID', function() {
+    var input = {
+      web_url: false,
+      id: null
+    };
+    var old_ST2_WEBUI_URL = env.ST2_WEBUI_URL;
+    env.ST2_WEBUI_URL = 'https://webui.yolocompany.com/#/history/54e657d60640fd16887d6855/general';
+    var web_url = utils.getExecutionHistoryUrl(input);
+    expect(web_url).to.be.null;
+    env.ST2_WEBUI_URL = old_ST2_WEBUI_URL;
+  });
+
+  it('should return null from undefined execution ID', function() {
+    var input = {
+      web_url: false,
+      id: undefined
+    };
+    var old_ST2_WEBUI_URL = env.ST2_WEBUI_URL;
+    env.ST2_WEBUI_URL = 'https://webui.yolocompany.com/#/history/54e657d60640fd16887d6855/general';
+    var web_url = utils.getExecutionHistoryUrl(input);
+    expect(web_url).to.be.null;
+    env.ST2_WEBUI_URL = old_ST2_WEBUI_URL;
+  });
+
+  it('should return null from no ST2_WEBUI_URL environment variable', function() {
+    var input = {
+      web_url: false,
+      id: "54e657d60640fd16887d6855"
+    };
+    var old_ST2_WEBUI_URL = env.ST2_WEBUI_URL;
+    env.ST2_WEBUI_URL = 'null';
+    var web_url = utils.getExecutionHistoryUrl(input);
+    expect(web_url).to.be.null;
+    env.ST2_WEBUI_URL = old_ST2_WEBUI_URL;
+  });
+
   // Backward compatibility. Remove this test when we deprecate ST2_WEB_URL env variable.
   it('should return url from env if web_url is not present', function() {
     var web_url;
@@ -154,5 +203,4 @@ describe('getExecutionHistoryUrl', function() {
 
     execution_model.web_url = web_url_bkup;
   });
-
 });
