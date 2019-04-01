@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+0.9.3
+-----
+* Add initial support for Microsoft Teams via BotFramework (new feature)
+* Add unit tests for all adapters (improvement)
+
 0.9.2
 -----
 * Rename ENV variable `ST2_API` -> `ST2_API_URL` for consistency, keep `ST2_API` for backwards compatibility (improvement)
