@@ -170,8 +170,8 @@ module.exports = function(robot) {
       })
       .catch(function (err) {
         robot.logger.error('Failed to authenticate: ' + err.message);
-
-        throw err;
+        robot.logger.error(err.stack);
+        stop({exit: true});
       });
   }
 
@@ -199,8 +199,10 @@ module.exports = function(robot) {
   // handler to manage per adapter message post-ing.
   var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
-  var loadCommands = function() {
+  var loadCommands = function(opts) {
     robot.logger.info('Loading commands....');
+
+    var opts = Object.assign({exitOnFailure: false}, opts);
 
     api.actionAlias.list()
       .then(function (aliases) {
@@ -238,6 +240,9 @@ module.exports = function(robot) {
       .catch(function (err) {
         var error_msg = 'Failed to retrieve commands from "%s": %s';
         robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
+        if (opts.exitOnFailure) {
+          stop({exit: true});
+        }
       });
   };
 
@@ -409,22 +414,29 @@ module.exports = function(robot) {
       }
     });
 
-    // Add an interval which tries to re-load the commands
-    commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
-
     // Initial command loading
-    loadCommands();
+    loadCommands({exitOnFailure: true});
+
+    // Add an interval which tries to re-load the commands
+    commands_load_interval = setInterval(loadCommands.bind(), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
 
     // Install SIGUSR2 handler which reloads the command
     install_sigusr2_handler();
   }
 
-  function stop() {
+  function stop(opts) {
+    var opts = Object.assign({exit: false}, opts);
+
     clearInterval(commands_load_interval);
     api.stream.listen().then(function (source) {
       source.removeAllListeners();
       source.close();
     });
+
+    if (opts.exit) {
+      robot.server.close();
+      robot.shutdown();
+    }
   }
 
   function install_sigusr2_handler() {
@@ -434,7 +446,7 @@ module.exports = function(robot) {
   }
 
   // Authenticate with StackStorm backend and then call start.
-  // On a failure to authenticate log the error but do not quit.
+  // On a failure to authenticate log the error and quit.
   return promise.then(function () {
     start();
     return stop;

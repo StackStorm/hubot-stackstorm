@@ -8,6 +8,7 @@ in development
 -----
 * Add initial support for Microsoft Teams via BotFramework (new feature)
 * Add unit tests for all adapters (improvement)
+* Allow `st2chatops` to exit from `st2client` failures.
 
 0.9.2
 -----
