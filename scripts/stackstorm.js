@@ -434,8 +434,7 @@ module.exports = function(robot) {
     });
 
     if (opts.exit) {
-      robot.server.close();
-      robot.shutdown();
+      process.exit(1);
     }
   }
 
