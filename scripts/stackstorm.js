@@ -135,6 +135,25 @@ module.exports = function(robot) {
     api.setToken({ token: env.ST2_AUTH_TOKEN });
   }
 
+  function hubotErrorCallback(error, res) {
+    // Hubot alrady logged the stack trace before call this callback function, 
+    // only error message will be logged here
+    robot.logger.error("Caught error from hubot: " + error.message);
+
+    stop();
+  }
+
+  function exitProcessWithLog(errorMsg, err) {
+    if (err) {
+      robot.logger.error(errorMsg + err.message);
+      robot.logger.error(err.stack);
+    } else if (errorMsg != "") {
+      robot.logger.error(errorMsg);
+    }
+
+    stop();
+  }
+
   function authenticate() {
     api.removeListener('expiry', authenticate);
 
@@ -169,9 +188,7 @@ module.exports = function(robot) {
         client.on('expiry', authenticate);
       })
       .catch(function (err) {
-        robot.logger.error('Failed to authenticate: ' + err.message);
-        robot.logger.error(err.stack);
-        stop({exit: true});
+        exitProcessWithLog('Failed to authenticate: ', err);
       });
   }
 
@@ -179,7 +196,8 @@ module.exports = function(robot) {
     // If using username and password then all are required.
     if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
         !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
-      throw new Error('Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
+      var error_msg = 'Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.';
+      exitProcessWithLog(error_msg, null);
     }
     promise = authenticate();
   }
@@ -238,10 +256,9 @@ module.exports = function(robot) {
         robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        var error_msg = 'Failed to retrieve commands from "%s": %s';
-        robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
+        var error_msg = 'Failed to retrieve commands from ' + env.ST2_API_URL + ' ';
         if (opts.exitOnFailure) {
-          stop({exit: true});
+          exitProcessWithLog(error_msg, err);
         }
       });
   };
@@ -374,12 +391,18 @@ module.exports = function(robot) {
   var commands_load_interval;
 
   function start() {
+    robot.error(hubotErrorCallback);
     api.stream.listen().catch(function (err) {
-      robot.logger.error('Unable to connect to stream:', err);
+      exitProcessWithLog('Unable to connect to stream: ', err);
     }).then(function (source) {
       source.onerror = function (err) {
         // TODO: squeeze a little bit more info out of evensource.js
-        robot.logger.error('Stream error:', err);
+        if (err.status === 401) {
+          robot.logger.error('Stream error:', err);
+        } else {
+          var error_message = util.format('stream error: [type: %s; status: %s]', err.type, err.status);
+          exitProcessWithLog(error_message, null);
+        }
       };
       source.addEventListener('st2.announcement__chatops', function (e) {
         var data;
@@ -424,18 +447,15 @@ module.exports = function(robot) {
     install_sigusr2_handler();
   }
 
-  function stop(opts) {
-    var opts = Object.assign({exit: false}, opts);
-
+  function stop() {
     clearInterval(commands_load_interval);
     api.stream.listen().then(function (source) {
       source.removeAllListeners();
       source.close();
     });
 
-    if (opts.exit) {
-      process.exit(1);
-    }
+    robot.shutdown();
+    process.exit(1);
   }
 
   function install_sigusr2_handler() {
