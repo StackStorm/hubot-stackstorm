@@ -441,7 +441,7 @@ module.exports = function(robot) {
     loadCommands({exitOnFailure: true});
 
     // Add an interval which tries to re-load the commands
-    commands_load_interval = setInterval(loadCommands.bind(), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
+    commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
 
     // Install SIGUSR2 handler which reloads the command
     install_sigusr2_handler();
