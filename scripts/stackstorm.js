@@ -382,11 +382,11 @@ module.exports = function(robot) {
   function start() {
     robot.error(logErrorAndExit);
 
-    api_client.stream.listen().then(function (source) {
-      source.on('error', function (err) {
+    api_client.stream.listen().then(function (stream) {
+      stream.on('error', function (err) {
         logErrorAndExit(err);
       });
-      source.addEventListener('st2.announcement__chatops', function (e) {
+      stream.addEventListener('st2.announcement__chatops', function (e) {
         var data;
 
         robot.logger.debug('Chatops message received:', e.data);
@@ -401,7 +401,7 @@ module.exports = function(robot) {
       });
 
       if (env.HUBOT_2FA) {
-        source.addEventListener('st2.announcement__2fa', function (e) {
+        stream.addEventListener('st2.announcement__2fa', function (e) {
           var data;
 
           robot.logger.debug('Successfull two-factor auth:', e.data);
