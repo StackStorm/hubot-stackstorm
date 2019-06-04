@@ -351,7 +351,7 @@ module.exports = function(robot) {
   };
 
   robot.respond(/([\s\S]+?)$/i, function(msg) {
-    var command, result, command_name, format_string, action_alias;
+    var command, result;
 
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
@@ -364,9 +364,7 @@ module.exports = function(robot) {
       return;
     }
 
-    command_name = result[0];
-    format_string = result[1];
-    action_alias = result[2];
+    var [command_name, format_string, action_alias] = result;
 
     executeCommand(msg, command_name, format_string, command, action_alias);
   });
