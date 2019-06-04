@@ -41,6 +41,10 @@ describe("invalid st2 credential configuration", function() {
     info_spy = sinon.spy(robot.logger, 'info'),
     error_spy = sinon.spy(robot.logger, 'error');
 
+  beforeEach(function () {
+    process.exit.resetHistory();
+  });
+
   afterEach(function() {
     restore_env && restore_env();
     error_spy.resetHistory();
@@ -48,6 +52,10 @@ describe("invalid st2 credential configuration", function() {
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../scripts/stackstorm.js")];
+  });
+
+  after(function () {
+    process.exit.restore && process.exit.restore();
   });
 
   it("should raise exception with null auth URL", function(done) {
@@ -63,6 +71,8 @@ describe("invalid st2 credential configuration", function() {
     stackstorm(robot).then(function (stop) {
       expect(error_spy).to.have.been.calledOnce;
       expect(error_spy.firstCall.args[0]).include('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
+      expect(process.exit).to.have.been.calledOnce;
+      expect(process.exit.args[0][0]).to.equal(1);
 
       stop();
 
@@ -88,6 +98,8 @@ describe("invalid st2 credential configuration", function() {
       expect(error_spy.args[1][0]).to.startWith('Failed to retrieve commands from');
       expect(error_spy.args[2][0]).to.include('connect ECONNREFUSED 127.0.0.1:9101')
       expect(error_spy.args[3][0]).to.include('getaddrinfo ENOTFOUND nonexistent-st2-auth-url nonexistent-st2-auth-url:9101');
+      expect(process.exit).to.have.been.calledOnce;
+      expect(process.exit.args[0][0]).to.equal(1);
 
       stop();
 
