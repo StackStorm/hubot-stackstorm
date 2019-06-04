@@ -129,15 +129,16 @@ module.exports = function(robot) {
   if (env.ST2_API) {
     robot.logger.warning("ST2_API is deprecated and will be removed in a future releases. Instead, please use the ST2_API_URL environment variable.");
   }
-  var url = utils.parseUrl(env.ST2_API_URL);
-
-  var opts = {
-    protocol: url.protocol,
-    host: url.hostname,
-    port: url.port,
-    prefix: url.path,
-    rejectUnauthorized: false
-  };
+  var self = this,
+    promise = Promise.resolve(),
+    url = utils.parseUrl(env.ST2_API_URL),
+    opts = {
+      protocol: url.protocol,
+      host: url.hostname,
+      port: url.port,
+      prefix: url.path,
+      rejectUnauthorized: false
+    };
 
   if (env.ST2_STREAM_URL) {
     var stream_url = utils.parseUrl(env.ST2_STREAM_URL);
