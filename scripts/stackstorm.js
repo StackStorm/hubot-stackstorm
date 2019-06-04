@@ -385,10 +385,9 @@ module.exports = function(robot) {
     api_client.stream.listen().catch(function (err) {
       exitProcessWithLog('Unable to connect to stream: ', err);
     }).then(function (source) {
-      source.onerror = function (err) {
-        // TODO: squeeze a little bit more info out of eventsource.js
+      source.on('error', function (err) {
         logErrorAndExit(err);
-      };
+      });
       source.addEventListener('st2.announcement__chatops', function (e) {
         var data;
 
