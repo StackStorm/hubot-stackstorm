@@ -210,10 +210,8 @@ module.exports = function(robot) {
   // handler to manage per adapter message post-ing.
   var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
-  var loadCommands = function(opts) {
-    robot.logger.info('Loading commands....');
-
-    var opts = Object.assign({exitOnFailure: false}, opts);
+  var loadCommands = function() {
+    robot.logger.info('Loading commands...');
 
     api_client.actionAlias.list()
       .then(function (aliases) {
@@ -249,10 +247,8 @@ module.exports = function(robot) {
         robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        var error_msg = 'Failed to retrieve commands from ' + env.ST2_API_URL + ' ';
-        if (opts.exitOnFailure) {
-          logErrorAndExit(err);
-        }
+        robot.logger.error('Failed to retrieve commands from ' + env.ST2_API_URL);
+        logErrorAndExit(err);
       });
   };
 
@@ -428,7 +424,7 @@ module.exports = function(robot) {
     });
 
     // Initial command loading
-    loadCommands({exitOnFailure: true});
+    loadCommands();
 
     // Add an interval which tries to re-load the commands
     commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
