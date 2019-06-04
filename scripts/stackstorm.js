@@ -191,8 +191,9 @@ module.exports = function(robot) {
         !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
       robot.logger.error('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
       stop();
+    } else {
+      promise = authenticate();
     }
-    promise = authenticate();
   }
 
   // Pending 2-factor auth commands
