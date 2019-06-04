@@ -133,12 +133,15 @@ module.exports = function(robot) {
     api_client.setToken({ token: env.ST2_AUTH_TOKEN });
   }
 
-  function exitProcessWithLog(errorMsg, err) {
+  function logErrorAndExit(err, res) {
     if (err) {
-      robot.logger.error(errorMsg + err.message);
       robot.logger.error(err.stack);
-    } else if (errorMsg != "") {
-      robot.logger.error(errorMsg);
+    }
+    if (res) {
+      res.send(JSON.stringify({
+        "status": "failed",
+        "msg": "An error occurred trying to post the message:\n" + err
+      }));
     }
 
     stop();
@@ -178,7 +181,7 @@ module.exports = function(robot) {
         auth_client.on('expiry', authenticate);
       })
       .catch(function (err) {
-        exitProcessWithLog('Failed to authenticate: ', err);
+        logErrorAndExit(err);
       });
   }
 
@@ -186,8 +189,8 @@ module.exports = function(robot) {
     // If using username and password then all are required.
     if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
         !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
-      var error_msg = 'Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.';
-      exitProcessWithLog(error_msg, null);
+      robot.logger.error('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
+      stop();
     }
     promise = authenticate();
   }
@@ -248,7 +251,7 @@ module.exports = function(robot) {
       .catch(function (err) {
         var error_msg = 'Failed to retrieve commands from ' + env.ST2_API_URL + ' ';
         if (opts.exitOnFailure) {
-          exitProcessWithLog(error_msg, err);
+          logErrorAndExit(err);
         }
       });
   };
@@ -370,30 +373,26 @@ module.exports = function(robot) {
       }
       postDataHandler.postData(data);
 
-      res.send('{"status": "completed", "msg": "Message posted successfully"}');
-    } catch (e) {
-      robot.logger.error("Unable to decode JSON: " + e);
-      robot.logger.error(e.stack);
-      res.send('{"status": "failed", "msg": "An error occurred trying to post the message: ' + e + '"}');
+      res.send(JSON.stringify({
+        "status": "completed",
+        "msg": "Message posted successfully"
+      }));
+    } catch (err) {
+      logErrorAndExit(err, res)
     }
   });
 
   var commands_load_interval;
 
   function start() {
-    robot.error(hubotErrorCallback);
+    robot.error(logErrorAndExit);
 
     api_client.stream.listen().catch(function (err) {
       exitProcessWithLog('Unable to connect to stream: ', err);
     }).then(function (source) {
       source.onerror = function (err) {
-        // TODO: squeeze a little bit more info out of evensource.js
-        if (err.status === 401) {
-          robot.logger.error('Stream error:', err);
-        } else {
-          var error_message = util.format('stream error: [type: %s; status: %s]', err.type, err.status);
-          exitProcessWithLog(error_message, null);
-        }
+        // TODO: squeeze a little bit more info out of eventsource.js
+        logErrorAndExit(err);
       };
       source.addEventListener('st2.announcement__chatops', function (e) {
         var data;
