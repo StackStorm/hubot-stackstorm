@@ -29,31 +29,27 @@ function Logger(enabled) {
   };
 
   this.error = function(msg) {
-    if (!this.enabled) {
-      return;
+    if (this.enabled) {
+      this.logs.error.push(msg);
     }
-    this.logs.error.push(msg);
   };
 
   this.warning = function(msg) {
-    if (!this.enabled) {
-      return;
+    if (this.enabled) {
+      this.logs.warning.push(msg);
     }
-    this.logs.warning.push(msg);
   };
 
   this.info = function(msg) {
-    if (!this.enabled) {
-      return;
+    if (this.enabled) {
+      this.logs.info.push(msg);
     }
-    this.logs.info.push(msg);
   };
 
   this.debug = function(msg) {
-    if (!this.enabled) {
-      return;
+    if (this.enabled) {
+      this.logs.debug.push(msg);
     }
-    this.logs.debug.push(msg);
   };
 }
 
