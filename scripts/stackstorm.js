@@ -100,22 +100,20 @@ var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Waiting for your 
 module.exports = function(robot) {
   slack_monkey_patch.patchSendMessage(robot);
 
-  var self = this;
-
-  var promise = Promise.resolve();
-
   if (env.ST2_API) {
     robot.logger.warning("ST2_API is deprecated and will be removed in a future releases. Instead, please use the ST2_API_URL environment variable.");
   }
-  var url = utils.parseUrl(env.ST2_API_URL);
-
-  var opts = {
-    protocol: url.protocol,
-    host: url.hostname,
-    port: url.port,
-    prefix: url.path,
-    rejectUnauthorized: false
-  };
+  var _stream = null,
+    self = this,
+    promise = Promise.resolve(),
+    url = utils.parseUrl(env.ST2_API_URL),
+    opts = {
+      protocol: url.protocol,
+      host: url.hostname,
+      port: url.port,
+      prefix: url.path,
+      rejectUnauthorized: false
+    };
 
   if (env.ST2_STREAM_URL) {
     var stream_url = utils.parseUrl(env.ST2_STREAM_URL);
