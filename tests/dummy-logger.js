@@ -17,22 +17,40 @@ limitations under the License.
 
 "use strict";
 
-var Logger = require('./dummy-logger.js');
 
-function Robot(name, adapter, enable_logging, robot_name) {
-  this.logger = new Logger(enable_logging);
-  this.name = name;
-  this.commands = [];
-  this.adapter = adapter;
-  this.robot_name = robot_name;
 
-  this.messageRoom = function(recipient, data) {
-    return;
-  }
+function Logger(enabled) {
+  this.enabled = enabled;
+  this.logs = {
+    error: [],
+    warning: [],
+    info: [],
+    debug: []
+  };
 
-  this.emit = function(event, data) {
-    return;
-  }
+  this.error = function(msg) {
+    if (this.enabled) {
+      this.logs.error.push(msg);
+    }
+  };
+
+  this.warning = function(msg) {
+    if (this.enabled) {
+      this.logs.warning.push(msg);
+    }
+  };
+
+  this.info = function(msg) {
+    if (this.enabled) {
+      this.logs.info.push(msg);
+    }
+  };
+
+  this.debug = function(msg) {
+    if (this.enabled) {
+      this.logs.debug.push(msg);
+    }
+  };
 }
 
-module.exports = Robot;
+module.exports = Logger;

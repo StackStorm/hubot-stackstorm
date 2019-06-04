@@ -100,22 +100,20 @@ var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Waiting for your 
 module.exports = function(robot) {
   slack_monkey_patch.patchSendMessage(robot);
 
-  var self = this;
-
-  var promise = Promise.resolve();
-
   if (env.ST2_API) {
     robot.logger.warning("ST2_API is deprecated and will be removed in a future releases. Instead, please use the ST2_API_URL environment variable.");
   }
-  var url = utils.parseUrl(env.ST2_API_URL);
-
-  var opts = {
-    protocol: url.protocol,
-    host: url.hostname,
-    port: url.port,
-    prefix: url.path,
-    rejectUnauthorized: false
-  };
+  var _stream = null,
+    self = this,
+    promise = Promise.resolve(),
+    url = utils.parseUrl(env.ST2_API_URL),
+    opts = {
+      protocol: url.protocol,
+      host: url.hostname,
+      port: url.port,
+      prefix: url.path,
+      rejectUnauthorized: false
+    };
 
   if (env.ST2_STREAM_URL) {
     var stream_url = utils.parseUrl(env.ST2_STREAM_URL);
@@ -127,35 +125,30 @@ module.exports = function(robot) {
     };
   }
 
-  var api = st2client(opts);
+  var api_client = st2client(opts);
 
   if (env.ST2_API_KEY) {
-    api.setKey({ key: env.ST2_API_KEY });
+    api_client.setKey({ key: env.ST2_API_KEY });
   } else if (env.ST2_AUTH_TOKEN) {
-    api.setToken({ token: env.ST2_AUTH_TOKEN });
+    api_client.setToken({ token: env.ST2_AUTH_TOKEN });
   }
 
-  function hubotErrorCallback(error, res) {
-    // Hubot alrady logged the stack trace before call this callback function, 
-    // only error message will be logged here
-    robot.logger.error("Caught error from hubot: " + error.message);
-
-    stop();
-  }
-
-  function exitProcessWithLog(errorMsg, err) {
+  function logErrorAndExit(err, res) {
     if (err) {
-      robot.logger.error(errorMsg + err.message);
       robot.logger.error(err.stack);
-    } else if (errorMsg != "") {
-      robot.logger.error(errorMsg);
+    }
+    if (res) {
+      res.send(JSON.stringify({
+        "status": "failed",
+        "msg": "An error occurred trying to post the message:\n" + err
+      }));
     }
 
     stop();
   }
 
   function authenticate() {
-    api.removeListener('expiry', authenticate);
+    api_client.removeListener('expiry', authenticate);
 
     // API key gets precedence 1
     if (env.ST2_API_KEY) {
@@ -172,7 +165,7 @@ module.exports = function(robot) {
 
     var url = utils.parseUrl(env.ST2_AUTH_URL);
 
-    var client = st2client({
+    var auth_client = st2client({
       auth: {
         protocol: url.protocol,
         host: url.hostname,
@@ -181,14 +174,14 @@ module.exports = function(robot) {
       }
     });
 
-    return client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
+    return auth_client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
       .then(function (token) {
         robot.logger.info('Token received. Expiring ' + token.expiry);
-        api.setToken(token);
-        client.on('expiry', authenticate);
+        api_client.setToken(token);
+        auth_client.on('expiry', authenticate);
       })
       .catch(function (err) {
-        exitProcessWithLog('Failed to authenticate: ', err);
+        logErrorAndExit(err);
       });
   }
 
@@ -196,10 +189,11 @@ module.exports = function(robot) {
     // If using username and password then all are required.
     if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
         !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
-      var error_msg = 'Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.';
-      exitProcessWithLog(error_msg, null);
+      robot.logger.error('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
+      stop();
+    } else {
+      promise = authenticate();
     }
-    promise = authenticate();
   }
 
   // Pending 2-factor auth commands
@@ -217,12 +211,10 @@ module.exports = function(robot) {
   // handler to manage per adapter message post-ing.
   var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
-  var loadCommands = function(opts) {
-    robot.logger.info('Loading commands....');
+  var loadCommands = function() {
+    robot.logger.info('Loading commands...');
 
-    var opts = Object.assign({exitOnFailure: false}, opts);
-
-    api.actionAlias.list()
+    api_client.actionAlias.list()
       .then(function (aliases) {
         // Remove all the existing commands
         command_factory.removeCommands();
@@ -256,10 +248,8 @@ module.exports = function(robot) {
         robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        var error_msg = 'Failed to retrieve commands from ' + env.ST2_API_URL + ' ';
-        if (opts.exitOnFailure) {
-          exitProcessWithLog(error_msg, err);
-        }
+        robot.logger.error('Failed to retrieve commands from ' + env.ST2_API_URL);
+        logErrorAndExit(err);
       });
   };
 
@@ -286,7 +276,7 @@ module.exports = function(robot) {
   var sendAliasExecutionRequest = function (msg, payload) {
     robot.logger.debug('Sending command payload:', JSON.stringify(payload));
 
-    api.aliasExecution.create(payload)
+    api_client.aliasExecution.create(payload)
       .then(function (res) { sendAck(msg, res); })
       .catch(function (err) {
         // Compatibility with older StackStorm versions
@@ -330,7 +320,7 @@ module.exports = function(robot) {
       var twofactor_id = uuid.v4();
       robot.logger.debug('Requested an action that requires 2FA. Guid: ' + twofactor_id);
       msg.send(TWOFACTOR_MESSAGE);
-      api.executions.create({
+      api_client.executions.create({
         'action': env.HUBOT_2FA,
         'parameters': {
           'uuid': twofactor_id,
@@ -349,7 +339,7 @@ module.exports = function(robot) {
   };
 
   robot.respond(/([\s\S]+?)$/i, function(msg) {
-    var command, result, command_name, format_string, action_alias;
+    var command, result;
 
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
@@ -362,9 +352,7 @@ module.exports = function(robot) {
       return;
     }
 
-    command_name = result[0];
-    format_string = result[1];
-    action_alias = result[2];
+    var [command_name, format_string, action_alias] = result;
 
     executeCommand(msg, command_name, format_string, command, action_alias);
   });
@@ -380,31 +368,26 @@ module.exports = function(robot) {
       }
       postDataHandler.postData(data);
 
-      res.send('{"status": "completed", "msg": "Message posted successfully"}');
-    } catch (e) {
-      robot.logger.error("Unable to decode JSON: " + e);
-      robot.logger.error(e.stack);
-      res.send('{"status": "failed", "msg": "An error occurred trying to post the message: ' + e + '"}');
+      res.send(JSON.stringify({
+        "status": "completed",
+        "msg": "Message posted successfully"
+      }));
+    } catch (err) {
+      logErrorAndExit(err, res)
     }
   });
 
   var commands_load_interval;
 
   function start() {
-    robot.error(hubotErrorCallback);
-    api.stream.listen().catch(function (err) {
-      exitProcessWithLog('Unable to connect to stream: ', err);
-    }).then(function (source) {
-      source.onerror = function (err) {
-        // TODO: squeeze a little bit more info out of evensource.js
-        if (err.status === 401) {
-          robot.logger.error('Stream error:', err);
-        } else {
-          var error_message = util.format('stream error: [type: %s; status: %s]', err.type, err.status);
-          exitProcessWithLog(error_message, null);
-        }
-      };
-      source.addEventListener('st2.announcement__chatops', function (e) {
+    robot.error(logErrorAndExit);
+
+    api_client.stream.listen().then(function (stream) {
+      _stream = stream;  // save stream for use in stop()
+      stream.on('error', function (err) {
+        logErrorAndExit(err);
+      });
+      stream.addEventListener('st2.announcement__chatops', function (e) {
         var data;
 
         robot.logger.debug('Chatops message received:', e.data);
@@ -419,7 +402,7 @@ module.exports = function(robot) {
       });
 
       if (env.HUBOT_2FA) {
-        source.addEventListener('st2.announcement__2fa', function (e) {
+        stream.addEventListener('st2.announcement__2fa', function (e) {
           var data;
 
           robot.logger.debug('Successfull two-factor auth:', e.data);
@@ -438,7 +421,7 @@ module.exports = function(robot) {
     });
 
     // Initial command loading
-    loadCommands({exitOnFailure: true});
+    loadCommands();
 
     // Add an interval which tries to re-load the commands
     commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
@@ -449,10 +432,11 @@ module.exports = function(robot) {
 
   function stop() {
     clearInterval(commands_load_interval);
-    api.stream.listen().then(function (source) {
-      source.removeAllListeners();
-      source.close();
-    });
+
+    if (_stream) {
+      _stream.removeAllListeners();
+      _stream.close();
+    }
 
     robot.shutdown();
     process.exit(1);
