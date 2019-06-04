@@ -127,20 +127,12 @@ module.exports = function(robot) {
     };
   }
 
-  var api = st2client(opts);
+  var api_client = st2client(opts);
 
   if (env.ST2_API_KEY) {
-    api.setKey({ key: env.ST2_API_KEY });
+    api_client.setKey({ key: env.ST2_API_KEY });
   } else if (env.ST2_AUTH_TOKEN) {
-    api.setToken({ token: env.ST2_AUTH_TOKEN });
-  }
-
-  function hubotErrorCallback(error, res) {
-    // Hubot alrady logged the stack trace before call this callback function, 
-    // only error message will be logged here
-    robot.logger.error("Caught error from hubot: " + error.message);
-
-    stop();
+    api_client.setToken({ token: env.ST2_AUTH_TOKEN });
   }
 
   function exitProcessWithLog(errorMsg, err) {
@@ -155,7 +147,7 @@ module.exports = function(robot) {
   }
 
   function authenticate() {
-    api.removeListener('expiry', authenticate);
+    api_client.removeListener('expiry', authenticate);
 
     // API key gets precedence 1
     if (env.ST2_API_KEY) {
@@ -172,7 +164,7 @@ module.exports = function(robot) {
 
     var url = utils.parseUrl(env.ST2_AUTH_URL);
 
-    var client = st2client({
+    var auth_client = st2client({
       auth: {
         protocol: url.protocol,
         host: url.hostname,
@@ -181,11 +173,11 @@ module.exports = function(robot) {
       }
     });
 
-    return client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
+    return auth_client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
       .then(function (token) {
         robot.logger.info('Token received. Expiring ' + token.expiry);
-        api.setToken(token);
-        client.on('expiry', authenticate);
+        api_client.setToken(token);
+        auth_client.on('expiry', authenticate);
       })
       .catch(function (err) {
         exitProcessWithLog('Failed to authenticate: ', err);
@@ -222,7 +214,7 @@ module.exports = function(robot) {
 
     var opts = Object.assign({exitOnFailure: false}, opts);
 
-    api.actionAlias.list()
+    api_client.actionAlias.list()
       .then(function (aliases) {
         // Remove all the existing commands
         command_factory.removeCommands();
@@ -286,7 +278,7 @@ module.exports = function(robot) {
   var sendAliasExecutionRequest = function (msg, payload) {
     robot.logger.debug('Sending command payload:', JSON.stringify(payload));
 
-    api.aliasExecution.create(payload)
+    api_client.aliasExecution.create(payload)
       .then(function (res) { sendAck(msg, res); })
       .catch(function (err) {
         // Compatibility with older StackStorm versions
@@ -330,7 +322,7 @@ module.exports = function(robot) {
       var twofactor_id = uuid.v4();
       robot.logger.debug('Requested an action that requires 2FA. Guid: ' + twofactor_id);
       msg.send(TWOFACTOR_MESSAGE);
-      api.executions.create({
+      api_client.executions.create({
         'action': env.HUBOT_2FA,
         'parameters': {
           'uuid': twofactor_id,
@@ -392,7 +384,8 @@ module.exports = function(robot) {
 
   function start() {
     robot.error(hubotErrorCallback);
-    api.stream.listen().catch(function (err) {
+
+    api_client.stream.listen().catch(function (err) {
       exitProcessWithLog('Unable to connect to stream: ', err);
     }).then(function (source) {
       source.onerror = function (err) {
@@ -449,7 +442,7 @@ module.exports = function(robot) {
 
   function stop() {
     clearInterval(commands_load_interval);
-    api.stream.listen().then(function (source) {
+    api_client.stream.listen().then(function (source) {
       source.removeAllListeners();
       source.close();
     });
