@@ -382,9 +382,7 @@ module.exports = function(robot) {
   function start() {
     robot.error(logErrorAndExit);
 
-    api_client.stream.listen().catch(function (err) {
-      exitProcessWithLog('Unable to connect to stream: ', err);
-    }).then(function (source) {
+    api_client.stream.listen().then(function (source) {
       source.on('error', function (err) {
         logErrorAndExit(err);
       });
