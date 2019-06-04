@@ -16,11 +16,12 @@
 
 var Logger = require('./dummy-logger.js');
 
-function Robot(name, adapter, enable_logging) {
+function Robot(name, adapter, enable_logging, robot_name) {
   this.logger = new Logger(enable_logging);
   this.name = name;
   this.commands = [];
   this.adapter = adapter;
+  this.robot_name = robot_name;
 
   this.messageRoom = function(recipient, data) {
     return;
