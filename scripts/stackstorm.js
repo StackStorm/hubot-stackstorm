@@ -383,6 +383,7 @@ module.exports = function(robot) {
     robot.error(logErrorAndExit);
 
     api_client.stream.listen().then(function (stream) {
+      _stream = stream;  // save stream for use in stop()
       stream.on('error', function (err) {
         logErrorAndExit(err);
       });
@@ -431,10 +432,11 @@ module.exports = function(robot) {
 
   function stop() {
     clearInterval(commands_load_interval);
-    api_client.stream.listen().then(function (source) {
-      source.removeAllListeners();
-      source.close();
-    });
+
+    if (_stream) {
+      _stream.removeAllListeners();
+      _stream.close();
+    }
 
     robot.shutdown();
     process.exit(1);
