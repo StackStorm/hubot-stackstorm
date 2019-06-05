@@ -100,6 +100,16 @@ var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Waiting for your 
 module.exports = function(robot) {
   slack_monkey_patch.patchSendMessage(robot);
 
+  // Makes the script crash on unhandled rejections instead of ignoring them and keep running.
+  // Usually happens when trying to connect to a nonexistent instances or similar unrecoverable issues.
+  // In the future Node.js versions, promise rejections that are not handled will terminate the process with a non-zero exit code.
+  process.on('unhandledRejection', function(err, promise) {
+    robot.logger.error('Hubot received unrecoverable error and will be terminated.');
+    robot.logger.error('Full info:', JSON.stringify(err));
+    robot.logger.error('Exiting in 1 second ...');
+    return setTimeout(process.exit.bind(process, 1), 1000);
+  });
+
   var self = this;
 
   var promise = Promise.resolve();
