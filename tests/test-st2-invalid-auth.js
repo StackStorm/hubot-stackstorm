@@ -91,13 +91,42 @@ describe("invalid st2 credential configuration", function() {
     });
 
     // Load script under test
-    var stackstorm = require("../scripts/stackstorm.js");
+    var i, stackstorm = require("../scripts/stackstorm.js");
     stackstorm(robot).then(function (stop) {
-      expect(error_spy).to.have.callCount(4);
-      expect(error_spy.args[0][0]).to.equal(undefined);
-      expect(error_spy.args[1][0]).to.startWith('Failed to retrieve commands from');
-      expect(error_spy.args[2][0]).to.include('connect ECONNREFUSED 127.0.0.1:9101')
-      expect(error_spy.args[3][0]).to.include('getaddrinfo ENOTFOUND nonexistent-st2-auth-url nonexistent-st2-auth-url:9101');
+      expect(error_spy.args).to.have.lengthOf.above(2);
+
+      // Check that it was called at some point with 'Failed to retrieve commands from'
+      for (i = 0; i < error_spy.args.length; i++) {
+        try {
+          expect(error_spy.args[i][0]).to.be.a('string');
+          expect(error_spy.args[i][0]).to.startWith('Failed to retrieve commands from');
+          break;
+        } catch (err) {
+          // If we have reached the last call and we still haven't found it
+          if (i >= error_spy.args.length-1) {
+            // Re-throw the assert exception
+            throw(err);
+          }
+          // Implicit continue
+        }
+      }
+
+      // Check that it was called at some point with 'Failed to retrieve commands from'
+      for (i = 0; i < error_spy.args.length; i++) {
+        try {
+          expect(error_spy.args[i][0]).to.be.a('string');
+          expect(error_spy.args[i][0]).to.include('getaddrinfo ENOTFOUND nonexistent-st2-auth-url nonexistent-st2-auth-url:9101');
+          break;
+        } catch (err) {
+          // If we have reached the last call and we still haven't found it
+          if (i >= error_spy.args.length-1) {
+            // Re-throw the assert exception
+            throw(err);
+          }
+          // Implicit continue
+        }
+      }
+
       expect(process.exit).to.have.been.calledOnce;
       expect(process.exit.args[0][0]).to.equal(1);
 
