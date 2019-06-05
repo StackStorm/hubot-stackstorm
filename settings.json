@@ -1,0 +1,9 @@
+{
+  "dev": ".",
+  "lint": [
+    "*.js",
+	"scripts/**/*.js",
+	"lib/**/*.js",
+	"tests/**/*.js"
+  ]
+}
