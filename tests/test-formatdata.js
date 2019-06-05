@@ -165,15 +165,15 @@ describe('MSTeamsFormatter', function() {
   it('should echo back for non-empty', function() {
     var formatter = formatData.getFormatter(adapterName, robot);
 
-    var str = '\nst2 list actions\n';
-    var o = formatter.formatData(str, null);
-    expect(o).to.be.an('string');
-    expect(o).to.equal('st2 list actions\n');
+    var one_host_action = '\nst2 list actions\n';
+    var one_host_result = formatter.formatData(one_host_action, null);
+    expect(one_host_result).to.be.an('string');
+    expect(one_host_result).to.equal('st2 list actions\n');
 
-    var str = 'st2 list actions\n\nrun remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"\n';
-    var o = formatter.formatData(str, null);
-    expect(o).to.be.an('string');
-    expect(o).to.equal('st2 list actions\n\nrun remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"\n');
+    var two_hosts_action = 'st2 list actions\n\nrun remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"\n';
+    var two_hosts_result = formatter.formatData(two_hosts_action, null);
+    expect(two_hosts_result).to.be.an('string');
+    expect(two_hosts_result).to.equal('st2 list actions\n\nrun remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"\n');
   });
 
   it('should be an empty string for empty', function() {

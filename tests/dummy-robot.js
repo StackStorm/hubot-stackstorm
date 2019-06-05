@@ -28,11 +28,11 @@ function Robot(name, adapter, enable_logging, robot_name) {
 
   this.messageRoom = function(recipient, data) {
     return;
-  }
+  };
 
   this.emit = function(event, data) {
     return;
-  }
+  };
 }
 
 module.exports = Robot;

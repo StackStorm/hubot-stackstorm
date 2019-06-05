@@ -12,5 +12,6 @@
     "white"         : false,
     "sub"           : true,
     "evil"          : true,
-    "onecase"       : true
+    "onecase"       : true,
+    "esversion"     : 6
 }

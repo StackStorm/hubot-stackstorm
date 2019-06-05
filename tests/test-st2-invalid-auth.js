@@ -17,7 +17,7 @@ limitations under the License.
 
 /*jshint quotmark:false*/
 /*jshint -W030*/
-/*global describe, it, before, after*/
+/*global describe, it, before, after, beforeEach, afterEach*/
 'use strict';
 
 var chai = require("chai"),
@@ -96,7 +96,7 @@ describe("invalid st2 credential configuration", function() {
       expect(error_spy).to.have.callCount(4);
       expect(error_spy.args[0][0]).to.equal(undefined);
       expect(error_spy.args[1][0]).to.startWith('Failed to retrieve commands from');
-      expect(error_spy.args[2][0]).to.include('connect ECONNREFUSED 127.0.0.1:9101')
+      expect(error_spy.args[2][0]).to.include('connect ECONNREFUSED 127.0.0.1:9101');
       expect(error_spy.args[3][0]).to.include('getaddrinfo ENOTFOUND nonexistent-st2-auth-url nonexistent-st2-auth-url:9101');
       expect(process.exit).to.have.been.calledOnce;
       expect(process.exit.args[0][0]).to.equal(1);

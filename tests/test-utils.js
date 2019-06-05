@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-/*jshint quotmark:false*/
+/*jshint quotmark:false, expr:true*/
 /*global describe, it*/
 "use strict";
 

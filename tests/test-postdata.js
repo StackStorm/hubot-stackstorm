@@ -552,7 +552,6 @@ describe("mattermost post data", function() {
       {
         attachments: {
           color: env.ST2_MATTERMOST_SUCCESS_COLOR,
-          fallback: input.message,
           mrkdwn_in: ["text", "pretext"],
           text: chunks[0],
           fallback: chunks[0]
@@ -567,7 +566,6 @@ describe("mattermost post data", function() {
       {
         attachments: {
           color: env.ST2_MATTERMOST_SUCCESS_COLOR,
-          fallback: input.message,
           mrkdwn_in: ["text", "pretext"],
           text: chunks[1],
           fallback: chunks[1]

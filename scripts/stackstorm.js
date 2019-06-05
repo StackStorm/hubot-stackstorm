@@ -373,7 +373,7 @@ module.exports = function(robot) {
         "msg": "Message posted successfully"
       }));
     } catch (err) {
-      logErrorAndExit(err, res)
+      logErrorAndExit(err, res);
     }
   });
 
