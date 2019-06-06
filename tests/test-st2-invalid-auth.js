@@ -115,7 +115,8 @@ describe("invalid st2 credential configuration", function() {
       for (i = 0; i < error_spy.args.length; i++) {
         try {
           expect(error_spy.args[i][0]).to.be.a('string');
-          expect(error_spy.args[i][0]).to.include('getaddrinfo ENOTFOUND nonexistent-st2-auth-url nonexistent-st2-auth-url:9101');
+          expect(error_spy.args[i][0]).to.include('getaddrinfo');
+          expect(error_spy.args[i][0]).to.include('nonexistent-st2-auth-url nonexistent-st2-auth-url:9101');
           break;
         } catch (err) {
           // If we have reached the last call and we still haven't found it
