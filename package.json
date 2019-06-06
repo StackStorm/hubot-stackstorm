@@ -21,6 +21,7 @@
     "url": "https://github.com/StackStorm/hubot-stackstorm/issues"
   },
   "dependencies": {
+    "babel-eslint": "^10.0.1",
     "cli-table": "<=1.0.0",
     "coffee-register": "1.0.0",
     "coffee-script": "1.12.7",
@@ -37,15 +38,16 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-string": "^1.5.0",
-    "gulp": "^3.9.0",
-    "gulp-jshint": "^2.1.0",
+    "eslint": "^5.16.0",
+    "eslint-plugin-notice": "0.7.8",
+    "gulp": "^3.9.1",
+    "gulp-load-plugins": "1.5.0",
+    "gulp-eslint": "^5.0.0",
     "gulp-mocha": "^6.0.0",
     "gulp-plumber": "^1.2.0",
     "hubot": "^3.1.1",
     "hubot-help": "0.2.2",
     "hubot-mock-adapter": "^1.1.1",
-    "jshint": "^2.7.0",
-    "jshint-stylish": "^2.0.0",
     "log": "1.4.0",
     "mocked-env": "^1.2.4",
     "nock": "^10.0.0",
@@ -55,6 +57,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "eslint": "eslint .",
     "test": "node_modules/.bin/nyc mocha \"tests/**/*.js\""
   },
   "nyc": {
