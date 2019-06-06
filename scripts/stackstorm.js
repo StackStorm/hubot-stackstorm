@@ -385,7 +385,8 @@ module.exports = function(robot) {
     api_client.stream.listen().then(function (stream) {
       _stream = stream;  // save stream for use in stop()
       stream.on('error', function (err) {
-        logErrorAndExit(err);
+        robot.logger.error('StackStorm event stream error:', err);
+        robot.logger.error('Implicitly attempting to reconnect to StackStorm event stream.');
       });
       stream.addEventListener('st2.announcement__chatops', function (e) {
         var data;
