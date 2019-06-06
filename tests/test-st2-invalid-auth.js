@@ -74,7 +74,7 @@ describe("invalid st2 credential configuration", function() {
       expect(process.exit).to.have.been.calledOnce;
       expect(process.exit.args[0][0]).to.equal(1);
 
-      stop();
+      stop({shutdown: true});
 
       done();
     }).catch(function (err) {
@@ -131,7 +131,7 @@ describe("invalid st2 credential configuration", function() {
       expect(process.exit).to.have.been.calledOnce;
       expect(process.exit.args[0][0]).to.equal(1);
 
-      stop();
+      stop({shutdown: true});
 
       done();
     }).catch(function (err) {
@@ -152,7 +152,7 @@ describe("invalid st2 credential configuration", function() {
       expect(info_spy).to.have.been.calledWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
       expect(info_spy).to.have.been.calledWith('Loading commands...');
 
-      stop();
+      stop({shutdown: true});
 
       done();
     }).catch(function (err) {
@@ -173,7 +173,7 @@ describe("invalid st2 credential configuration", function() {
       expect(info_spy).to.have.been.calledWith('Using ST2_AUTH_TOKEN as authentication. Expiry will lead to bot exit.');
       expect(info_spy).to.have.been.calledWith('Loading commands...');
 
-      stop();
+      stop({shutdown: true});
 
       done();
     }).catch(function (err) {

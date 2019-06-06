@@ -143,7 +143,7 @@ module.exports = function(robot) {
       }));
     }
 
-    stop();
+    stop({shutdown: true});
   }
 
   function authenticate() {
@@ -189,7 +189,7 @@ module.exports = function(robot) {
     if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
         !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
       robot.logger.error('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
-      stop();
+      stop({shutdown: true});
     } else {
       promise = authenticate();
     }
@@ -431,16 +431,20 @@ module.exports = function(robot) {
     install_sigusr2_handler();
   }
 
-  function stop() {
+  function stop(opts) {
+    var default_opts = {shutdown: false},
+      opts = Object.assign(default_opts, (opts || {}));
     clearInterval(commands_load_interval);
 
-    if (_stream) {
-      _stream.removeAllListeners();
-      _stream.close();
-    }
+    if (opts.shutdown) {
+      if (_stream) {
+        _stream.removeAllListeners();
+        _stream.close();
+      }
 
-    robot.shutdown();
-    process.exit(1);
+      robot.shutdown();
+      process.exit(1);
+    }
   }
 
   function install_sigusr2_handler() {
