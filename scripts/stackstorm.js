@@ -247,8 +247,7 @@ module.exports = function(robot) {
         robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        robot.logger.error('Failed to retrieve commands from ' + env.ST2_API_URL);
-        logErrorAndExit(err);
+        robot.logger.error('Failed to retrieve commands from "%s":\n%s', env.ST2_API_URL, err);
       });
   };
 
