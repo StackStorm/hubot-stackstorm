@@ -3,12 +3,13 @@ Changelog
 
 in development
 --------------
+* st2chatops now gracefully exits on authentication failures and uncaught exceptions (improvement)
+* code cleanup (improvement)
 
 0.9.3
 -----
 * Add initial support for Microsoft Teams via BotFramework (new feature)
 * Add unit tests for all adapters (improvement)
-* Allow `st2chatops` to exit from `st2client` failures.
 
 0.9.2
 -----
