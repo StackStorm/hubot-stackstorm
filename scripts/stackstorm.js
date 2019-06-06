@@ -372,7 +372,9 @@ module.exports = function(robot) {
         "msg": "Message posted successfully"
       }));
     } catch (err) {
-      logErrorAndExit(err);
+      robot.logger.error('Encountered an error when attempting to post ' +
+                         'message to chat provider, execution results for ' +
+                         'chatops.post_message may not be accurate.');
     }
   });
 
