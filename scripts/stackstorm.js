@@ -180,6 +180,7 @@ module.exports = function(robot) {
         auth_client.on('expiry', authenticate);
       })
       .catch(function (err) {
+        err.message = 'Failed to authenticate: ' + err.message;
         logErrorAndExit(err);
       });
   }
@@ -374,6 +375,7 @@ module.exports = function(robot) {
       robot.logger.error('Encountered an error when attempting to post ' +
                          'message to chat provider, execution results for ' +
                          'chatops.post_message may not be accurate.');
+      robot.logger.error(err);
     }
   });
 
@@ -443,7 +445,6 @@ module.exports = function(robot) {
       }
 
       robot.shutdown();
-      process.exit(1);
     }
   }
 

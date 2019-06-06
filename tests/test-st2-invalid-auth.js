@@ -32,18 +32,12 @@ var chai = require("chai"),
 chai.use(sinonChai);
 chai.use(chaiString);
 
-global.process.exit = sinon.spy();
-
 describe("invalid st2 credential configuration", function() {
   var robot = new Robot(null, "mock-adapter", false, "Hubot");
   robot.logger = new Logger(true);
   var restore_env = null,
     info_spy = sinon.spy(robot.logger, 'info'),
     error_spy = sinon.spy(robot.logger, 'error');
-
-  beforeEach(function () {
-    process.exit.resetHistory();
-  });
 
   afterEach(function() {
     restore_env && restore_env();
@@ -52,10 +46,6 @@ describe("invalid st2 credential configuration", function() {
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../scripts/stackstorm.js")];
-  });
-
-  after(function () {
-    process.exit.restore && process.exit.restore();
   });
 
   it("should raise exception with null auth URL", function(done) {
@@ -71,9 +61,6 @@ describe("invalid st2 credential configuration", function() {
     stackstorm(robot).then(function (stop) {
       expect(error_spy).to.have.been.calledOnce;
       expect(error_spy.firstCall.args[0]).include('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
-      expect(process.exit).to.have.been.calledOnce;
-      expect(process.exit.args[0][0]).to.equal(1);
-
       stop({shutdown: true});
 
       done();
@@ -127,9 +114,6 @@ describe("invalid st2 credential configuration", function() {
           // Implicit continue
         }
       }
-
-      expect(process.exit).to.have.been.calledOnce;
-      expect(process.exit.args[0][0]).to.equal(1);
 
       stop({shutdown: true});
 
