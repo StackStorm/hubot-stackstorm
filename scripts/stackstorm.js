@@ -180,7 +180,8 @@ module.exports = function(robot) {
         auth_client.on('expiry', authenticate);
       })
       .catch(function (err) {
-        err.message = 'Failed to authenticate: ' + err.message;
+        // Exit from invalid ST2_AUTH_USERNAME or ST2_AUTH_PASSWORD.
+        robot.logger.error('Failed credential authenticate.');
         logErrorAndExit(err);
       });
   }
@@ -211,9 +212,10 @@ module.exports = function(robot) {
   // handler to manage per adapter message post-ing.
   var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
-  var loadCommands = function() {
+  var loadCommands = function(opts) {
     robot.logger.info('Loading commands...');
 
+    var opts = Object.assign({exitOnFailure: false}, opts);
     api_client.actionAlias.list()
       .then(function (aliases) {
         // Remove all the existing commands
@@ -248,7 +250,12 @@ module.exports = function(robot) {
         robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        robot.logger.error('Failed to retrieve commands from "%s":\n%s', env.ST2_API_URL, err);
+        var error_msg = 'Failed to retrieve commands from "%s": %s';
+        robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
+        // Exit in the first time when loadCommands is called with invalid ST2_API_URL, ST2_API_KEY or ST2_AUTH_TOKEN.
+        if (opts.exitOnFailure) {
+          logErrorAndExit(err);
+        }
       });
   };
 
@@ -424,7 +431,7 @@ module.exports = function(robot) {
     });
 
     // Initial command loading
-    loadCommands();
+    loadCommands({exitOnFailure: true});
 
     // Add an interval which tries to re-load the commands
     commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
