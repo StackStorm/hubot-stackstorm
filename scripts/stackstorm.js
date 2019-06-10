@@ -251,6 +251,9 @@ module.exports = function(robot) {
       .catch(function (err) {
         var error_msg = 'Failed to retrieve commands from "%s": %s';
         robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
+        if (err.status === 401 && err.message.includes("Unauthorized")) {
+          logErrorAndExit(err);
+        }
       });
   };
 
@@ -390,11 +393,7 @@ module.exports = function(robot) {
       _stream = stream;  // save stream for use in stop()
       stream.on('error', function (err) {
         robot.logger.error('StackStorm event stream error:', err);
-        if (err.status === 401) {
-          logErrorAndExit(err);
-        } else {
-          robot.logger.error('Implicitly attempting to reconnect to StackStorm event stream.');  
-        }
+        robot.logger.error('Implicitly attempting to reconnect to StackStorm event stream.');
       });
       stream.addEventListener('st2.announcement__chatops', function (e) {
         var data;
