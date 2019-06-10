@@ -181,7 +181,7 @@ module.exports = function(robot) {
       })
       .catch(function (err) {
         // Exit from invalid ST2_AUTH_USERNAME or ST2_AUTH_PASSWORD.
-        robot.logger.error('Failed credential authenticate.');
+        robot.logger.error('Failed to authenticate with st2 username and password: ' + err.message);
         logErrorAndExit(err);
       });
   }
@@ -212,10 +212,9 @@ module.exports = function(robot) {
   // handler to manage per adapter message post-ing.
   var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
 
-  var loadCommands = function(opts) {
+  var loadCommands = function() {
     robot.logger.info('Loading commands...');
 
-    var opts = Object.assign({exitOnFailure: false}, opts);
     api_client.actionAlias.list()
       .then(function (aliases) {
         // Remove all the existing commands
@@ -252,10 +251,6 @@ module.exports = function(robot) {
       .catch(function (err) {
         var error_msg = 'Failed to retrieve commands from "%s": %s';
         robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
-        // Exit in the first time when loadCommands is called with invalid ST2_API_URL, ST2_API_KEY or ST2_AUTH_TOKEN.
-        if (opts.exitOnFailure) {
-          logErrorAndExit(err);
-        }
       });
   };
 
@@ -395,7 +390,11 @@ module.exports = function(robot) {
       _stream = stream;  // save stream for use in stop()
       stream.on('error', function (err) {
         robot.logger.error('StackStorm event stream error:', err);
-        robot.logger.error('Implicitly attempting to reconnect to StackStorm event stream.');
+        if (err.status === 401) {
+          logErrorAndExit(err);
+        } else {
+          robot.logger.error('Implicitly attempting to reconnect to StackStorm event stream.');  
+        }
       });
       stream.addEventListener('st2.announcement__chatops', function (e) {
         var data;
@@ -431,7 +430,7 @@ module.exports = function(robot) {
     });
 
     // Initial command loading
-    loadCommands({exitOnFailure: true});
+    loadCommands();
 
     // Add an interval which tries to re-load the commands
     commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
