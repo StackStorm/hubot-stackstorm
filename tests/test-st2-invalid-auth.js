@@ -129,11 +129,43 @@ describe("invalid st2 credential configuration", function() {
     });
 
     // Load script under test
-    var stackstorm = require("../scripts/stackstorm.js");
+    var i, stackstorm = require("../scripts/stackstorm.js");
     stackstorm(robot).then(function (stop) {
       expect(info_spy).to.have.been.calledTwice;
       expect(info_spy).to.have.been.calledWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
       expect(info_spy).to.have.been.calledWith('Loading commands...');
+
+      // Check that it was called at some point with 'Failed to retrieve commands from'
+      for (i = 0; i < error_spy.args.length; i++) {
+        try {
+          expect(error_spy.args[i][0]).to.be.a('string');
+          expect(error_spy.args[i][0]).to.startWith('StackStorm event stream error: Event { type: \'error\', status: 401 }');
+          break;
+        } catch (err) {
+        // If we have reached the last call and we still haven't found it
+        if (i >= error_spy.args.length-1) {
+           // Re-throw the assert exception
+            throw(err);
+          }
+          // Implicit continue
+        }
+      }
+
+      // Check that it was called at some point with 'Failed to retrieve commands from'
+      for (i = 0; i < error_spy.args.length; i++) {
+        try {
+          expect(error_spy.args[i][0]).to.be.a('string');
+          expect(error_spy).to.have.been.calledWith('Implicitly attempting to reconnect to StackStorm event stream.');
+          break;
+        } catch (err) {
+          // If we have reached the last call and we still haven't found it
+          if (i >= error_spy.args.length-1) {
+            // Re-throw the assert exception
+            throw(err);
+          }
+          // Implicit continue
+        }
+      }
 
       stop({shutdown: true});
 
@@ -150,11 +182,42 @@ describe("invalid st2 credential configuration", function() {
     });
 
     // Load script under test
-    var stackstorm = require("../scripts/stackstorm.js");
+    var i, stackstorm = require("../scripts/stackstorm.js");
     stackstorm(robot).then(function (stop) {
       expect(info_spy).to.have.been.calledTwice;
       expect(info_spy).to.have.been.calledWith('Using ST2_AUTH_TOKEN as authentication. Expiry will lead to bot exit.');
-      expect(info_spy).to.have.been.calledWith('Loading commands...');
+
+      // Check that it was called at some point with 'Failed to retrieve commands from'
+      for (i = 0; i < error_spy.args.length; i++) {
+        try {
+          expect(error_spy.args[i][0]).to.be.a('string');
+          expect(error_spy.args[i][0]).to.startWith('StackStorm event stream error: Event { type: \'error\', status: 401 }');
+          break;
+        } catch (err) {
+        // If we have reached the last call and we still haven't found it
+        if (i >= error_spy.args.length-1) {
+           // Re-throw the assert exception
+            throw(err);
+          }
+          // Implicit continue
+        }
+      }
+
+      // Check that it was called at some point with 'Failed to retrieve commands from'
+      for (i = 0; i < error_spy.args.length; i++) {
+        try {
+          expect(error_spy.args[i][0]).to.be.a('string');
+          expect(error_spy).to.have.been.calledWith('Implicitly attempting to reconnect to StackStorm event stream.');
+          break;
+        } catch (err) {
+          // If we have reached the last call and we still haven't found it
+          if (i >= error_spy.args.length-1) {
+            // Re-throw the assert exception
+            throw(err);
+          }
+          // Implicit continue
+        }
+      }
 
       stop({shutdown: true});
 
