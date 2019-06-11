@@ -133,7 +133,7 @@ module.exports = function(robot) {
   }
 
   function logErrorAndExit(err, res) {
-    if (err) {
+    if (err && err.stack) {
       robot.logger.error(err.stack);
     }
     if (res) {
@@ -251,7 +251,7 @@ module.exports = function(robot) {
       .catch(function (err) {
         var error_msg = 'Failed to retrieve commands from "%s": %s';
         robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
-        if (err.status === 401 && err.message.includes("Unauthorized")) {
+        if (err.status === 401 || err.message.includes("Unauthorized")) {
           logErrorAndExit(err);
         }
       });
