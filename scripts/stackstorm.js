@@ -130,7 +130,7 @@ module.exports = function(robot) {
     robot.logger.warning("ST2_API is deprecated and will be removed in a future releases. Instead, please use the ST2_API_URL environment variable.");
   }
   var self = this,
-    promise = Promise.resolve(),
+    authenticated = Promise.resolve(),
     url = utils.parseUrl(env.ST2_API_URL),
     opts = {
       protocol: url.protocol,
@@ -204,7 +204,7 @@ module.exports = function(robot) {
         !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
       throw new Error('Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
     }
-    promise = authenticate();
+    authenticated = authenticate();
   }
 
   // Pending 2-factor auth commands
@@ -460,7 +460,7 @@ module.exports = function(robot) {
 
   // Authenticate with StackStorm backend and then call start.
   // On a failure to authenticate log the error but do not quit.
-  return promise.then(function () {
+  return authenticated.then(function () {
     start();
     return stop;
   });
