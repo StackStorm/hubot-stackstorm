@@ -86,7 +86,7 @@ describe("invalid st2 credential configuration", function() {
       for (i = 0; i < error_spy.args.length; i++) {
         try {
           expect(error_spy.args[i][0]).to.be.a('string');
-          expect(error_spy.args[i][0]).to.startWith('Failed to authenticate with st2 username and password:');
+          expect(error_spy.args[i][0]).to.startWith('Failed to authenticate with st2 username and password');
           break;
         } catch (err) {
           // If we have reached the last call and we still haven't found it
@@ -102,7 +102,7 @@ describe("invalid st2 credential configuration", function() {
       for (i = 0; i < error_spy.args.length; i++) {
         try {
           expect(error_spy.args[i][0]).to.be.a('string');
-          expect(error_spy.args[i][0]).to.include('Failed to authenticate with st2 username and password');
+          expect(error_spy.args[i][0]).to.include('nonexistent-st2-auth-url:9101');
           break;
         } catch (err) {
           // If we have reached the last call and we still haven't found it
@@ -167,6 +167,22 @@ describe("invalid st2 credential configuration", function() {
         }
       }
 
+      // Check that it was called at some point with 'Failed to retrieve commands from'
+      for (i = 0; i < error_spy.args.length; i++) {
+        try {
+          expect(error_spy.args[i][0]).to.be.a('string');
+          expect(error_spy.args[i][0]).to.startWith('Failed to retrieve commands from "http://localhost:9101');
+          break;
+        } catch (err) {
+        // If we have reached the last call and we still haven't found it
+        if (i >= error_spy.args.length-1) {
+           // Re-throw the assert exception
+            throw(err);
+          }
+          // Implicit continue
+        }
+      }
+
       stop({shutdown: true});
 
       done();
@@ -213,6 +229,21 @@ describe("invalid st2 credential configuration", function() {
           // If we have reached the last call and we still haven't found it
           if (i >= error_spy.args.length-1) {
             // Re-throw the assert exception
+            throw(err);
+          }
+          // Implicit continue
+        }
+      }
+
+      for (i = 0; i < error_spy.args.length; i++) {
+        try {
+          expect(error_spy.args[i][0]).to.be.a('string');
+          expect(error_spy.args[i][0]).to.startWith('Failed to retrieve commands from "http://localhost:9101');
+          break;
+        } catch (err) {
+        // If we have reached the last call and we still haven't found it
+        if (i >= error_spy.args.length-1) {
+           // Re-throw the assert exception
             throw(err);
           }
           // Implicit continue

@@ -133,9 +133,14 @@ module.exports = function(robot) {
   }
 
   function logErrorAndExit(err, res) {
-    if (err && err.stack) {
-      robot.logger.error(err.stack);
+    if (err){
+      robot.logger.error(err.message);
+
+      if (err.stack) {
+        robot.logger.error(err.stack);
+      }
     }
+
     if (res) {
       res.send(JSON.stringify({
         "status": "failed",
@@ -181,7 +186,7 @@ module.exports = function(robot) {
       })
       .catch(function (err) {
         // Exit from invalid ST2_AUTH_USERNAME or ST2_AUTH_PASSWORD.
-        robot.logger.error('Failed to authenticate with st2 username and password: ' + err.message);
+        robot.logger.error('Failed to authenticate with st2 username and password.');
         logErrorAndExit(err);
       });
   }
@@ -250,10 +255,14 @@ module.exports = function(robot) {
       })
       .catch(function (err) {
         var error_msg = 'Failed to retrieve commands from "%s": %s';
-        robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
+        error_msg = util.format(error_msg, env.ST2_API_URL, err.message);
         if (err.status === 401 || err.message.includes("Unauthorized")) {
+          err.message = error_msg;
           logErrorAndExit(err);
+        } else {
+          robot.logger.error(error_msg);
         }
+
       });
   };
 
