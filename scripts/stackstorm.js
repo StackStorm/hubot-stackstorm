@@ -396,7 +396,7 @@ module.exports = function(robot) {
     }).then(function (source) {
       source.onerror = function (err) {
         // TODO: squeeze a little bit more info out of evensource.js
-        robot.logger.error('Stream error:', err);
+        robot.logger.warning('Stream error:', err);
         if (err.status === 401) {
           throw err;
         }
