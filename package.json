@@ -27,7 +27,7 @@
     "coffee-script": "1.12.7",
     "lodash": "^4.17.11",
     "rsvp": "^4.8.4",
-    "st2client": "^1.1.1",
+    "st2client": "^1.1.2",
     "truncate": "^2.0.1",
     "uuid": "^3.0.0"
   },
