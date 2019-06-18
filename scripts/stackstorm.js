@@ -126,12 +126,6 @@ module.exports = function(robot) {
 
   var api_client = st2client(opts);
 
-  if (env.ST2_API_KEY) {
-    api_client.setKey({ key: env.ST2_API_KEY });
-  } else if (env.ST2_AUTH_TOKEN) {
-    api_client.setToken({ token: env.ST2_AUTH_TOKEN });
-  }
-
   function logErrorAndExit(err, res) {
     if (err){
       robot.logger.error(err.message);
@@ -189,23 +183,6 @@ module.exports = function(robot) {
         robot.logger.error('Failed to authenticate with st2 username and password.');
         logErrorAndExit(err);
       });
-  }
-
-  if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
-    // If using username and password then all are required.
-    if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
-        !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
-      robot.logger.error('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
-      stop({shutdown: true});
-    } else {
-      authenticated = authenticate();
-    }
-  }
-
-  // Pending 2-factor auth commands
-  if (env.HUBOT_2FA) {
-    var twofactor = {};
-    robot.logger.info('Two-factor auth is enabled');
   }
 
   // factory to manage commands
@@ -467,6 +444,42 @@ module.exports = function(robot) {
     process.on('SIGUSR2', function() {
       loadCommands();
     });
+  }
+
+  if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD || env.ST2_AUTH_URL) &&
+      !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
+    robot.logger.error('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD, and '+
+                       'ST2_AUTH_URL must all be specified together.');
+    if (!env.ST2_AUTH_USERNAME) {
+      robot.logger.error('Missing: ST2_AUTH_USERNAME');
+    }
+    if (!env.ST2_AUTH_PASSWORD) {
+      robot.logger.error('Missing: ST2_AUTH_PASSWORD');
+    }
+    if (!env.ST2_AUTH_URL) {
+      robot.logger.error('Missing: ST2_AUTH_URL');
+    }
+
+    stop({shutdown: true});
+    // Easier than calling process.exit(-1) here
+    return authenticated;
+  }
+
+  if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN ||
+      (env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
+    authenticated = authenticate();
+  }
+
+  if (env.ST2_API_KEY) {
+    api_client.setKey({ key: env.ST2_API_KEY });
+  } else if (env.ST2_AUTH_TOKEN) {
+    api_client.setToken({ token: env.ST2_AUTH_TOKEN });
+  }
+
+  // Pending 2-factor auth commands
+  if (env.HUBOT_2FA) {
+    var twofactor = {};
+    robot.logger.info('Two-factor auth is enabled');
   }
 
   // Authenticate with StackStorm backend and then call start.
