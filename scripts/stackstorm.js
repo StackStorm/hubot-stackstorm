@@ -126,25 +126,6 @@ module.exports = function(robot) {
 
   var api_client = st2client(opts);
 
-  function logErrorAndExit(err, res) {
-    if (err){
-      robot.logger.error(err.message);
-
-      if (err.stack) {
-        robot.logger.error(err.stack);
-      }
-    }
-
-    if (res) {
-      res.send(JSON.stringify({
-        "status": "failed",
-        "msg": "An error occurred trying to post the message:\n" + err
-      }));
-    }
-
-    stop({shutdown: true});
-  }
-
   function authenticate() {
     api_client.removeListener('expiry', authenticate);
 
@@ -181,7 +162,7 @@ module.exports = function(robot) {
       .catch(function (err) {
         // Exit from invalid ST2_AUTH_USERNAME or ST2_AUTH_PASSWORD.
         robot.logger.error('Failed to authenticate with st2 username and password.');
-        logErrorAndExit(err);
+        throw err;
       });
   }
 
@@ -231,15 +212,10 @@ module.exports = function(robot) {
         robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        var error_msg = 'Failed to retrieve commands from "%s": %s';
-        error_msg = util.format(error_msg, env.ST2_API_URL, err.message);
-        if (err.status === 401 || err.message.includes("Unauthorized")) {
-          err.message = error_msg;
-          logErrorAndExit(err);
-        } else {
-          robot.logger.error(error_msg);
-        }
-
+        var error_msg = 'Failed to retrieve commands from "%s":\n%s';
+        err.stack = util.format(error_msg, env.ST2_API_URL, err.stack);
+        robot.logger.error(err.stack);
+        throw err;
       });
   };
 
@@ -373,8 +349,6 @@ module.exports = function(robot) {
   var commands_load_interval;
 
   function start() {
-    robot.error(logErrorAndExit);
-
     api_client.stream.listen().then(function (stream) {
       _stream = stream;  // save stream for use in stop()
       stream.on('error', function (error_event) {
