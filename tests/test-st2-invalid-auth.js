@@ -17,7 +17,7 @@ limitations under the License.
 
 /*jshint quotmark:false*/
 /*jshint -W030*/
-/*global describe, it, before, after*/
+/*global describe, it, before, after, beforeEach, afterEach*/
 'use strict';
 
 var chai = require("chai"),
