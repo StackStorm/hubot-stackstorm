@@ -178,7 +178,7 @@ module.exports = function(robot) {
   var loadCommands = function() {
     robot.logger.info('Loading commands...');
 
-    api_client.actionAlias.list()
+    return api_client.actionAlias.list()
       .then(function (aliases) {
         // Remove all the existing commands
         command_factory.removeCommands();
@@ -349,7 +349,7 @@ module.exports = function(robot) {
   var commands_load_interval;
 
   function start() {
-    api_client.stream.listen().then(function (stream) {
+    return api_client.stream.listen().then(function (stream) {
       _stream = stream;  // save stream for use in stop()
       stream.on('error', function (error_event) {
         robot.logger.warning('StackStorm event stream error:');
@@ -387,16 +387,22 @@ module.exports = function(robot) {
           delete twofactor[data.uuid];
         });
       }
+    }).then(function () {
+      // Add an interval which tries to re-load the commands
+      commands_load_interval = setInterval(
+        // Lambda function that swallows errors so they don't propagate up the stack
+        // (errors are still logged within loadCommands itself)
+        function () {
+          loadCommands().catch(function (err) {});
+        },
+        (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
+
+      // Install SIGUSR2 handler which reloads the command
+      install_sigusr2_handler();
+    }).then(function () {
+      // Initial command loading
+      return loadCommands();
     });
-
-    // Initial command loading
-    loadCommands();
-
-    // Add an interval which tries to re-load the commands
-    commands_load_interval = setInterval(loadCommands.bind(self), (env.ST2_COMMANDS_RELOAD_INTERVAL * 1000));
-
-    // Install SIGUSR2 handler which reloads the command
-    install_sigusr2_handler();
   }
 
   function stop(opts) {
@@ -457,9 +463,14 @@ module.exports = function(robot) {
   }
 
   // Authenticate with StackStorm backend and then call start.
-  // On a failure to authenticate log the error and quit.
   return authenticated.then(function () {
-    start();
-    return stop;
+    return start().then(function () {
+      return stop;
+    });
+  }).catch(function (err) {
+    // Since start is only called once when the plugin is loaded, bail
+    // loudly and harshly if loadCommands() isn't successful
+    stop({shutdown: true});
+    throw err;
   });
 };
