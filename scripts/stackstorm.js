@@ -404,12 +404,12 @@ module.exports = function(robot) {
       opts = Object.assign(default_opts, (opts || {}));
     clearInterval(commands_load_interval);
 
-    if (opts.shutdown) {
-      if (_stream) {
-        _stream.removeAllListeners();
-        _stream.close();
-      }
+    if (_stream) {
+      _stream.removeAllListeners();
+      _stream.close();
+    }
 
+    if (opts.shutdown) {
       robot.shutdown();
     }
   }
