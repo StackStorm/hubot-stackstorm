@@ -23,6 +23,7 @@ require('coffee-register');
 var fs = require('fs'),
     expect = require("chai").expect,
     path = require("path"),
+    express = require('express'),
     Robot = require("hubot/src/robot"),
     TextMessage = require("hubot/src/message").TextMessage,
     CommandFactory = require('../lib/command_factory.js'),
@@ -41,10 +42,15 @@ var enableTwofactor = function() {
 };
 
 describe("two-factor auth module", function() {
-  var robot, user, adapter, st2bot, stop, command_factory;
+  var robot, user, adapter, st2bot, stop, command_factory, server;
 
   before(function(done) {
     robot = new Robot(null, "mock-adapter", true, "Hubot");
+    server = express()
+      .get('/v1/actionalias', function (req, res) {
+        res.status(200).send({});
+      })
+      .listen(9101);
 
     // Hack. Need a better solution than stubbing out methods.
     if (disableLogger) {
@@ -92,6 +98,7 @@ describe("two-factor auth module", function() {
   });
 
   after(function() {
+    server.close();
     stop && stop();
     robot.server.close();
     robot.shutdown();

@@ -25,12 +25,16 @@ var chai = require("chai"),
   chaiString = require("chai-string"),
   sinon = require('sinon'),
   sinonChai = require('sinon-chai'),
+  chaiAsPromised = require('chai-as-promised'),
   mockedEnv = require('mocked-env'),
   Robot = require("hubot/src/robot"),
   Logger = require('./dummy-logger.js');
 
 chai.use(sinonChai);
 chai.use(chaiString);
+chai.use(chaiAsPromised);
+
+global.process.exit = sinon.spy();
 
 describe("invalid st2 credential configuration", function() {
   var robot = new Robot(null, "mock-adapter", false, "Hubot");
@@ -38,6 +42,10 @@ describe("invalid st2 credential configuration", function() {
   var restore_env = null,
     info_spy = sinon.spy(robot.logger, 'info'),
     error_spy = sinon.spy(robot.logger, 'error');
+
+  beforeEach(function () {
+    process.exit.resetHistory();
+  });
 
   afterEach(function() {
     restore_env && restore_env();
@@ -48,7 +56,7 @@ describe("invalid st2 credential configuration", function() {
     delete require.cache[require.resolve("../scripts/stackstorm.js")];
   });
 
-  it("should raise exception with null auth URL", function(done) {
+  it("should error out with missing auth URL", function(done) {
     // Mock process.env for all modules
     // https://glebbahmutov.com/blog/mocking-process-env/
     restore_env = mockedEnv({
@@ -58,10 +66,12 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var stackstorm = require("../scripts/stackstorm.js");
-    stackstorm(robot).then(function (stop) {
-      expect(error_spy).to.have.been.calledOnce;
-      expect(error_spy.firstCall.args[0]).include('Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
-      stop({shutdown: true});
+    stackstorm(robot).then(function () {
+      expect(error_spy).to.have.been.calledTwice;
+      expect(error_spy.firstCall.args[0]).to.be.equal(
+        'Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD, and ST2_AUTH_URL '+
+        'must all be specified together.');
+      expect(error_spy.secondCall.args[0]).to.be.equal('Missing: ST2_AUTH_URL');
 
       done();
     }).catch(function (err) {
@@ -70,7 +80,56 @@ describe("invalid st2 credential configuration", function() {
     });
   });
 
-  it("should raise exception with bad auth URL", function(done) {
+  it("should error out with missing auth username", function(done) {
+    // Mock process.env for all modules
+    // https://glebbahmutov.com/blog/mocking-process-env/
+    restore_env = mockedEnv({
+      ST2_AUTH_URL: 'https://nonexistent-st2-auth-url',
+      ST2_AUTH_PASSWORD: 'nonexistent-st2-auth-password'
+    });
+
+    // Load script under test
+    var stackstorm = require("../scripts/stackstorm.js");
+    stackstorm(robot).then(function () {
+      expect(error_spy).to.have.been.calledTwice;
+      expect(error_spy.firstCall.args[0]).to.be.equal(
+        'Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD, and ST2_AUTH_URL '+
+        'must all be specified together.');
+      expect(error_spy.secondCall.args[0]).to.be.equal('Missing: ST2_AUTH_USERNAME');
+
+      done();
+    }).catch(function (err) {
+      console.log(err);
+      done(err);
+    });
+  });
+
+
+  it("should error out with missing auth password", function(done) {
+    // Mock process.env for all modules
+    // https://glebbahmutov.com/blog/mocking-process-env/
+    restore_env = mockedEnv({
+      ST2_AUTH_URL: 'https://nonexistent-st2-auth-url',
+      ST2_AUTH_USERNAME: 'nonexistent-st2-auth-username'
+    });
+
+    // Load script under test
+    var stackstorm = require("../scripts/stackstorm.js");
+    stackstorm(robot).then(function () {
+      expect(error_spy).to.have.been.calledTwice;
+      expect(error_spy.firstCall.args[0]).to.be.equal(
+        'Environment variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD, and ST2_AUTH_URL '+
+        'must all be specified together.');
+      expect(error_spy.secondCall.args[0]).to.be.equal('Missing: ST2_AUTH_PASSWORD');
+
+      done();
+    }).catch(function (err) {
+      console.log(err);
+      done(err);
+    });
+  });
+
+  it("should throw exception with bad auth URL", function(done) {
     restore_env = mockedEnv({
       ST2_AUTH_URL: 'https://nonexistent-st2-auth-url:9101',
       ST2_AUTH_USERNAME: 'nonexistent-st2-auth-username',
@@ -79,48 +138,14 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var i, stackstorm = require("../scripts/stackstorm.js");
-    stackstorm(robot).then(function (stop) {
-      expect(error_spy.args).to.have.lengthOf.above(2);
+    stackstorm(robot).catch(function (err) {
+      expect(error_spy.args).to.have.lengthOf(1);
+      expect(error_spy.args[0][0]).to.be.a('string');
+      expect(error_spy.args[0][0]).to.equal('Failed to authenticate with st2 username and password.');
 
-      // Check that it was called at some point with 'Failed to retrieve commands from'
-      for (i = 0; i < error_spy.args.length; i++) {
-        try {
-          expect(error_spy.args[i][0]).to.be.a('string');
-          expect(error_spy.args[i][0]).to.startWith('Failed to authenticate with st2 username and password');
-          break;
-        } catch (err) {
-          // If we have reached the last call and we still haven't found it
-          if (i >= error_spy.args.length-1) {
-            // Re-throw the assert exception
-            throw(err);
-          }
-          // Implicit continue
-        }
-      }
-
-      // Check that it was called at some point with 'Failed to retrieve commands from'
-      for (i = 0; i < error_spy.args.length; i++) {
-        try {
-          expect(error_spy.args[i][0]).to.be.a('string');
-          expect(error_spy.args[i][0]).to.include('getaddrinfo');
-          expect(error_spy.args[i][0]).to.include('nonexistent-st2-auth-url nonexistent-st2-auth-url:9101');
-          break;
-        } catch (err) {
-          // If we have reached the last call and we still haven't found it
-          if (i >= error_spy.args.length-1) {
-            // Re-throw the assert exception
-            throw(err);
-          }
-          // Implicit continue
-        }
-      }
-
-      stop({shutdown: true});
+      expect(err.message).to.match(/getaddrinfo [A-Z]+ nonexistent-st2-auth-url nonexistent-st2-auth-url:9101/);
 
       done();
-    }).catch(function (err) {
-      console.log(err);
-      done(err);
     });
   });
 
@@ -131,34 +156,10 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var i, stackstorm = require("../scripts/stackstorm.js");
-    stackstorm(robot).then(function (stop) {
-      expect(info_spy).to.have.been.calledTwice;
-      expect(info_spy).to.have.been.calledWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
-      expect(info_spy).to.have.been.calledWith('Loading commands...');
 
-      // Check that it was called at some point with 'Failed to retrieve commands from'
-      for (i = 0; i < error_spy.args.length; i++) {
-        try {
-          expect(error_spy.args[i][0]).to.be.a('string');
-          expect(error_spy.args[i][0]).to.include('Failed to retrieve commands from "http://localhost:9101');
-          break;
-        } catch (err) {
-          // If we have reached the last call and we still haven't found it
-          if (i >= error_spy.args.length-1) {
-            // Re-throw the assert exception
-            throw(err);
-          }
-          // Implicit continue
-        }
-      }
+    expect(stackstorm(robot)).to.be.rejectedWith(Error, /connect [A-Z]+ 127\.0\.0\.1:9101/).notify(done);
 
-      stop({shutdown: true});
-
-      done();
-    }).catch(function (err) {
-      console.log(err);
-      done(err);
-    });
+    expect(info_spy).to.have.been.calledOnceWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
   });
 
   it("should raise exception with bad auth token", function(done) {
@@ -168,31 +169,9 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var i, stackstorm = require("../scripts/stackstorm.js");
-    stackstorm(robot).then(function (stop) {
-      expect(info_spy).to.have.been.calledTwice;
-      expect(info_spy).to.have.been.calledWith('Using ST2_AUTH_TOKEN as authentication. Expiry will lead to bot exit.');
 
-      // Check that it was called at some point with 'Failed to retrieve commands from'
-      for (i = 0; i < error_spy.args.length; i++) {
-        try {
-          expect(error_spy.args[i][0]).to.be.a('string');
-          expect(error_spy.args[i][0]).to.include('Failed to retrieve commands from "http://localhost:9101');
-          break;
-        } catch (err) {
-          // If we have reached the last call and we still haven't found it
-          if (i >= error_spy.args.length-1) {
-            throw(err);
-          }
-          // Implicit continue
-        }
-      }
+    expect(stackstorm(robot)).to.be.rejectedWith(Error, /connect [A-Z]+ 127\.0\.0\.1:9101/).notify(done);
 
-      stop({shutdown: true});
-
-      done();
-    }).catch(function (err) {
-      console.log(err);
-      done(err);
-    });
+    expect(info_spy).to.have.been.calledOnceWith('Using ST2_AUTH_TOKEN as authentication. Expiry will lead to bot exit.');
   });
 });

@@ -22,6 +22,7 @@ require('coffee-register');
 
 var expect = require("chai").expect,
   path = require("path"),
+  express = require('express'),
   Robot = require("hubot/src/robot"),
   TextMessage = require("hubot/src/message").TextMessage;
 
@@ -36,12 +37,18 @@ var disableAuth = function() {
 };
 
 describe("stanley the StackStorm bot", function() {
-  var robot, user, adapter, st2bot, stop;
+  var robot, user, adapter, st2bot, stop, server;
 
   before(function(done) {
     robot = new Robot(null, "mock-adapter", true, "Hubot");
+    server = express()
+      .get('/v1/actionalias', function (req, res) {
+        res.status(200).send({});
+      })
+      .listen(9101);
 
     // Hack. Need a better solution than stubbing out methods.
+    // TODO: Replace these methods with sinon method spies
     if (disableLogger) {
       robot.logger.error = controlledLogger;
       robot.logger.warning = controlledLogger;
@@ -78,6 +85,7 @@ describe("stanley the StackStorm bot", function() {
   });
 
   after(function() {
+    server.close();
     stop && stop();
     robot.server.close();
     robot.shutdown();
