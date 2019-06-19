@@ -103,11 +103,24 @@ module.exports = function(robot) {
   // Makes the script crash on unhandled rejections instead of ignoring them and keep running.
   // Usually happens when trying to connect to a nonexistent instances or similar unrecoverable issues.
   // In the future Node.js versions, promise rejections that are not handled will terminate the process with a non-zero exit code.
-  process.on('unhandledRejection', function(err, promise) {
-    robot.logger.error('Hubot received unrecoverable error and will be terminated.');
-    robot.logger.error('Full info:', JSON.stringify(err));
-    robot.logger.error('Exiting in 1 second ...');
-    return setTimeout(process.exit.bind(process, 1), 1000);
+  process.on('unhandledRejection', function(err) {
+    throw err.message;
+  });
+
+  // Handle uncaught exceptions, log error and terminate hubot if one occurs
+  robot.error(function(err, res) {
+    if (err) {
+      robot.logger.error(err.stack || JSON.stringify(err));
+    }
+    if (res) {
+      res.send(JSON.stringify({
+        "status": "failed",
+        "msg": "An error occurred trying to post the message:\n" + err
+      }));
+    }
+
+    robot.logger.info('Hubot will shut down ...');
+    robot.shutdown();
   });
 
   var self = this;

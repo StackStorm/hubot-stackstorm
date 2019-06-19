@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+0.9.4
+-----
+* Exit hubot on unhandled promise rejections and uncaught exceptions, usually caused by unrecoverable errors (bug fix)
+
 0.9.3
 -----
 * Add initial support for Microsoft Teams via BotFramework (new feature)
