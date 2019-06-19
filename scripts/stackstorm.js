@@ -393,15 +393,15 @@ module.exports = function(robot) {
   function start() {
     api_client.stream.listen().catch(function (err) {
       robot.logger.error('Unable to connect to stream:', err);
-    }).then(function (source) {
-      source.onerror = function (err) {
+    }).then(function (st2stream) {
+      st2stream.onerror = function (err) {
         // TODO: squeeze a little bit more info out of evensource.js
         robot.logger.warning('Stream error:', err);
         if (err.status === 401) {
           throw err;
         }
       };
-      source.addEventListener('st2.announcement__chatops', function (e) {
+      st2stream.addEventListener('st2.announcement__chatops', function (e) {
         var data;
 
         robot.logger.debug('Chatops message received:', e.data);
@@ -416,7 +416,7 @@ module.exports = function(robot) {
       });
 
       if (env.HUBOT_2FA) {
-        source.addEventListener('st2.announcement__2fa', function (e) {
+        st2stream.addEventListener('st2.announcement__2fa', function (e) {
           var data;
 
           robot.logger.debug('Successfull two-factor auth:', e.data);
@@ -446,9 +446,9 @@ module.exports = function(robot) {
 
   function stop() {
     clearInterval(commands_load_interval);
-    api_client.stream.listen().then(function (source) {
-      source.removeAllListeners();
-      source.close();
+    api_client.stream.listen().then(function (st2stream) {
+      st2stream.removeAllListeners();
+      st2stream.close();
     });
   }
 
