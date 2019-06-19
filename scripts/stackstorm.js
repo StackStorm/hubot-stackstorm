@@ -103,7 +103,7 @@ module.exports = function(robot) {
   // Usually happens when trying to connect to a nonexistent instances or similar unrecoverable issues.
   // In the future Node.js versions, promise rejections that are not handled will terminate the process with a non-zero exit code.
   process.on('unhandledRejection', function(err) {
-    throw err.message;
+    throw err;
   });
 
   // Handle uncaught exceptions, log error and terminate hubot if one occurs
