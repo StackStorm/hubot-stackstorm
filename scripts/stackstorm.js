@@ -152,12 +152,6 @@ module.exports = function(robot) {
 
   var api_client = st2client(opts);
 
-  if (env.ST2_API_KEY) {
-    api_client.setKey({ key: env.ST2_API_KEY });
-  } else if (env.ST2_AUTH_TOKEN) {
-    api_client.setToken({ token: env.ST2_AUTH_TOKEN });
-  }
-
   function authenticate() {
     api_client.removeListener('expiry', authenticate);
 
@@ -196,21 +190,6 @@ module.exports = function(robot) {
 
         throw err;
       });
-  }
-
-  if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
-    // If using username and password then all are required.
-    if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
-        !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
-      throw new Error('Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
-    }
-    authenticated = authenticate();
-  }
-
-  // Pending 2-factor auth commands
-  if (env.HUBOT_2FA) {
-    var twofactor = {};
-    robot.logger.info('Two-factor auth is enabled');
   }
 
   // factory to manage commands
@@ -456,6 +435,27 @@ module.exports = function(robot) {
     process.on('SIGUSR2', function() {
       loadCommands();
     });
+  }
+
+  if (env.ST2_API_KEY) {
+    api_client.setKey({ key: env.ST2_API_KEY });
+  } else if (env.ST2_AUTH_TOKEN) {
+    api_client.setToken({ token: env.ST2_AUTH_TOKEN });
+  }
+
+  if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
+    // If using username and password then all are required.
+    if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
+        !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
+      throw new Error('Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
+    }
+    authenticated = authenticate();
+  }
+
+  // Pending 2-factor auth commands
+  if (env.HUBOT_2FA) {
+    var twofactor = {};
+    robot.logger.info('Two-factor auth is enabled');
   }
 
   // Authenticate with StackStorm backend and then call start.
