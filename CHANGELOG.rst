@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+0.9.4
+-----
+* Add pagination support for action aliases - fixes #158 (bug fix)
+
 0.9.3
 -----
 * Add initial support for Microsoft Teams via BotFramework (new feature)
