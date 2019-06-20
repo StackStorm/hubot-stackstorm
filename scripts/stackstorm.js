@@ -399,6 +399,9 @@ module.exports = function(robot) {
       source.onerror = function (err) {
         // TODO: squeeze a little bit more info out of evensource.js
         robot.logger.error('Stream error:', err);
+        if (err.status === 401) {
+          throw err;
+        }
       };
       source.addEventListener('st2.announcement__chatops', function (e) {
         var data;
