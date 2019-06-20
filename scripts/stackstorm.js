@@ -224,7 +224,7 @@ module.exports = function(robot) {
   var loadCommands = function() {
     robot.logger.info('Loading commands....');
 
-    api.actionAlias.list()
+    api.actionAlias.list({limit: -1})
       .then(function (aliases) {
         // Remove all the existing commands
         command_factory.removeCommands();
