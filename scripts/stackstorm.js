@@ -258,8 +258,10 @@ module.exports = function(robot) {
         robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        var error_msg = 'Failed to retrieve commands from "%s": %s';
-        robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
+        robot.logger.error(util.format('Failed to retrieve commands from "%s": %s', env.ST2_API_URL, err.message));
+        if (err.status === 401 || err.message.includes('Unauthorized')) {
+          throw err;
+        }
       });
   };
 
