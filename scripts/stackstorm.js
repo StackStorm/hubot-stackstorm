@@ -433,6 +433,7 @@ module.exports = function(robot) {
 
   function install_sigusr2_handler() {
     process.on('SIGUSR2', function() {
+      robot.logger.debug("Caught SIGUSR2, reloading commands");
       loadCommands();
     });
   }
