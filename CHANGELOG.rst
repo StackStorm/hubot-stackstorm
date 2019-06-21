@@ -3,6 +3,11 @@ Changelog
 
 in development
 --------------
+* Exit hubot on unhandled promise rejections and uncaught exceptions, usually caused by unrecoverable errors (bug fix)
+
+0.9.4
+-----
+* Add pagination support for action aliases - fixes #158 (bug fix)
 
 0.9.3
 -----

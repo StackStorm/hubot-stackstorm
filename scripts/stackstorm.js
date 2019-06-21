@@ -99,6 +99,29 @@ var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Waiting for your 
 module.exports = function(robot) {
   slack_monkey_patch.patchSendMessage(robot);
 
+  // Makes the script crash on unhandled rejections instead of ignoring them and keep running.
+  // Usually happens when trying to connect to a nonexistent instances or similar unrecoverable issues.
+  // In the future Node.js versions, promise rejections that are not handled will terminate the process with a non-zero exit code.
+  process.on('unhandledRejection', function(err) {
+    throw err;
+  });
+
+  // Handle uncaught exceptions, log error and terminate hubot if one occurs
+  robot.error(function(err, res) {
+    if (err) {
+      robot.logger.error(err.stack || JSON.stringify(err));
+    }
+    if (res) {
+      res.send(JSON.stringify({
+        "status": "failed",
+        "msg": "An error occurred trying to post the message:\n" + err
+      }));
+    }
+
+    robot.logger.info('Hubot will shut down ...');
+    robot.shutdown();
+  });
+
   var self = this;
 
   var promise = Promise.resolve();
@@ -201,7 +224,7 @@ module.exports = function(robot) {
   var loadCommands = function() {
     robot.logger.info('Loading commands....');
 
-    api.actionAlias.list()
+    api.actionAlias.list({limit: -1})
       .then(function (aliases) {
         // Remove all the existing commands
         command_factory.removeCommands();
