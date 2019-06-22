@@ -6,6 +6,10 @@ in development
 * Exit hubot on unhandled promise rejections and uncaught exceptions, usually caused by unrecoverable errors (bug fix)
 * Exit hubot on invalid, expired `ST2_API_KEY` / `ST2_AUTH_TOKEN` or any other Unauthorized response from st2 server (bug fix)
 
+0.9.4
+-----
+* Add pagination support for action aliases - fixes #158 (bug fix)
+
 0.9.3
 -----
 * Add initial support for Microsoft Teams via BotFramework (new feature)

@@ -6,6 +6,8 @@ node_js:
   - "8"
   - "9"
   - "10"
+  - "11"
+  - "12"
   - node
 
 matrix:
@@ -15,4 +17,6 @@ matrix:
     # We do not support < 8 or > 10, but we can still test it
     - node_js: "6"
     - node_js: "7"
+    - node_js: "11"
+    - node_js: "12"
     - node_js: node
