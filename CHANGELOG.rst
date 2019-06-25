@@ -3,11 +3,16 @@ Changelog
 
 in development
 --------------
-* Exit hubot on unhandled promise rejections and uncaught exceptions, usually caused by unrecoverable errors (bug fix)
+
+
+0.9.5
+-----
 * Exit hubot on invalid, expired `ST2_API_KEY` / `ST2_AUTH_TOKEN` or any other Unauthorized response from st2 server (bug fix)
+* When st2 username/password is used, re-generate st2 auth token in advance, giving enough time for request to complete, st2client.js (bug fix)
 
 0.9.4
 -----
+* Exit hubot on unhandled promise rejections and uncaught exceptions, usually caused by unrecoverable errors (bug fix)
 * Add pagination support for action aliases - fixes #158 (bug fix)
 
 0.9.3
