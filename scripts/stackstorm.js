@@ -258,8 +258,10 @@ module.exports = function(robot) {
         robot.logger.info(command_factory.st2_hubot_commands.length + ' commands are loaded');
       })
       .catch(function (err) {
-        var error_msg = 'Failed to retrieve commands from "%s": %s';
-        robot.logger.error(util.format(error_msg, env.ST2_API_URL, err.message));
+        robot.logger.error(util.format('Failed to retrieve commands from "%s": %s', env.ST2_API_URL, err.message));
+        if (err.status === 401 || err.message.includes('Unauthorized')) {
+          throw err;
+        }
       });
   };
 
@@ -397,6 +399,9 @@ module.exports = function(robot) {
       source.onerror = function (err) {
         // TODO: squeeze a little bit more info out of evensource.js
         robot.logger.error('Stream error:', err);
+        if (err.status === 401) {
+          throw err;
+        }
       };
       source.addEventListener('st2.announcement__chatops', function (e) {
         var data;
