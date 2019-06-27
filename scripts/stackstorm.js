@@ -52,9 +52,6 @@ env.ST2_WEBUI_URL = env.ST2_WEBUI_URL || null;
 env.ST2_AUTH_USERNAME = env.ST2_AUTH_USERNAME || null;
 env.ST2_AUTH_PASSWORD = env.ST2_AUTH_PASSWORD || null;
 
-// Optional authentication token
-env.ST2_AUTH_TOKEN = env.ST2_AUTH_TOKEN || null;
-
 // Optional API key
 env.ST2_API_KEY = env.ST2_API_KEY || null;
 
@@ -153,8 +150,6 @@ module.exports = function(robot) {
 
   if (env.ST2_API_KEY) {
     api.setKey({ key: env.ST2_API_KEY });
-  } else if (env.ST2_AUTH_TOKEN) {
-    api.setToken({ token: env.ST2_AUTH_TOKEN });
   }
 
   function authenticate() {
@@ -163,11 +158,6 @@ module.exports = function(robot) {
     // API key gets precedence 1
     if (env.ST2_API_KEY) {
       robot.logger.info('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
-      return Promise.resolve();
-    }
-    // Auth token gets precedence 2
-    if (env.ST2_AUTH_TOKEN) {
-      robot.logger.info('Using ST2_AUTH_TOKEN as authentication. Expiry will lead to bot exit.');
       return Promise.resolve();
     }
 
@@ -197,7 +187,7 @@ module.exports = function(robot) {
       });
   }
 
-  if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
+  if (env.ST2_API_KEY || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
     // If using username and password then all are required.
     if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
         !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
