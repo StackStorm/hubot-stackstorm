@@ -1,7 +1,7 @@
 {
   "name": "hubot-stackstorm",
   "description": "A hubot plugin for integrating with StackStorm event-driven infrastructure automation platform.",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "author": "StackStorm, Inc. <info@stackstorm.com>",
   "license": "Apache-2.0",
   "keywords": [
