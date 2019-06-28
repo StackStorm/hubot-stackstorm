@@ -312,7 +312,6 @@ module.exports = function(robot) {
             color: '#F35A00'
           }
         });
-        throw err;
       });
   };
 
