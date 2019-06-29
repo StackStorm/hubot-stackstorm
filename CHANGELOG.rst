@@ -4,6 +4,8 @@ Changelog
 in development
 --------------
 
+* Move babel-eslint dependency to devDependencies (bug fix)
+
 0.9.6
 * Don't consider failed alias execution as a critical reason to exit hubot (bug fix)
 
