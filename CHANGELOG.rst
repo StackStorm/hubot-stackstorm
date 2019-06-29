@@ -5,6 +5,7 @@ in development
 --------------
 
 * Move babel-eslint dependency to devDependencies (bug fix)
+* Small refactor and more tests (for `scripts/stackstorm.js`) (improvement)
 
 0.9.6
 -----

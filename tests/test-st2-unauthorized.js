@@ -19,21 +19,22 @@
 
 var chai = require('chai'),
   expect = chai.expect,
+  sinon = require('sinon'),
+  sinonChai = require('sinon-chai'),
   nock = require('nock'),
-  Robot = require('hubot/src/robot');
+  Robot = require('hubot/src/robot'),
+  Logger = require('./dummy-logger.js');
+
+chai.use(sinonChai);
 
 describe("auth with invalid st2 API key", function() {
   var stop;
   var robot = new Robot(null, "mock-adapter", true, "Hubot");
   var recordedError = null,
-    logs = [],
-    controlledLogger = function(msg) { logs.push(msg); };
-
-  robot.logger.error = controlledLogger;
-  robot.logger.warning = controlledLogger;
-  robot.logger.info = controlledLogger;
-  robot.logger.debug = controlledLogger;
-
+    error_spy = sinon.spy(robot.logger, 'error'),
+    warning_spy = sinon.spy(robot.logger, 'warning'),
+    info_spy = sinon.spy(robot.logger, 'info'),
+    debug_spy = sinon.spy(robot.logger, 'debug');
 
   before(function(done) {
     process.env.ST2_API_KEY = 'aaaa';
@@ -76,24 +77,30 @@ describe("auth with invalid st2 API key", function() {
     delete require.cache[require.resolve("../scripts/stackstorm.js")];
   });
 
-
+  // CAUTION: These tests are brittle - do not move them around, remove
+  //          intermediate tests, or combine expects/assertions
+  // TODO: Come back and fix this properly
   it("is using ST2_API_KEY as authentication", function () {
     // debug, if needed
     //console.log(logs);
-    expect(logs).to.contain('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
+    expect(info_spy).to.have.been.calledWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
   });
 
   it("fails to retrieve the commands from API", function () {
-    expect(logs).to.include('Failed to retrieve commands from "http://localhost:9101": Unauthorized - ApiKey with key_hash=123 not found.');
+    expect(error_spy).to.have.been.calledWith('Failed to retrieve commands from "http://localhost:9101": Unauthorized - ApiKey with key_hash=123 not found.');
   });
 
   it("throws an 'Unauthorized' error", function () {
-    expect(JSON.stringify(recordedError)).to.be.equal(
-      '{"name":"APIError","status":401,"message":"Unauthorized - ApiKey with key_hash=123 not found."}'
+    expect(recordedError).to.be.deep.equal(
+      {
+        "name": "APIError",
+        "status": 401,
+        "message": "Unauthorized - ApiKey with key_hash=123 not found."
+      }
     );
   });
-  
+
   it("leads to Hubot shutdown", function () {
-    expect(logs).to.contain('Hubot will shut down ...');
+    expect(info_spy).to.have.been.calledWith('Hubot will shut down ...');
   });
 });

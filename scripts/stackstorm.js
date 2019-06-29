@@ -129,15 +129,16 @@ module.exports = function(robot) {
   if (env.ST2_API) {
     robot.logger.warning("ST2_API is deprecated and will be removed in a future releases. Instead, please use the ST2_API_URL environment variable.");
   }
-  var url = utils.parseUrl(env.ST2_API_URL);
-
-  var opts = {
-    protocol: url.protocol,
-    host: url.hostname,
-    port: url.port,
-    prefix: url.path,
-    rejectUnauthorized: false
-  };
+  var self = this,
+    authenticated = Promise.resolve(),
+    url = utils.parseUrl(env.ST2_API_URL),
+    opts = {
+      protocol: url.protocol,
+      host: url.hostname,
+      port: url.port,
+      prefix: url.path,
+      rejectUnauthorized: false
+    };
 
   if (env.ST2_STREAM_URL) {
     var stream_url = utils.parseUrl(env.ST2_STREAM_URL);
@@ -149,16 +150,10 @@ module.exports = function(robot) {
     };
   }
 
-  var api = st2client(opts);
-
-  if (env.ST2_API_KEY) {
-    api.setKey({ key: env.ST2_API_KEY });
-  } else if (env.ST2_AUTH_TOKEN) {
-    api.setToken({ token: env.ST2_AUTH_TOKEN });
-  }
+  var api_client = st2client(opts);
 
   function authenticate() {
-    api.removeListener('expiry', authenticate);
+    api_client.removeListener('expiry', authenticate);
 
     // API key gets precedence 1
     if (env.ST2_API_KEY) {
@@ -175,7 +170,7 @@ module.exports = function(robot) {
 
     var url = utils.parseUrl(env.ST2_AUTH_URL);
 
-    var client = st2client({
+    var auth_client = st2client({
       auth: {
         protocol: url.protocol,
         host: url.hostname,
@@ -184,32 +179,17 @@ module.exports = function(robot) {
       }
     });
 
-    return client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
+    return auth_client.authenticate(env.ST2_AUTH_USERNAME, env.ST2_AUTH_PASSWORD)
       .then(function (token) {
         robot.logger.info('Token received. Expiring ' + token.expiry);
-        api.setToken(token);
-        client.on('expiry', authenticate);
+        api_client.setToken(token);
+        auth_client.on('expiry', authenticate);
       })
       .catch(function (err) {
         robot.logger.error('Failed to authenticate: ' + err.message);
 
         throw err;
       });
-  }
-
-  if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
-    // If using username and password then all are required.
-    if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
-        !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
-      throw new Error('Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
-    }
-    promise = authenticate();
-  }
-
-  // Pending 2-factor auth commands
-  if (env.HUBOT_2FA) {
-    var twofactor = {};
-    robot.logger.info('Two-factor auth is enabled');
   }
 
   // factory to manage commands
@@ -224,7 +204,7 @@ module.exports = function(robot) {
   var loadCommands = function() {
     robot.logger.info('Loading commands....');
 
-    api.actionAlias.list({limit: -1})
+    api_client.actionAlias.list({limit: -1})
       .then(function (aliases) {
         // Remove all the existing commands
         command_factory.removeCommands();
@@ -288,7 +268,7 @@ module.exports = function(robot) {
   var sendAliasExecutionRequest = function (msg, payload) {
     robot.logger.debug('Sending command payload:', JSON.stringify(payload));
 
-    api.aliasExecution.create(payload)
+    api_client.aliasExecution.create(payload)
       .then(function (res) { sendAck(msg, res); })
       .catch(function (err) {
         // Compatibility with older StackStorm versions
@@ -331,7 +311,7 @@ module.exports = function(robot) {
       var twofactor_id = uuid.v4();
       robot.logger.debug('Requested an action that requires 2FA. Guid: ' + twofactor_id);
       msg.send(TWOFACTOR_MESSAGE);
-      api.executions.create({
+      api_client.executions.create({
         'action': env.HUBOT_2FA,
         'parameters': {
           'uuid': twofactor_id,
@@ -350,7 +330,7 @@ module.exports = function(robot) {
   };
 
   robot.respond(/([\s\S]+?)$/i, function(msg) {
-    var command, result, command_name, format_string, action_alias;
+    var command, result;
 
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
@@ -363,9 +343,7 @@ module.exports = function(robot) {
       return;
     }
 
-    command_name = result[0];
-    format_string = result[1];
-    action_alias = result[2];
+    var [command_name, format_string, action_alias] = result;
 
     executeCommand(msg, command_name, format_string, command, action_alias);
   });
@@ -392,17 +370,17 @@ module.exports = function(robot) {
   var commands_load_interval;
 
   function start() {
-    api.stream.listen().catch(function (err) {
+    api_client.stream.listen().catch(function (err) {
       robot.logger.error('Unable to connect to stream:', err);
-    }).then(function (source) {
-      source.onerror = function (err) {
+    }).then(function (st2stream) {
+      st2stream.onerror = function (err) {
         // TODO: squeeze a little bit more info out of evensource.js
-        robot.logger.error('Stream error:', err);
+        robot.logger.warning('Stream error:', err);
         if (err.status === 401) {
           throw err;
         }
       };
-      source.addEventListener('st2.announcement__chatops', function (e) {
+      st2stream.addEventListener('st2.announcement__chatops', function (e) {
         var data;
 
         robot.logger.debug('Chatops message received:', e.data);
@@ -417,7 +395,7 @@ module.exports = function(robot) {
       });
 
       if (env.HUBOT_2FA) {
-        source.addEventListener('st2.announcement__2fa', function (e) {
+        st2stream.addEventListener('st2.announcement__2fa', function (e) {
           var data;
 
           robot.logger.debug('Successfull two-factor auth:', e.data);
@@ -447,21 +425,43 @@ module.exports = function(robot) {
 
   function stop() {
     clearInterval(commands_load_interval);
-    api.stream.listen().then(function (source) {
-      source.removeAllListeners();
-      source.close();
+    api_client.stream.listen().then(function (st2stream) {
+      st2stream.removeAllListeners();
+      st2stream.close();
     });
   }
 
   function install_sigusr2_handler() {
     process.on('SIGUSR2', function() {
+      robot.logger.debug("Caught SIGUSR2, reloading commands");
       loadCommands();
     });
   }
 
+  if (env.ST2_API_KEY) {
+    api_client.setKey({ key: env.ST2_API_KEY });
+  } else if (env.ST2_AUTH_TOKEN) {
+    api_client.setToken({ token: env.ST2_AUTH_TOKEN });
+  }
+
+  if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
+    // If using username and password then all are required.
+    if ((env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) &&
+        !(env.ST2_AUTH_USERNAME && env.ST2_AUTH_PASSWORD && env.ST2_AUTH_URL)) {
+      throw new Error('Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.');
+    }
+    authenticated = authenticate();
+  }
+
+  // Pending 2-factor auth commands
+  if (env.HUBOT_2FA) {
+    var twofactor = {};
+    robot.logger.info('Two-factor auth is enabled');
+  }
+
   // Authenticate with StackStorm backend and then call start.
   // On a failure to authenticate log the error but do not quit.
-  return promise.then(function () {
+  return authenticated.then(function () {
     start();
     return stop;
   });
