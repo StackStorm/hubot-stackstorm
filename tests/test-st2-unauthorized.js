@@ -77,6 +77,9 @@ describe("auth with invalid st2 API key", function() {
     delete require.cache[require.resolve("../scripts/stackstorm.js")];
   });
 
+  // CAUTION: These tests are brittle - do not move them around, remove
+  //          intermediate tests, or combine expects/assertions
+  // TODO: Come back and fix this properly
   it("is using ST2_API_KEY as authentication", function () {
     // debug, if needed
     //console.log(logs);
