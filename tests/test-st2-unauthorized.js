@@ -88,8 +88,12 @@ describe("auth with invalid st2 API key", function() {
   });
 
   it("throws an 'Unauthorized' error", function () {
-    expect(JSON.stringify(recordedError)).to.be.equal(
-      '{"name":"APIError","status":401,"message":"Unauthorized - ApiKey with key_hash=123 not found."}'
+    expect(recordedError).to.be.deep.equal(
+      {
+        "name": "APIError",
+        "status": 401,
+        "message": "Unauthorized - ApiKey with key_hash=123 not found."
+      }
     );
   });
   
