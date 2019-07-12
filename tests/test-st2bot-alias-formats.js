@@ -30,11 +30,12 @@ var chai = require("chai"),
 
 chai.use(sinonChai);
 
-describe("SIGUSR2", function () {
+describe("loading alias formats", function () {
   var robot = new Robot(null, "mock-adapter", false, "Hubot");
   robot.logger = new Logger(true);
   var debug_spy = sinon.spy(robot.logger, 'debug'),
-    info_spy = sinon.spy(robot.logger, 'info');
+    info_spy = sinon.spy(robot.logger, 'info'),
+    error_spy = sinon.spy(robot.logger, 'error');
 
   beforeEach(function () {
     // emulate ST2 API response
@@ -46,7 +47,7 @@ describe("SIGUSR2", function () {
         {
           "name": "hello",
           "description": "long hello",
-          "enabled": true,
+          "enabled": false,
           "formats": [
             {
               "display": "format_one",
@@ -57,11 +58,27 @@ describe("SIGUSR2", function () {
               "representation": "format_two"
             }
           ]
+        },
+        {
+          "name": "hello",
+          "description": "long hello",
+          "enabled": true,
+          "formats": [
+            "format_string_one",
+            "format_string_two"
+          ]
+        },
+        {
+          "name": "hello3",
+          "description": "long hello 3",
+          "enabled": true,
+          "formats": []
         }
       ]);
   });
 
   afterEach(function() {
+    error_spy.resetHistory();
     info_spy.resetHistory();
     debug_spy.resetHistory();
     nock.cleanAll();
@@ -70,24 +87,15 @@ describe("SIGUSR2", function () {
     delete require.cache[require.resolve("../scripts/stackstorm.js")];
   });
 
-  it("should run loadCommands() after receiving signal", function (done) {
+  it("should not throw an exception for disabled aliases", function (done) {
     // Load script under test
     var stackstorm = require("../scripts/stackstorm.js");
-    stackstorm(robot).then(function (stop) {
-      process.emit('SIGUSR2');
-      expect(debug_spy).to.have.callCount(2);
-      expect(debug_spy).to.have.been.calledWith('Using default post data handler.');
-      expect(debug_spy).to.have.been.calledWith('Caught SIGUSR2, reloading commands');
-      expect(info_spy.args).to.have.length.above(1);
-      expect(info_spy).to.have.been.calledWith('Loading commands....');
-
+    stackstorm(robot).catch(function (err) {
+      stop && stop();
+      done(err);
+    }).then(function (stop) {
       stop();
-
       done();
-    // }).catch(function (err) {
-    //   console.log('err: ' + err);
-    //   stop && stop();
-    //   done(err);
     });
   });
 });

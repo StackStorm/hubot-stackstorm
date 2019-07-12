@@ -21,6 +21,7 @@
     "url": "https://github.com/StackStorm/hubot-stackstorm/issues"
   },
   "dependencies": {
+    "chai-string": "^1.5.0",
     "cli-table": "<=1.0.0",
     "coffee-register": "1.0.0",
     "coffee-script": "1.12.7",
