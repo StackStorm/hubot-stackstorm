@@ -36,6 +36,8 @@ describe("SIGUSR2", function () {
   var debug_spy = sinon.spy(robot.logger, 'debug'),
     info_spy = sinon.spy(robot.logger, 'info');
 
+  // Not required for SIGUSR2 to work, but mocking the response increases code
+  // coverage and more closely approximates the real world
   beforeEach(function () {
     // emulate ST2 API response
     nock('http://localhost:9101')
