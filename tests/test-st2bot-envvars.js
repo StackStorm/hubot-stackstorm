@@ -96,7 +96,7 @@ describe("environment variable configuration", function () {
 
       done();
     }).catch(function (err) {
-      console.log(err.message);
+      console.log(err);
       done(err);
     });
   });
