@@ -89,7 +89,6 @@ describe("environment variable configuration", function () {
     var stackstorm = require("../scripts/stackstorm.js");
     stackstorm(robot).then(function (stop) {
       expect(info_spy.args).length.to.be.above(1);
-      // expect(info_spy).to.have.been.calledWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
       expect(info_spy).to.have.been.calledWith('Two-factor auth is enabled');
       expect(info_spy).to.have.been.calledWith('Loading commands....');
 

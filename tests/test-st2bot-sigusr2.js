@@ -84,10 +84,6 @@ describe("SIGUSR2", function () {
       stop();
 
       done();
-    // }).catch(function (err) {
-    //   console.log('err: ' + err);
-    //   stop && stop();
-    //   done(err);
     });
   });
 });
