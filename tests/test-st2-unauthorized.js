@@ -30,6 +30,7 @@ chai.use(sinonChai);
 describe("auth with invalid st2 API key", function() {
   var stop;
   var robot = new Robot(null, "mock-adapter", true, "Hubot");
+  robot.logger = new Logger(true);
   var recordedError = null,
     error_spy = sinon.spy(robot.logger, 'error'),
     warning_spy = sinon.spy(robot.logger, 'warning'),

@@ -24,6 +24,7 @@ var chai = require("chai"),
   expect = chai.expect,
   sinon = require('sinon'),
   sinonChai = require('sinon-chai'),
+  nock = require('nock'),
   Robot = require("hubot/src/robot"),
   Logger = require('./dummy-logger.js');
 
@@ -35,9 +36,37 @@ describe("SIGUSR2", function () {
   var debug_spy = sinon.spy(robot.logger, 'debug'),
     info_spy = sinon.spy(robot.logger, 'info');
 
+  // Not required for SIGUSR2 to work, but mocking the response increases code
+  // coverage and more closely approximates the real world
+  beforeEach(function () {
+    // emulate ST2 API response
+    nock('http://localhost:9101')
+      .get('/v1/actionalias')
+      .times(2)
+      .query({"limit": "-1", "offset": "0"})
+      .reply(200, [
+        {
+          "name": "hello",
+          "description": "long hello",
+          "enabled": true,
+          "formats": [
+            {
+              "display": "format_one",
+              "representation": "format_one"
+            },
+            {
+              "display": "format_two",
+              "representation": "format_two"
+            }
+          ]
+        }
+      ]);
+  });
+
   afterEach(function() {
     info_spy.resetHistory();
     debug_spy.resetHistory();
+    nock.cleanAll();
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../scripts/stackstorm.js")];
@@ -51,16 +80,12 @@ describe("SIGUSR2", function () {
       expect(debug_spy).to.have.callCount(2);
       expect(debug_spy).to.have.been.calledWith('Using default post data handler.');
       expect(debug_spy).to.have.been.calledWith('Caught SIGUSR2, reloading commands');
-      expect(info_spy).to.have.callCount(3);
+      expect(info_spy.args).to.have.length.above(1);
       expect(info_spy).to.have.been.calledWith('Loading commands....');
 
       stop();
 
       done();
-    }).catch(function (err) {
-      console.log(err);
-      stop && stop();
-      done(err);
     });
   });
 });

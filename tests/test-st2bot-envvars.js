@@ -46,6 +46,12 @@ describe("environment variable configuration", function () {
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../scripts/stackstorm.js")];
+    if (robot) {
+      robot.shutdown();
+      if (robot.server) {
+        robot.server.close();
+      }
+    }
   });
 
   it("should log a warning when ST2_API is used", function (done) {
@@ -82,7 +88,7 @@ describe("environment variable configuration", function () {
     // Load script under test
     var stackstorm = require("../scripts/stackstorm.js");
     stackstorm(robot).then(function (stop) {
-      expect(info_spy).to.have.been.calledThrice;
+      expect(info_spy.args).length.to.be.above(1);
       expect(info_spy).to.have.been.calledWith('Two-factor auth is enabled');
       expect(info_spy).to.have.been.calledWith('Loading commands....');
 
