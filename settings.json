@@ -3,6 +3,6 @@
   "lint": [
     "*.js",
 	"src/**/*.js",
-	"tests/**/*.js"
+	"test/**/*.js"
   ]
 }

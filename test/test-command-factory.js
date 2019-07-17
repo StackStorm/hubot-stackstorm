@@ -25,7 +25,7 @@ var fs = require('fs'),
   formatCommand = require('../src/lib/format_command.js'),
   utils = require('../src/lib/utils.js');
 
-var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
+var ALIAS_FIXTURES = fs.readFileSync('test/fixtures/aliases.json');
 ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
 
 
