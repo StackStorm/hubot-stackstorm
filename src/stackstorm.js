@@ -33,12 +33,10 @@ var _ = require('lodash'),
   util = require('util'),
   env = _.clone(process.env),
   Promise = require('rsvp').Promise,
-  utils = require('../lib/utils.js'),
-  slack_monkey_patch = require('../lib/slack_monkey_patch.js'),
-  formatCommand = require('../lib/format_command.js'),
-  formatData = require('../lib/format_data.js'),
-  postData = require('../lib/post_data.js'),
-  CommandFactory = require('../lib/command_factory.js'),
+  utils = require('./lib/utils.js'),
+  formatCommand = require('./lib/format_command.js'),
+  CommandFactory = require('./lib/command_factory.js'),
+  messaging_handler = require('./lib/messaging_handler'),
   st2client = require('st2client'),
   uuid = require('uuid')
   ;
@@ -97,8 +95,6 @@ var TWOFACTOR_MESSAGE = "This action requires two-factor auth! Waiting for your 
 
 
 module.exports = function(robot) {
-  slack_monkey_patch.patchSendMessage(robot);
-
   // Makes the script crash on unhandled rejections instead of ignoring them and keep running.
   // Usually happens when trying to connect to a nonexistent instances or similar unrecoverable issues.
   // In the future Node.js versions, promise rejections that are not handled will terminate the process with a non-zero exit code.
@@ -195,11 +191,8 @@ module.exports = function(robot) {
   // factory to manage commands
   var command_factory = new CommandFactory(robot);
 
-  // formatter to manage per adapter message formatting.
-  var formatter = formatData.getFormatter(robot.adapterName, robot);
-
-  // handler to manage per adapter message post-ing.
-  var postDataHandler = postData.getDataPostHandler(robot.adapterName, robot, formatter);
+  // messaging handler - specific to each chat provider
+  var messagingHandler = messaging_handler.getMessagingHandler(robot.adapterName, robot);
 
   var loadCommands = function() {
     robot.logger.info('Loading commands....');
@@ -276,14 +269,14 @@ module.exports = function(robot) {
           return sendAck(msg, { execution: { id: err.message } });
         }
         robot.logger.error('Failed to create an alias execution:', err);
-        var addressee = formatter.normalizeAddressee(msg);
+        var addressee = messagingHandler.normalizeAddressee(msg);
         var message = util.format(_.sample(ERROR_MESSAGES), err.message);
         if (err.requestId) {
           message = util.format(
             message,
             util.format('; Use request ID %s to grep st2 api logs.', err.requestId));
         }
-        postDataHandler.postData({
+        messagingHandler.postData({
           whisper: false,
           user: addressee.name,
           channel: addressee.room,
@@ -296,7 +289,7 @@ module.exports = function(robot) {
   };
 
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
-    var addressee = formatter.normalizeAddressee(msg);
+    var addressee = messagingHandler.normalizeAddressee(msg);
     var payload = {
       'name': command_name,
       'format': format_string,
@@ -334,7 +327,7 @@ module.exports = function(robot) {
 
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
-    command = formatter.normalizeCommand(msg.match[1]);
+    command = messagingHandler.normalizeCommand(msg.match[1]);
 
     result = command_factory.getMatchingCommand(command);
 
@@ -357,7 +350,7 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      postDataHandler.postData(data);
+      messagingHandler.postData(data);
 
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
@@ -391,7 +384,7 @@ module.exports = function(robot) {
           data = e.data;
         }
 
-        postDataHandler.postData(data);
+        messagingHandler.postData(data);
       });
 
       if (env.HUBOT_2FA) {

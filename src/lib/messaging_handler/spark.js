@@ -1,0 +1,74 @@
+// Copyright 2019 Extreme Networks, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+"use strict";
+
+var env = process.env;
+var util = require('util');
+var utils = require('./../utils');
+var DefaultMessagingHandler = require('./default');
+var SlackMessagingHandler = require('./slack');
+
+
+function SparkMessagingHandler(robot) {
+  var self = this;
+  SlackMessagingHandler.call(self, robot);
+}
+
+util.inherits(SparkMessagingHandler, SlackMessagingHandler);
+
+SparkMessagingHandler.prototype.postData = function(data) {
+  var self = this;
+
+  var recipient, split_message, formatted_message,
+      text = "";
+
+  if (data.whisper && data.user) {
+    recipient = { user: data.user };
+  } else {
+    recipient = { channel: data.channel };
+    text = (data.user && !data.whisper) ? util.format('%s: ', data.user) : "";
+  }
+
+  recipient = self.formatRecipient(recipient);
+  // TODO: Pull attributes from data.extra.spark before pulling them from data.extra
+  recipient.extra = data.extra;
+  text += self.formatData(data.message);
+
+  // Ignore the delimiter in the default formatter and just concat parts.
+  split_message = utils.splitMessage(text);
+  if (split_message.pretext && split_message.text) {
+    formatted_message = util.format("%s\n%s", split_message.pretext, split_message.text);
+  } else {
+    formatted_message = split_message.pretext || split_message.text;
+  }
+
+  self.robot.messageRoom.call(self.robot, recipient, formatted_message);
+};
+
+// Override this with the original function from DefaultMessagingHandler
+// We do want this one to truncate
+SparkMessagingHandler.prototype.formatData = function(data) {
+  var self = this;
+  return DefaultMessagingHandler.prototype.formatData.call(self, data);
+};
+
+SparkMessagingHandler.prototype.normalizeAddressee = function(msg) {
+  return {
+    name: msg.message.user.name,
+    room: msg.message.user.room
+  };
+};
+
+module.exports = SparkMessagingHandler;

@@ -2,8 +2,7 @@
   "dev": ".",
   "lint": [
     "*.js",
-	"scripts/**/*.js",
-	"lib/**/*.js",
+	"src/**/*.js",
 	"tests/**/*.js"
   ]
 }
