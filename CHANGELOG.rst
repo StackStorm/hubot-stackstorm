@@ -6,6 +6,8 @@ in development
 
 * Move babel-eslint dependency to devDependencies (bug fix)
 * Small refactor and more tests (for `scripts/stackstorm.js`) (improvement)
+* Refactor chat providers into their own modules (improvement)
+* Modernize directory structure to be more consistent with other hubot plugins (improvement)
 
 0.9.6
 -----
