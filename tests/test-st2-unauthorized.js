@@ -61,7 +61,7 @@ describe("auth with invalid st2 API key", function() {
       //done();
     });
 
-    var stackstorm = require("../scripts/stackstorm.js");
+    var stackstorm = require("../src/stackstorm.js");
     stackstorm(robot).then(function (result) {
       stop = result;
       done();
@@ -75,7 +75,7 @@ describe("auth with invalid st2 API key", function() {
     robot.shutdown();
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
-    delete require.cache[require.resolve("../scripts/stackstorm.js")];
+    delete require.cache[require.resolve("../src/stackstorm.js")];
   });
 
   // CAUTION: These tests are brittle - do not move them around, remove

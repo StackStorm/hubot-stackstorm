@@ -19,7 +19,7 @@
 var chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  utils = require('../lib/utils.js'),
+  utils = require('../src/lib/utils.js'),
   env = process.env;
 
 var MOCK_MESSAGE = 'Action st2.sensors.list completed.\nstatus : succeeded \nexecution: 55701c8b0640fd53cdf4f08 \nresult :';

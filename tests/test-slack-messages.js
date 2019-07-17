@@ -19,8 +19,8 @@
 var chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  messages = require('../lib/slack-messages.js'),
-  utils = require('../lib/utils.js');
+  messages = require('../src/lib/slack-messages.js'),
+  utils = require('../src/lib/utils.js');
 
 
 describe('buildMessages', function() {

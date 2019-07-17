@@ -19,7 +19,7 @@
 var chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  formatcommand = require('../lib/format_command.js');
+  formatcommand = require('../src/lib/format_command.js');
 
 describe('format_command', function() {
   it('should create the right format with format and description',

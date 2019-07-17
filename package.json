@@ -63,8 +63,7 @@
   "nyc": {
     "temp-directory": "./coverage/.nyc_output",
     "include": [
-      "lib",
-      "scripts"
+      "src"
     ],
     "exclude": [
       "tests"
@@ -79,7 +78,6 @@
   },
   "files": [
     "/index.js",
-    "/lib",
-    "/scripts"
+    "/src"
   ]
 }

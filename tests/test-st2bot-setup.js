@@ -54,7 +54,7 @@ describe("stanley the StackStorm bot", function() {
     robot.adapter.on("connected", function() {
 
       // Load script under test
-      st2bot = require("../scripts/stackstorm");
+      st2bot = require("../src/stackstorm");
 
       st2bot(robot).then(function(result) {
         stop = result;
