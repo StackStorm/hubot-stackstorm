@@ -74,7 +74,7 @@ describe("SIGUSR2", function () {
     var stackstorm = require("../src/stackstorm.js");
     stackstorm(robot).then(function (stop) {
       expect(debug_spy).to.have.callCount(1);
-      expect(debug_spy).to.have.been.calledWith('Using default post data handler');
+      expect(debug_spy).to.have.been.calledWith('Using default adapter');
       process.emit('SIGUSR2');
       expect(debug_spy).to.have.callCount(2);
       expect(debug_spy).to.have.been.calledWith('Caught SIGUSR2, reloading commands');
