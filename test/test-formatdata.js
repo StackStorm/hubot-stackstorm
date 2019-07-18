@@ -19,7 +19,7 @@
 var chai = require('chai'),
   expect = chai.expect,
   env = process.env,
-  messaging_handler = require('../src/lib/messaging_handler'),
+  adapters = require('../src/lib/adapters'),
   dummyAdapters = require('./dummy-adapters.js'),
   Log = require('log'),
   DummyRobot = require('./dummy-robot.js');
@@ -35,8 +35,8 @@ describe('SlackFormatter', function() {
   var robot = new DummyRobot(false, new MockSlackAdapter(logger));
 
   it('should create a snippet for non-empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('DATA');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('DATA');
     expect(o).to.be.an('string');
     expect(o).to.equal('DATA');
   });
@@ -44,8 +44,8 @@ describe('SlackFormatter', function() {
   it('should truncate text more than a certain length', function() {
     var org_max_length = env.ST2_MAX_MESSAGE_LENGTH;
     env.ST2_MAX_MESSAGE_LENGTH = 10;
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('abcd efgh ijklm');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('abcd efgh ijklm');
     env.ST2_MAX_MESSAGE_LENGTH = org_max_length;
 
     expect(o).to.be.an('string');
@@ -54,42 +54,42 @@ describe('SlackFormatter', function() {
   });
 
   it('should be an empty string for empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('');
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
   it('should echo back recipient', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatRecipient('Estee');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatRecipient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('Estee');
   });
 
   it('should normalize command', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run local \u201cuname -a"');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run local \u201cuname -a"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
   });
 
   it('should normalize command with special double quotes', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote "uname -a" "localhost, 127.0.0.1"');
   });
 
   it('should normalize command with special single quotes', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote \'uname -a\' \'localhost, 127.0.0.1\'');
   });
 
   it('should normalize the addressee', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     var msg = {
       message: {
         room: "SlackRoomName",
@@ -98,7 +98,7 @@ describe('SlackFormatter', function() {
         }
       }
     };
-    var o = messagingHandler.normalizeAddressee(msg);
+    var o = adapter.normalizeAddressee(msg);
     expect(o.name).to.be.an('string');
     expect(o.name).to.equal('SlackUserName');
     expect(o.room).to.be.an('string');
@@ -111,42 +111,42 @@ describe('MattermostFormatter', function() {
   var robot = new DummyRobot('dummy', null, false);
 
   it('should echo back for non-empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('DATA');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('DATA');
     expect(o).to.be.an('string');
     expect(o).to.equal('DATA');
   });
 
   it('should be an empty string for empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('');
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
   it('should correctly format recipient', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatRecipient('Estee');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatRecipient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('Estee');
   });
 
   it('should normalize command with special double quotes', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote "uname -a" "localhost, 127.0.0.1"');
   });
 
   it('should normalize command with special single quotes', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote \'uname -a\' \'localhost, 127.0.0.1\'');
   });
 
   it('should normalize the addressee', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     var msg = {
       message: {
         room: "MattermostRoomName",
@@ -155,7 +155,7 @@ describe('MattermostFormatter', function() {
         }
       }
     };
-    var o = messagingHandler.normalizeAddressee(msg);
+    var o = adapter.normalizeAddressee(msg);
     expect(o.name).to.be.an('string');
     expect(o.name).to.equal('MattermostUserName');
     expect(o.room).to.be.an('string');
@@ -168,49 +168,49 @@ describe('MSTeamsFormatter', function() {
   var robot = new DummyRobot('dummy', null, false);
 
   it('should echo back for non-empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
 
     var str = '\nst2 list actions\n';
-    var o = messagingHandler.formatData(str);
+    var o = adapter.formatData(str);
     expect(o).to.be.an('string');
     expect(o).to.equal('st2 list actions\n');
 
     var str = 'st2 list actions\n\nrun remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"\n';
-    var o = messagingHandler.formatData(str);
+    var o = adapter.formatData(str);
     expect(o).to.be.an('string');
     expect(o).to.equal('st2 list actions\n\nrun remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"\n');
   });
 
   it('should be an empty string for empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('');
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
   it('should correctly format recipient', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatRecipient('Estee');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatRecipient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('Estee');
   });
 
   it('should normalize command by returning it', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote \u201cuname -a" \u201dlocalhost, 127.0.0.1"');
   });
 
   it('should normalize command by returning it', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
     expect(o).to.be.an('string');
     expect(o).to.equal('run remote \u2018uname -a\' \u2019localhost, 127.0.0.1\'');
   });
 
   it('should normalize the addressee', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     var msg = {
       message: {
         room: "MSTeamsRoomName",
@@ -219,7 +219,7 @@ describe('MSTeamsFormatter', function() {
         }
       }
     };
-    var o = messagingHandler.normalizeAddressee(msg);
+    var o = adapter.normalizeAddressee(msg);
     expect(o.name).to.be.an('string');
     expect(o.name).to.equal('MSTeamsUserName');
     expect(o.room).to.be.an('string');
@@ -232,45 +232,45 @@ describe('HipChatFormatter', function() {
   var robot = new DummyRobot('dummy', null, false);
 
   it('should echo back for non-empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('DATA');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('DATA');
     expect(o).to.be.an('string');
     expect(o).to.equal('/code DATA');
   });
 
   it('should be an empty string for empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('');
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
   it('should correctly format recipient', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     env.HUBOT_HIPCHAT_JID = '234x_y234@conf.hipchat.com';
-    var o = messagingHandler.formatRecipient('Estee');
+    var o = adapter.formatRecipient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('234x_Estee@conf.hipchat.com');
   });
 
   it('should correctly format recipient with conf.btf.hipchat.com', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     env.HUBOT_HIPCHAT_JID = '234x_y234@conf.hipchat.com';
     env.HUBOT_HIPCHAT_XMPP_DOMAIN = "btf.hipchat.com";
-    var o = messagingHandler.formatRecipient('Estee');
+    var o = adapter.formatRecipient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('234x_Estee@conf.btf.hipchat.com');
   });
 
   it('should normalize command', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run local "uname -a"');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run local "uname -a"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
   });
 
   it('should normalize the addressee', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     // HipChat packages the room and user name differently
     var msg = {
       message: {
@@ -280,7 +280,7 @@ describe('HipChatFormatter', function() {
         }
       }
     };
-    var o = messagingHandler.normalizeAddressee(msg);
+    var o = adapter.normalizeAddressee(msg);
     expect(o.name).to.be.an('string');
     expect(o.name).to.equal('HipChatUserName');
     expect(o.room).to.be.an('string');
@@ -293,35 +293,35 @@ describe('RocketChatFormatter', function() {
   var robot = new DummyRobot('dummy', null, false);
 
   it('should echo back for non-empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('DATA');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('DATA');
     expect(o).to.be.an('string');
     expect(o).to.equal('DATA');
   });
 
   it('should be an empty string for empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('');
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
   it('should correctly format recipient', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatRecipient('Estee');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatRecipient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('Estee');
   });
 
   it('should normalize command', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run local "uname -a"');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run local "uname -a"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
   });
 
   it('should normalize the addressee', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     var msg = {
       message: {
         room: "RocketChatRoomName",
@@ -330,7 +330,7 @@ describe('RocketChatFormatter', function() {
         }
       }
     };
-    var o = messagingHandler.normalizeAddressee(msg);
+    var o = adapter.normalizeAddressee(msg);
     expect(o.name).to.be.an('string');
     expect(o.name).to.equal('RocketChatUserName');
     expect(o.room).to.be.an('string');
@@ -343,15 +343,15 @@ describe('SparkFormatter', function() {
   var robot = new DummyRobot('dummy', null, false);
 
   it('should echo back for non-empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('DATA');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('DATA');
     expect(o).to.be.an('string');
     expect(o).to.equal('DATA');
   });
 
   it('should be an empty string for empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('');
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
@@ -359,8 +359,8 @@ describe('SparkFormatter', function() {
   it('should truncate text more than a certain length', function() {
     var old_ST2_MAX_MESSAGE_LENGTH = env.ST2_MAX_MESSAGE_LENGTH;
     env.ST2_MAX_MESSAGE_LENGTH = 4;
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('asdfqwerty');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('asdfqwerty');
     expect(o).to.be.an('string');
     expect(o).to.equal('asdf...');
     env.ST2_MAX_MESSAGE_LENGTH = old_ST2_MAX_MESSAGE_LENGTH;
@@ -369,29 +369,29 @@ describe('SparkFormatter', function() {
   it('should not truncate text more than a certain length', function() {
     var old_ST2_MAX_MESSAGE_LENGTH = env.ST2_MAX_MESSAGE_LENGTH;
     env.ST2_MAX_MESSAGE_LENGTH = 0;
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('asdfqwerty');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('asdfqwerty');
     expect(o).to.be.an('string');
     expect(o).to.equal('asdfqwerty');
     env.ST2_MAX_MESSAGE_LENGTH = old_ST2_MAX_MESSAGE_LENGTH;
   });
 
   it('should correctly format recipient', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatRecipient('Estee');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatRecipient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('Estee');
   });
 
   it('should normalize command', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run local "uname -a"');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run local "uname -a"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
   });
 
   it('should normalize the addressee', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     var msg = {
       message: {
         user: {
@@ -400,7 +400,7 @@ describe('SparkFormatter', function() {
         }
       }
     };
-    var o = messagingHandler.normalizeAddressee(msg);
+    var o = adapter.normalizeAddressee(msg);
     expect(o.name).to.be.an('string');
     expect(o.name).to.equal('SparkUserName');
     expect(o.room).to.be.an('string');
@@ -413,8 +413,8 @@ describe('DefaultFormatter', function() {
   var robot = new DummyRobot('dummy', null, false);
 
   it('should create a snippet for non-empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('DATA');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('DATA');
     expect(o).to.be.an('string');
     expect(o).to.equal('DATA');
   });
@@ -422,8 +422,8 @@ describe('DefaultFormatter', function() {
   it('should truncate text more than a certain length', function() {
     var org_max_length = env.ST2_MAX_MESSAGE_LENGTH;
     env.ST2_MAX_MESSAGE_LENGTH = 10;
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('abcd efgh ijklm');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('abcd efgh ijklm');
     env.ST2_MAX_MESSAGE_LENGTH = org_max_length;
 
     expect(o).to.be.an('string');
@@ -433,8 +433,8 @@ describe('DefaultFormatter', function() {
   it('should truncate text more than a certain length', function() {
     var org_max_length = env.ST2_MAX_MESSAGE_LENGTH;
     env.ST2_MAX_MESSAGE_LENGTH = 0;
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('abcd efgh ijklm');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('abcd efgh ijklm');
     env.ST2_MAX_MESSAGE_LENGTH = org_max_length;
 
     expect(o).to.be.an('string');
@@ -442,28 +442,28 @@ describe('DefaultFormatter', function() {
   });
 
   it('should be an empty string for empty', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatData('');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatData('');
     expect(o).to.be.an('string');
     expect(o).to.equal('');
   });
 
   it('should echo back recipient', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.formatRecipient('Estee');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.formatRecipient('Estee');
     expect(o).to.be.an('string');
     expect(o).to.equal('Estee');
   });
 
   it('should normalize command', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
-    var o = messagingHandler.normalizeCommand('run local "uname -a"');
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run local "uname -a"');
     expect(o).to.be.an('string');
     expect(o).to.equal('run local "uname -a"');
   });
 
   it('should normalize the addressee', function() {
-    var messagingHandler = messaging_handler.getMessagingHandler(adapterName, robot);
+    var adapter = adapters.getAdapter(adapterName, robot);
     var msg = {
       message: {
         room: "DefaultRoomName",
@@ -472,7 +472,7 @@ describe('DefaultFormatter', function() {
         }
       }
     };
-    var o = messagingHandler.normalizeAddressee(msg);
+    var o = adapter.normalizeAddressee(msg);
     expect(o.name).to.be.an('string');
     expect(o.name).to.equal('DefaultUserName');
     expect(o.room).to.be.an('string');

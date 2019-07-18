@@ -23,7 +23,7 @@ var chai = require("chai"),
   Robot = require('./dummy-robot.js'),
   dummyAdapters = require('./dummy-adapters.js'),
   Log = require('log'),
-  messaging_handler = require('../src/lib/messaging_handler'),
+  adapters = require('../src/lib/adapters'),
   sinon = require('sinon'),
   sinonChai = require('sinon-chai'),
   util = require('util');
@@ -36,7 +36,7 @@ chai.use(sinonChai);
 describe("slack post data", function() {
   var logger = new Log('info');
   var robot = new Robot(false, new MockSlackAdapter(logger));
-  var messagingHandler = messaging_handler.getMessagingHandler('slack', robot);
+  var adapter = adapters.getAdapter('slack', robot);
 
   env.ST2_SLACK_SUCCESS_COLOR = 'dfdfdf';
   env.ST2_SLACK_FAIL_COLOR = 'danger';
@@ -52,7 +52,7 @@ describe("slack post data", function() {
                            '1'),
       whisper: false
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
@@ -80,7 +80,7 @@ describe("slack post data", function() {
                            '1'),
       whisper: false
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": undefined },
@@ -106,7 +106,7 @@ describe("slack post data", function() {
       message: "NORMAL PRETEXT{~}normal boring text",
       whisper: false
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
@@ -132,7 +132,7 @@ describe("slack post data", function() {
       message: "NORMAL PRETEXT{~}",
       whisper: false
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
@@ -167,7 +167,7 @@ describe("slack post data", function() {
         }
       }
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
@@ -203,7 +203,7 @@ describe("slack post data", function() {
         }
       }
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
       { icon_emoji: ":slack:", username: "SlackBot", attachments: [
@@ -243,7 +243,7 @@ describe("slack post data", function() {
         }
       }
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
@@ -262,7 +262,7 @@ describe("slack post data", function() {
                            '1'),
       whisper: false
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
@@ -290,7 +290,7 @@ describe("slack post data", function() {
       whisper: false
     };
     var chunks = input.message.match(/[\s\S]{1,7900}/g);
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
       {
@@ -335,7 +335,7 @@ describe("slack post data", function() {
                            '1'),
       whisper: true
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "user": "stanley" },
@@ -358,7 +358,7 @@ describe("msteams post data", function () {
   var logMessage;
   var logger = new Log('debug');
   var robot = new Robot(false, new MockBotFrameworkAdapter(logger));
-  var messagingHandler = messaging_handler.getMessagingHandler('botframework', robot);
+  var adapter = adapters.getAdapter('botframework', robot);
 
   it('should just send', function () {
     robot.adapter.send = sinon.spy();
@@ -369,7 +369,7 @@ describe("msteams post data", function () {
       message: "Hello world!"
     };
 
-    messagingHandler.postData(data);
+    adapter.postData(data);
     expect(robot.adapter.send).to.have.been.calledOnce;
     expect(robot.adapter.send).to.have.been.calledWith(data.context, data.message);
   });
@@ -387,7 +387,7 @@ describe("msteams post data", function () {
       message: "Hello world with extra.botframework!"
     };
 
-    messagingHandler.postData(data);
+    adapter.postData(data);
     expect(robot.logger.warning).to.have.been.calledOnce;
     logMessage = util.format('The extra.botframework attribute of aliases is not used yet.');
     expect(robot.logger.warning).to.have.been.calledWith(logMessage);
@@ -407,7 +407,7 @@ describe("msteams post data", function () {
       message: pretext + "{~}" + text
     };
 
-    messagingHandler.postData(data);
+    adapter.postData(data);
     expect(robot.adapter.send).to.have.been.calledWith(data.context, pretext);
     this.clock.tick(500);
     expect(robot.adapter.send).to.have.been.calledWith(data.context, text);
@@ -419,7 +419,7 @@ describe("msteams post data", function () {
 describe("mattermost post data", function() {
   var logger = new Log('info');
   var robot = new Robot(false, new MockSlackAdapter(logger));
-  var messagingHandler = messaging_handler.getMessagingHandler('mattermost', robot);
+  var adapter = adapters.getAdapter('mattermost', robot);
 
   env.ST2_MATTERMOST_SUCCESS_COLOR = 'dfdfdf';
   env.ST2_MATTERMOST_FAIL_COLOR = 'danger';
@@ -434,7 +434,7 @@ describe("mattermost post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.emit).to.have.been.calledOnce;
     expect(robot.emit).to.have.been.calledWith(
       'slack-attachment',
@@ -460,7 +460,7 @@ describe("mattermost post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.emit).to.have.been.calledOnce;
     expect(robot.emit).to.have.been.calledWith(
       'slack-attachment',
@@ -487,7 +487,7 @@ describe("mattermost post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       input.channel,
@@ -508,7 +508,7 @@ describe("mattermost post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.emit).to.have.been.calledOnce;
     expect(robot.emit).to.have.been.calledWith(
       'slack-attachment',
@@ -537,7 +537,7 @@ describe("mattermost post data", function() {
     var user = util.format('@%s: ', input.user),
         chunks = input.message.match(/[\s\S]{1,3800}/g);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.emit).to.have.been.calledWith(
       'slack-attachment',
       {
@@ -588,7 +588,7 @@ describe("mattermost post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.emit).to.have.been.calledOnce;
     expect(robot.emit).to.have.been.calledWith(
       'slack-attachment',
@@ -633,7 +633,7 @@ describe("mattermost post data", function() {
       }
     };
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.emit).to.have.been.calledOnce;
     expect(robot.emit).to.have.been.calledWith(
       'slack-attachment',
@@ -673,7 +673,7 @@ describe("mattermost post data", function() {
       }
     };
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.emit).to.have.been.calledOnce;
     expect(robot.emit).to.have.been.calledWith(
       'slack-attachment',
@@ -698,7 +698,7 @@ describe("mattermost post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.emit).to.have.been.calledOnce;
     expect(robot.emit).to.have.been.calledWith(
       'slack-attachment',
@@ -719,7 +719,7 @@ describe("mattermost post data", function() {
 describe("hipchat post data", function() {
   var logger = new Log('info');
   var robot = new Robot(false, new MockSlackAdapter(logger));
-  var messagingHandler = messaging_handler.getMessagingHandler('hipchat', robot);
+  var adapter = adapters.getAdapter('hipchat', robot);
 
   it('should post to channel', function() {
     this.clock = sinon.useFakeTimers();
@@ -737,7 +737,7 @@ describe("hipchat post data", function() {
         jid = env.HUBOT_HIPCHAT_JID.split("_")[0],
         recipient = util.format('%s_%s@%s', jid, input.channel, 'conf.hipchat.com');
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledWith(recipient, '@stackstorm: ');
     this.clock.tick(500);
     expect(robot.messageRoom).to.have.been.calledWith(recipient, '/code Hello world!');
@@ -760,7 +760,7 @@ describe("hipchat post data", function() {
         jid = env.HUBOT_HIPCHAT_JID.split("_")[0],
         recipient = util.format('%s_%s@%s', jid, input.channel, 'conf.hipchat.com');
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.send).to.have.been.calledOnce;
     expect(robot.send).to.have.been.calledWith(input.channel, '/code Hello world!');
   });
@@ -781,7 +781,7 @@ describe("hipchat post data", function() {
         jid = env.HUBOT_HIPCHAT_JID.split("_")[0],
         recipient = util.format('%s_%s@%s', jid, input.channel, 'conf.hipchat.com');
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledWith(input.channel, '@stackstorm: ');
     this.clock.tick(500);
     expect(robot.messageRoom).to.have.been.calledWith(input.channel, '/code Hello world!');
@@ -805,7 +805,7 @@ describe("hipchat post data", function() {
         jid = env.HUBOT_HIPCHAT_JID.split("_")[0],
         recipient = util.format('%s_%s@%s', jid, input.channel, 'conf.hipchat.com');
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledWith(recipient, '@stackstorm: PRETEXT HEADER');
     this.clock.tick(500);
     expect(robot.messageRoom).to.have.been.calledWith(recipient, '/code Hello world!');
@@ -828,7 +828,7 @@ describe("hipchat post data", function() {
         jid = env.HUBOT_HIPCHAT_JID.split("_")[0],
         recipient = util.format('%s_%s@%s', jid, input.channel, 'conf.hipchat.com');
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(recipient, '@stackstorm: PRETEXT HEADER');
   });
@@ -849,7 +849,7 @@ describe("hipchat post data", function() {
         jid = env.HUBOT_HIPCHAT_JID.split("_")[0],
         recipient = util.format('%s_%s@%s', jid, input.channel, 'conf.hipchat.com');
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.send).to.have.been.calledWith(input.channel, 'PRETEXT HEADER');
     this.clock.tick(500);
     expect(robot.send).to.have.been.calledWith(input.channel, '/code Hello world!');
@@ -861,7 +861,7 @@ describe("hipchat post data", function() {
 describe("spark post data", function() {
   var logger = new Log('info');
   var robot = new Robot(false, new MockSlackAdapter(logger));
-  var messagingHandler = messaging_handler.getMessagingHandler('spark', robot);
+  var adapter = adapters.getAdapter('spark', robot);
 
   it('should post to room and mention a user', function() {
     robot.messageRoom = sinon.spy();
@@ -873,7 +873,7 @@ describe("spark post data", function() {
     };
     var user = util.format('%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
@@ -893,7 +893,7 @@ describe("spark post data", function() {
     };
     var user = util.format('%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
@@ -918,7 +918,7 @@ describe("spark post data", function() {
     };
     var user = util.format('%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
@@ -942,7 +942,7 @@ describe("spark post data", function() {
     };
     var user = util.format('%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
@@ -963,7 +963,7 @@ describe("spark post data", function() {
     };
     var user = util.format('%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
@@ -978,7 +978,7 @@ describe("spark post data", function() {
 describe("rocketchat post data", function() {
   var logger = new Log('info');
   var robot = new Robot(false, new MockSlackAdapter(logger));
-  var messagingHandler = messaging_handler.getMessagingHandler('rocketchat', robot);
+  var adapter = adapters.getAdapter('rocketchat', robot);
 
   env.ST2_ROCKETCHAT_SUCCESS_COLOR = 'success';
   env.ST2_ROCKETCHAT_FAIL_COLOR = 'danger';
@@ -993,7 +993,7 @@ describe("rocketchat post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       input.channel,
@@ -1010,7 +1010,7 @@ describe("rocketchat post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       input.channel,
@@ -1031,7 +1031,7 @@ describe("rocketchat post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
@@ -1059,7 +1059,7 @@ describe("rocketchat post data", function() {
     var user = util.format('@%s: ', input.user),
         chunks = input.message.match(/[\s\S]{1,7900}/g);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
       {
@@ -1106,7 +1106,7 @@ describe("rocketchat post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
@@ -1141,7 +1141,7 @@ describe("rocketchat post data", function() {
       }
     };
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
@@ -1178,7 +1178,7 @@ describe("rocketchat post data", function() {
       }
     };
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       'stanley',
@@ -1207,7 +1207,7 @@ describe("rocketchat post data", function() {
     };
     var user = util.format('@%s: ', input.user);
 
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
@@ -1226,7 +1226,7 @@ describe("rocketchat post data", function() {
 
 describe("default post data", function() {
   var robot = new Robot(false);
-  var messagingHandler = messaging_handler.getMessagingHandler('default', robot);
+  var adapter = adapters.getAdapter('default', robot);
 
   it('should send proper args to robot.messageRoom', function() {
     robot.messageRoom = sinon.spy();
@@ -1239,7 +1239,7 @@ describe("default post data", function() {
                            '1'),
       whisper: false
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
@@ -1255,7 +1255,7 @@ describe("default post data", function() {
       message: util.format('NORMAL PRETEXT{~}normal boring text'),
       whisper: false
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',
@@ -1274,7 +1274,7 @@ describe("default post data", function() {
                            '1'),
       whisper: true
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       'stanley',
@@ -1292,7 +1292,7 @@ describe("default post data", function() {
                            '1'),
       whisper: true
     };
-    messagingHandler.postData(input);
+    adapter.postData(input);
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       '#stackstorm',

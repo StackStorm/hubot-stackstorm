@@ -20,14 +20,14 @@ var utils = require('./../utils');
 var truncate = require('truncate');
 
 
-function DefaultMessagingHandler(robot) {
+function DefaultAdapter(robot) {
   var self = this;
   self.robot = robot;
   // Limit the size of a message.
   self.truncate_length = env.ST2_MAX_MESSAGE_LENGTH;
 };
 
-DefaultMessagingHandler.prototype.postData = function(data) {
+DefaultAdapter.prototype.postData = function(data) {
   var self = this;
   var recipient, split_message, formatted_message,
       text = "";
@@ -53,7 +53,7 @@ DefaultMessagingHandler.prototype.postData = function(data) {
   self.robot.messageRoom.call(self.robot, recipient, formatted_message);
 };
 
-DefaultMessagingHandler.prototype.formatData = function(data) {
+DefaultAdapter.prototype.formatData = function(data) {
   var self = this;
 
   if (utils.isNull(data)) {
@@ -71,19 +71,19 @@ DefaultMessagingHandler.prototype.formatData = function(data) {
   return data;
 };
 
-DefaultMessagingHandler.prototype.formatRecipient = function(recipient) {
+DefaultAdapter.prototype.formatRecipient = function(recipient) {
   return recipient;
 };
 
-DefaultMessagingHandler.prototype.normalizeCommand = function(command) {
+DefaultAdapter.prototype.normalizeCommand = function(command) {
   return command;
 };
 
-DefaultMessagingHandler.prototype.normalizeAddressee = function(msg) {
+DefaultAdapter.prototype.normalizeAddressee = function(msg) {
   return {
     name: msg.message.user.name,
     room: msg.message.room
   };
 };
 
-module.exports = DefaultMessagingHandler;
+module.exports = DefaultAdapter;

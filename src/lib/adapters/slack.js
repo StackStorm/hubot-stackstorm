@@ -18,14 +18,14 @@ var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
 var messages = require('./../slack-messages');
-var DefaultMessagingHandler = require('./default');
+var DefaultAdapter = require('./default');
 
 
 // NOTE: Be careful about making changes to this adapter, because the adapters
 //       for Mattermost, Cisco Spark, and Rocketchat all inherit from this one
-function SlackMessagingHandler(robot) {
+function SlackAdapter(robot) {
   var self = this;
-  DefaultMessagingHandler.call(self, robot);
+  DefaultAdapter.call(self, robot);
 
   // We monkey patch sendMessage function to send "parse" argument with the message so the text is not
   // formatted and parsed on the server side.
@@ -57,9 +57,9 @@ function SlackMessagingHandler(robot) {
   }
 };
 
-util.inherits(SlackMessagingHandler, DefaultMessagingHandler);
+util.inherits(SlackAdapter, DefaultAdapter);
 
-SlackMessagingHandler.prototype.postData = function(data) {
+SlackAdapter.prototype.postData = function(data) {
   var self = this;
 
   var recipient, attachment_color, split_message,
@@ -224,7 +224,7 @@ SlackMessagingHandler.prototype.postData = function(data) {
   }
 };
 
-SlackMessagingHandler.prototype.formatData = function(data) {
+SlackAdapter.prototype.formatData = function(data) {
   if (utils.isNull(data)) {
     return "";
   }
@@ -233,13 +233,13 @@ SlackMessagingHandler.prototype.formatData = function(data) {
   return data;
 };
 
-SlackMessagingHandler.prototype.formatRecipient = function(recipient) {
+SlackAdapter.prototype.formatRecipient = function(recipient) {
   return recipient;
 };
 
-SlackMessagingHandler.prototype.normalizeCommand = function(command) {
+SlackAdapter.prototype.normalizeCommand = function(command) {
   var self = this;
-  command = SlackMessagingHandler.super_.prototype.normalizeCommand.call(self, command);
+  command = SlackAdapter.super_.prototype.normalizeCommand.call(self, command);
   // replace left double quote with regular quote
   command = command.replace(/\u201c/g, '\u0022');
   // replace right double quote with regular quote
@@ -251,4 +251,4 @@ SlackMessagingHandler.prototype.normalizeCommand = function(command) {
   return command;
 };
 
-module.exports = SlackMessagingHandler;
+module.exports = SlackAdapter;

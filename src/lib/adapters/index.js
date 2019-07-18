@@ -21,24 +21,24 @@ var path = require('path');
 
 var filenames = fs.readdirSync(__dirname);
 
-var messagingHandlers = {};
+var adapters = {};
 
 filenames.forEach(function(filename) {
   if (filename === 'index.js') {
     return;
   }
 
-  var message_handler = filename.replace(/\.[^\.]+$/, "");
-  messagingHandlers[message_handler] = require(path.join(__dirname, filename));
+  var adapterName = filename.replace(/\.[^\.]+$/, "");
+  adapters[adapterName] = require(path.join(__dirname, filename));
 });
 
-module.exports.getMessagingHandler = function(adapterName, robot) {
-  if (!(adapterName in messagingHandlers)) {
+module.exports.getAdapter = function(adapterName, robot) {
+  if (!(adapterName in adapters)) {
     robot.logger.warning(
-      util.format('No post handler found for %s. Using DefaultFormatter.', adapterName));
+      util.format('No adapter found for %s. Using DefaultAdapter.', adapterName));
     adapterName = 'default';
   }
   robot.logger.debug(
-    util.format('Using %s post data handler', adapterName));
-  return new messagingHandlers[adapterName](robot);
+    util.format('Using %s adapter', adapterName));
+  return new adapters[adapterName](robot);
 };

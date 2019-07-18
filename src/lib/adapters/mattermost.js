@@ -17,17 +17,17 @@
 var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
-var SlackMessagingHandler = require('./slack');
+var SlackAdapter = require('./slack');
 
 
-function MattermostMessagingHandler(robot) {
+function MattermostAdapter(robot) {
   var self = this;
-  SlackMessagingHandler.call(self, robot);
+  SlackAdapter.call(self, robot);
 }
 
-util.inherits(MattermostMessagingHandler, SlackMessagingHandler);
+util.inherits(MattermostAdapter, SlackAdapter);
 
-MattermostMessagingHandler.prototype.postData = function(data) {
+MattermostAdapter.prototype.postData = function(data) {
   var self = this;
 
   var recipient, attachment_color, split_message,
@@ -105,4 +105,4 @@ MattermostMessagingHandler.prototype.postData = function(data) {
   }
 };
 
-module.exports = MattermostMessagingHandler;
+module.exports = MattermostAdapter;

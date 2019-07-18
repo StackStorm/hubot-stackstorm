@@ -17,17 +17,17 @@
 var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
-var DefaultMessagingHandler = require('./default');
+var DefaultAdapter = require('./default');
 
 
-function HipChatMessagingHandler(robot) {
+function HipChatAdapter(robot) {
   var self = this;
-  DefaultMessagingHandler.call(self, robot);
+  DefaultAdapter.call(self, robot);
 };
 
-util.inherits(HipChatMessagingHandler, DefaultMessagingHandler);
+util.inherits(HipChatAdapter, DefaultAdapter);
 
-HipChatMessagingHandler.prototype.postData = function(data) {
+HipChatAdapter.prototype.postData = function(data) {
   var self = this;
 
   var recipient, split_message, formatted_message,
@@ -67,7 +67,7 @@ HipChatMessagingHandler.prototype.postData = function(data) {
   }
 };
 
-HipChatMessagingHandler.prototype.formatData = function(data) {
+HipChatAdapter.prototype.formatData = function(data) {
   if (utils.isNull(data)) {
     return "";
   }
@@ -75,18 +75,18 @@ HipChatMessagingHandler.prototype.formatData = function(data) {
   return '/code ' + data;
 };
 
-HipChatMessagingHandler.prototype.formatRecipient = function(recipient) {
+HipChatAdapter.prototype.formatRecipient = function(recipient) {
   var robot_name = env.HUBOT_HIPCHAT_JID.split("_")[0];
   var hipchat_domain = (env.HUBOT_HIPCHAT_XMPP_DOMAIN === 'btf.hipchat.com') ?
                        'conf.btf.hipchat.com' : 'conf.hipchat.com';
   return util.format('%s_%s@%s', robot_name, recipient, hipchat_domain);
 };
 
-HipChatMessagingHandler.prototype.normalizeAddressee = function(msg) {
+HipChatAdapter.prototype.normalizeAddressee = function(msg) {
   return {
     name: msg.message.user.mention_name,
     room: msg.message.user.jid
   };
 };
 
-module.exports = HipChatMessagingHandler;
+module.exports = HipChatAdapter;

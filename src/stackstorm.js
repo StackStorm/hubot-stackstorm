@@ -36,7 +36,7 @@ var _ = require('lodash'),
   utils = require('./lib/utils.js'),
   formatCommand = require('./lib/format_command.js'),
   CommandFactory = require('./lib/command_factory.js'),
-  messaging_handler = require('./lib/messaging_handler'),
+  adapters = require('./lib/adapters'),
   st2client = require('st2client'),
   uuid = require('uuid')
   ;
@@ -191,8 +191,8 @@ module.exports = function(robot) {
   // factory to manage commands
   var command_factory = new CommandFactory(robot);
 
-  // messaging handler - specific to each chat provider
-  var messagingHandler = messaging_handler.getMessagingHandler(robot.adapterName, robot);
+  // adapter - specific to each chat provider
+  var adapter = adapters.getAdapter(robot.adapterName, robot);
 
   var loadCommands = function() {
     robot.logger.info('Loading commands....');
@@ -269,14 +269,14 @@ module.exports = function(robot) {
           return sendAck(msg, { execution: { id: err.message } });
         }
         robot.logger.error('Failed to create an alias execution:', err);
-        var addressee = messagingHandler.normalizeAddressee(msg);
+        var addressee = adapter.normalizeAddressee(msg);
         var message = util.format(_.sample(ERROR_MESSAGES), err.message);
         if (err.requestId) {
           message = util.format(
             message,
             util.format('; Use request ID %s to grep st2 api logs.', err.requestId));
         }
-        messagingHandler.postData({
+        adapter.postData({
           whisper: false,
           user: addressee.name,
           channel: addressee.room,
@@ -289,7 +289,7 @@ module.exports = function(robot) {
   };
 
   var executeCommand = function(msg, command_name, format_string, command, action_alias) {
-    var addressee = messagingHandler.normalizeAddressee(msg);
+    var addressee = adapter.normalizeAddressee(msg);
     var payload = {
       'name': command_name,
       'format': format_string,
@@ -327,7 +327,7 @@ module.exports = function(robot) {
 
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
-    command = messagingHandler.normalizeCommand(msg.match[1]);
+    command = adapter.normalizeCommand(msg.match[1]);
 
     result = command_factory.getMatchingCommand(command);
 
@@ -350,7 +350,7 @@ module.exports = function(robot) {
       } else {
         data = req.body;
       }
-      messagingHandler.postData(data);
+      adapter.postData(data);
 
       res.send('{"status": "completed", "msg": "Message posted successfully"}');
     } catch (e) {
@@ -384,7 +384,7 @@ module.exports = function(robot) {
           data = e.data;
         }
 
-        messagingHandler.postData(data);
+        adapter.postData(data);
       });
 
       if (env.HUBOT_2FA) {

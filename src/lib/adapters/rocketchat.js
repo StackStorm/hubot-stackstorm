@@ -17,17 +17,17 @@
 var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
-var SlackMessagingHandler = require('./slack');
+var SlackAdapter = require('./slack');
 
 
-function RocketChatMessagingHandler(robot) {
+function RocketChatAdapter(robot) {
   var self = this;
-  SlackMessagingHandler.call(self, robot);
+  SlackAdapter.call(self, robot);
 }
 
-util.inherits(RocketChatMessagingHandler, SlackMessagingHandler);
+util.inherits(RocketChatAdapter, SlackAdapter);
 
-RocketChatMessagingHandler.prototype.postData = function(data) {
+RocketChatAdapter.prototype.postData = function(data) {
   var self = this;
 
   var recipient, attachment_color, split_message,
@@ -81,4 +81,4 @@ RocketChatMessagingHandler.prototype.postData = function(data) {
   }
 };
 
-module.exports = RocketChatMessagingHandler;
+module.exports = RocketChatAdapter;

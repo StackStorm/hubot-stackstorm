@@ -17,17 +17,17 @@
 var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
-var DefaultMessagingHandler = require('./default');
+var DefaultAdapter = require('./default');
 
 
-function MSTeamsMessagingHandler(robot) {
+function MSTeamsAdapter(robot) {
   var self = this;
-  DefaultMessagingHandler.call(self, robot);
+  DefaultAdapter.call(self, robot);
 }
 
-util.inherits(MSTeamsMessagingHandler, DefaultMessagingHandler);
+util.inherits(MSTeamsAdapter, DefaultAdapter);
 
-MSTeamsMessagingHandler.prototype.postData = function(data) {
+MSTeamsAdapter.prototype.postData = function(data) {
   var self = this;
   var messages_to_send,
       // We capture robot here so the `sendMessage` closure captures the
@@ -62,7 +62,7 @@ MSTeamsMessagingHandler.prototype.postData = function(data) {
   return;
 }
 
-MSTeamsMessagingHandler.prototype.formatData = function(data) {
+MSTeamsAdapter.prototype.formatData = function(data) {
   var self = this;
 
   self.robot.logger.debug("Got data in formatData: " + JSON.stringify(data));
@@ -75,25 +75,25 @@ MSTeamsMessagingHandler.prototype.formatData = function(data) {
   return data;
 };
 
-MSTeamsMessagingHandler.prototype.formatRecipient = function(recipient) {
+MSTeamsAdapter.prototype.formatRecipient = function(recipient) {
   var self = this;
 
   self.robot.logger.debug("Got recipient in formatRecipient: " + JSON.stringify(recipient));
   return recipient;
 };
 
-MSTeamsMessagingHandler.prototype.normalizeCommand = function (command) {
+MSTeamsAdapter.prototype.normalizeCommand = function (command) {
   var self = this;
 
   self.robot.logger.debug("Got command in normalizeCommand: " + JSON.stringify(command));
   return command;
 }
 
-MSTeamsMessagingHandler.prototype.normalizeAddressee = function(msg) {
+MSTeamsAdapter.prototype.normalizeAddressee = function(msg) {
   return {
     name: msg.message.user.name,
     room: msg.message.room
   };
 };
 
-module.exports = MSTeamsMessagingHandler;
+module.exports = MSTeamsAdapter;

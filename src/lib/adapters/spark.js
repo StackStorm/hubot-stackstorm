@@ -17,18 +17,18 @@
 var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
-var DefaultMessagingHandler = require('./default');
-var SlackMessagingHandler = require('./slack');
+var DefaultAdapter = require('./default');
+var SlackAdapter = require('./slack');
 
 
-function SparkMessagingHandler(robot) {
+function SparkAdapter(robot) {
   var self = this;
-  SlackMessagingHandler.call(self, robot);
+  SlackAdapter.call(self, robot);
 }
 
-util.inherits(SparkMessagingHandler, SlackMessagingHandler);
+util.inherits(SparkAdapter, SlackAdapter);
 
-SparkMessagingHandler.prototype.postData = function(data) {
+SparkAdapter.prototype.postData = function(data) {
   var self = this;
 
   var recipient, split_message, formatted_message,
@@ -57,18 +57,18 @@ SparkMessagingHandler.prototype.postData = function(data) {
   self.robot.messageRoom.call(self.robot, recipient, formatted_message);
 };
 
-// Override this with the original function from DefaultMessagingHandler
+// Override this with the original function from DefaultAdapter
 // We do want this one to truncate
-SparkMessagingHandler.prototype.formatData = function(data) {
+SparkAdapter.prototype.formatData = function(data) {
   var self = this;
-  return DefaultMessagingHandler.prototype.formatData.call(self, data);
+  return DefaultAdapter.prototype.formatData.call(self, data);
 };
 
-SparkMessagingHandler.prototype.normalizeAddressee = function(msg) {
+SparkAdapter.prototype.normalizeAddressee = function(msg) {
   return {
     name: msg.message.user.name,
     room: msg.message.user.room
   };
 };
 
-module.exports = SparkMessagingHandler;
+module.exports = SparkAdapter;
