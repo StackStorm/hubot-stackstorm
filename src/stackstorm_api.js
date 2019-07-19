@@ -476,10 +476,10 @@ StackStorm.prototype.stop = function () {
   var self = this;
 
   clearInterval(self.commands_load_interval);
-  if (self.st2stream) {
-    self.st2stream.removeAllListeners();
-    self.st2stream.close();
-  }
+  self.api_client.stream.listen().then(function (second_st2stream) {
+    second_st2stream.removeAllListeners();
+    second_st2stream.close();
+  });
 };
 
 
