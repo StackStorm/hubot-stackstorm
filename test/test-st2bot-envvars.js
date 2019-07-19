@@ -33,16 +33,26 @@ describe("environment variable configuration", function () {
   var restore_env = null,
     debug_spy = sinon.spy(robot.logger, 'debug'),
     info_spy = sinon.spy(robot.logger, 'info'),
+    warning_spy = sinon.spy(robot.logger, 'warning'),
     error_spy = sinon.spy(robot.logger, 'error');
+
+  before(function() {
+    // Remove stackstorm.js from the require cache
+    // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
+    delete require.cache[require.resolve("../src/stackstorm.js")];
+    delete require.cache[require.resolve("../src/stackstorm_api.js")];
+  });
 
   afterEach(function() {
     restore_env && restore_env();
     error_spy.resetHistory();
+    warning_spy.resetHistory();
     info_spy.resetHistory();
     debug_spy.resetHistory();
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../src/stackstorm.js")];
+    delete require.cache[require.resolve("../src/stackstorm_api.js")];
     if (robot) {
       robot.shutdown();
       if (robot.server) {
@@ -55,14 +65,17 @@ describe("environment variable configuration", function () {
     // Mock process.env for all modules
     // https://glebbahmutov.com/blog/mocking-process-env/
     restore_env = mockedEnv({
-      ST2_API: 'https://nonexistent-st2-auth-url:9101'
+      ST2_API: 'https://nonexistent-st2-auth-url:9101',
+      ST2_AUTH_URL: 'localhost:8000',
+      ST2_AUTH_USERNAME: 'user',
+      ST2_AUTH_PASSWORD: 'pass'
     });
 
     // Load script under test
     var stackstorm = require("../src/stackstorm.js");
     stackstorm(robot).then(function (stop) {
-      expect(robot.logger.logs.warning).to.have.length.above(0);
-      expect(robot.logger.logs.warning).to.contain(
+      expect(warning_spy.args).length.to.be.above(0);
+      expect(warning_spy).to.have.been.calledWith(
         'ST2_API is deprecated and will be removed in a future releases. Instead, please use the '+
         'ST2_API_URL environment variable.');
 
@@ -70,7 +83,7 @@ describe("environment variable configuration", function () {
 
       done();
     }).catch(function (err) {
-      console.log(err);
+      console.error(err);
       done(err);
     });
   });
@@ -79,6 +92,9 @@ describe("environment variable configuration", function () {
     // Mock process.env for all modules
     // https://glebbahmutov.com/blog/mocking-process-env/
     restore_env = mockedEnv({
+      ST2_AUTH_URL: 'localhost:8000',
+      ST2_AUTH_USERNAME: 'user',
+      ST2_AUTH_PASSWORD: 'pass',
       HUBOT_2FA: 'true'
     });
 
@@ -87,13 +103,12 @@ describe("environment variable configuration", function () {
     stackstorm(robot).then(function (stop) {
       expect(info_spy.args).length.to.be.above(1);
       expect(info_spy).to.have.been.calledWith('Two-factor auth is enabled');
-      expect(info_spy).to.have.been.calledWith('Loading commands....');
 
       stop();
 
       done();
     }).catch(function (err) {
-      console.log(err);
+      console.error(err);
       done(err);
     });
   });

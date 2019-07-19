@@ -51,6 +51,7 @@ describe("invalid st2 credential configuration", function() {
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../src/stackstorm.js")];
+    delete require.cache[require.resolve("../src/stackstorm_api.js")];
   });
 
   it("should error out with missing auth URL", function(done) {
@@ -63,13 +64,8 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var stackstorm = require("../src/stackstorm.js");
-    try {
-      stackstorm(robot);
-      done(new Error("The previous code should have thrown an exception"))
-    } catch (err) {
-      expect(err.message).to.equal("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
-      done();
-    }
+    expect(stackstorm.bind(this, robot)).to.throw("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
+    done();
   });
 
   it("should error out with missing auth username", function(done) {
@@ -82,13 +78,8 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var stackstorm = require("../src/stackstorm.js");
-    try {
-      stackstorm(robot);
-      done(new Error("The previous code should have thrown an exception"))
-    } catch (err) {
-      expect(err.message).to.equal("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
-      done();
-    }
+    expect(stackstorm.bind(this, robot)).to.throw("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
+    done();
   });
 
 
@@ -102,16 +93,13 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var stackstorm = require("../src/stackstorm.js");
-    try {
-      stackstorm(robot);
-      done(new Error("The previous code should have thrown an exception"))
-    } catch (err) {
-      expect(err.message).to.equal("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
-      done();
-    }
+    expect(stackstorm.bind(this, robot)).to.throw("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
+    done();
   });
 
   it("should throw exception with bad auth URL", function(done) {
+    // Mock process.env for all modules
+    // https://glebbahmutov.com/blog/mocking-process-env/
     restore_env = mockedEnv({
       ST2_AUTH_URL: 'https://nonexistent-st2-auth-url:9101',
       ST2_AUTH_USERNAME: 'nonexistent-st2-auth-username',
@@ -120,7 +108,9 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var i, stackstorm = require("../src/stackstorm.js");
-    stackstorm(robot).catch(function (err) {
+    stackstorm(robot).then(function (result) {
+      done(new Error("The previous code should have thrown an exception"));
+    }).catch(function (err) {
       expect(error_spy.args).to.have.lengthOf(1);
       expect(error_spy.args[0][0]).to.be.a('string');
       expect(error_spy.args[0][0]).to.startWith('Failed to authenticate');
