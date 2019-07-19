@@ -5,7 +5,9 @@ in development
 --------------
 
 * Move babel-eslint dependency to devDependencies (bug fix)
-* Small refactor and more tests (for `scripts/stackstorm.js`) (improvement)
+* Small refactor and more tests (for ``scripts/stackstorm.js``) (improvement)
+* Refactor chat providers into their own modules (improvement)
+* Modernize directory structure to be more consistent with other hubot plugins (improvement)
 
 0.9.6
 -----
@@ -13,7 +15,7 @@ in development
 
 0.9.5
 -----
-* Exit hubot on invalid, expired `ST2_API_KEY` / `ST2_AUTH_TOKEN` or any other Unauthorized response from st2 server (bug fix)
+* Exit hubot on invalid, expired ``ST2_API_KEY`` / ``ST2_AUTH_TOKEN`` or any other Unauthorized response from st2 server (bug fix)
 * When st2 username/password is used, re-generate st2 auth token in advance, giving enough time for request to complete, st2client.js (bug fix)
 
 0.9.4
@@ -28,7 +30,7 @@ in development
 
 0.9.2
 -----
-* Rename ENV variable `ST2_API` -> `ST2_API_URL` for consistency, keep `ST2_API` for backwards compatibility (improvement)
+* Rename ENV variable ``ST2_API`` -> ``ST2_API_URL`` for consistency, keep ``ST2_API`` for backwards compatibility (improvement)
 
 0.9.1
 -----

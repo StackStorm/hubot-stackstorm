@@ -24,7 +24,7 @@ gulp.task('lint', () => gulp.src(settings.lint, { cwd: settings.dev })
   .pipe(plugins.eslint.format())
 );
 
-gulp.task('test', () => gulp.src('tests/**/*.js', { read: false })
+gulp.task('test', () => gulp.src('test/**/*.js', { read: false })
     .pipe(plugins.mocha({ reporter: 'spec' }))
 );
 

@@ -25,11 +25,11 @@ var fs = require('fs'),
     path = require("path"),
     Robot = require("hubot/src/robot"),
     TextMessage = require("hubot/src/message").TextMessage,
-    CommandFactory = require('../lib/command_factory.js'),
-    formatCommand = require('../lib/format_command.js'),
-    utils = require('../lib/utils.js');
+    CommandFactory = require('../src/lib/command_factory.js'),
+    formatCommand = require('../src/lib/format_command.js'),
+    utils = require('../src/lib/utils.js');
 
-var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
+var ALIAS_FIXTURES = fs.readFileSync('test/fixtures/aliases.json');
 ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
 
 var disableLogger = true,
@@ -59,7 +59,7 @@ describe("two-factor auth module", function() {
     robot.adapter.on("connected", function() {
 
       // Load script under test
-      st2bot = require("../scripts/stackstorm");
+      st2bot = require("../src/stackstorm");
 
       st2bot(robot).then(function(result) {
         stop = result;

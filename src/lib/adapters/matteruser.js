@@ -12,27 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var fs = require('fs');
-var path = require('path');
+"use strict";
 
-var SCRIPTS_PATH = path.resolve(__dirname, 'src');
-
-
-module.exports = function(robot, scripts) {
-  var filenames;
-
-  if (!fs.existsSync(SCRIPTS_PATH)) {
-    return null;
-  }
-
-  filenames = fs.readdirSync(SCRIPTS_PATH);
-
-  filenames.forEach(function(filename) {
-    if (scripts && scripts.indexOf('*') === -1 && scripts.indexOf(filename) !== -1) {
-      robot.loadFile(SCRIPTS_PATH, filename);
-    }
-    else {
-      robot.loadFile(SCRIPTS_PATH, filename);
-    }
-  });
-};
+module.exports = require('./mattermost');

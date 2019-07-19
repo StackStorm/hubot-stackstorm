@@ -20,12 +20,12 @@ var fs = require('fs'),
   chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  CommandFactory = require('../lib/command_factory.js'),
+  CommandFactory = require('../src/lib/command_factory.js'),
   Robot = require('./dummy-robot.js'),
-  formatCommand = require('../lib/format_command.js'),
-  utils = require('../lib/utils.js');
+  formatCommand = require('../src/lib/format_command.js'),
+  utils = require('../src/lib/utils.js');
 
-var ALIAS_FIXTURES = fs.readFileSync('tests/fixtures/aliases.json');
+var ALIAS_FIXTURES = fs.readFileSync('test/fixtures/aliases.json');
 ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
 
 

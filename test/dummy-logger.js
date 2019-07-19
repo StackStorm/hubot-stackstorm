@@ -12,27 +12,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var fs = require('fs');
-var path = require('path');
-
-var SCRIPTS_PATH = path.resolve(__dirname, 'src');
+"use strict";
 
 
-module.exports = function(robot, scripts) {
-  var filenames;
 
-  if (!fs.existsSync(SCRIPTS_PATH)) {
-    return null;
-  }
+function Logger(enabled) {
+  this.enabled = enabled;
+  this.logs = {
+    error: [],
+    warning: [],
+    info: [],
+    debug: []
+  };
 
-  filenames = fs.readdirSync(SCRIPTS_PATH);
-
-  filenames.forEach(function(filename) {
-    if (scripts && scripts.indexOf('*') === -1 && scripts.indexOf(filename) !== -1) {
-      robot.loadFile(SCRIPTS_PATH, filename);
+  this.error = function(msg) {
+    if (this.enabled) {
+      this.logs.error.push(msg);
     }
-    else {
-      robot.loadFile(SCRIPTS_PATH, filename);
+  };
+
+  this.warning = function(msg) {
+    if (this.enabled) {
+      this.logs.warning.push(msg);
     }
-  });
-};
+  };
+
+  this.info = function(msg) {
+    if (this.enabled) {
+      this.logs.info.push(msg);
+    }
+  };
+
+  this.debug = function(msg) {
+    if (this.enabled) {
+      this.logs.debug.push(msg);
+    }
+  };
+}
+
+module.exports = Logger;
