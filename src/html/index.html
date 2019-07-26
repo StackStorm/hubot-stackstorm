@@ -1,0 +1,261 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.css">
+	<style>
+		.ui.card:first-child {
+			margin: 1em auto;
+		}
+	</style>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-serialize-object/2.5.0/jquery.serialize-object.min.js"></script>
+	<script>
+		function get_uuid_from_querystring(){
+			uuid = undefined;
+			params = window.location.href.split("?");
+			if (params.length > 1) {
+				params = params[1].split("&")
+				for (p in params) {
+					kv = params[p].split("=")
+					if (kv.length == 2 && kv[0] == "uuid") {
+						uuid = kv[1];
+					}
+				}
+			}
+			return uuid
+		}
+
+		function update_message(title, message, state="neutral"){
+			states = {
+				"neutral": "ui message",
+				"warning": "ui orange message",
+				"critical": "ui red message",
+				"error": "ui red message",
+				"success":  "ui green message"
+			}
+			if (! state in Object.keys(states)) {
+				state = "neutral"
+			}
+			$("#header").text(title);
+			$("#message").text(message);
+			$("#info").attr("class", states[state.toLowerCase()]);
+		}
+
+		$(document).ready(function() {
+			// {"authenticated": false, "message": "Invalid session id '0707ef8c-84ab-41d0-8eda-a729e9eb4567'", "return_code": 2}
+			$.fn.api.settings.api = {
+				"login"      : "/hubot/auth/{uuid}",
+				"user_token" : "/hubot/auth/{uuid}",
+				"api_key"    : "/hubot/auth/{uuid}"
+			}
+			uuid = get_uuid_from_querystring();
+
+			if (uuid) {
+				$("#login > .ui.button").api({
+					action: "login",
+					method: "POST",
+					urlData: {
+						uuid: uuid
+					},
+					serializeForm: true,
+					beforeXHR: function(xhr) {
+						xhr.setRequestHeader("Content-Type", "appication/json");
+					},
+					beforeSend: function(settings) {
+						settings.data = JSON.stringify({
+							"secret_word": $("#login input[name=secret_word]").val(),
+							"username": $("#login input[name=username]").val(),
+							"password": $("#login input[name=password]").val()
+						});
+						return settings;
+					},
+					successTest: function(response){
+						return response.authenticated
+					},
+					onSuccess: function(response) {
+						update_message(
+							"Association successful",
+							response.message,
+							"success"
+						);
+					},
+					onFailure: function(response) {
+						update_message(
+							"Association failed",
+							response.message,
+							"error"
+						);
+					}
+				});
+				$("#user_token > .ui.button").api({
+					action: "user_token",
+					method: "POST",
+					urlData: {
+						uuid: uuid
+					},
+					serializeForm: true,
+					beforeXHR: function(xhr) {
+						xhr.setRequestHeader("Content-Type", "appication/json");
+					},
+					beforeSend: function(settings) {
+						settings.data = JSON.stringify({
+							"secret_word": $("#login input[name=secret_word]").val(),
+							"username": $("#login input[name=user_token]").val(),
+						});
+						return settings;
+					},
+					successTest: function(response){
+						return response.authenticated
+					},
+					onSuccess: function(response) {
+						update_message(
+							"Association successful",
+							response.message,
+							"success"
+						);
+					},
+					onFailure: function(response) {
+						update_message(
+							"Association failed",
+							response.message,
+							"error"
+						);
+					}
+				});
+				$("#api_key > .ui.button").api({
+					action: "api_key",
+					method: "POST",
+					urlData: {
+						uuid: uuid
+					},
+					serializeForm: true,
+					beforeXHR: function(xhr) {
+						xhr.setRequestHeader("Content-Type", "appication/json");
+					},
+					beforeSend: function(settings) {
+						settings.data = JSON.stringify({
+							"secret_word": $("#login input[name=secret_word]").val(),
+							"username": $("#login input[name=api_key]").val(),
+						});
+						return settings;
+					},
+					successTest: function(response){
+						return response.authenticated
+					},
+					onSuccess: function(response) {
+						update_message(
+							"Association successful",
+							response.message,
+							"success"
+						);
+					},
+					onFailure: function(response) {
+						update_message(
+							"Association failed",
+							response.message,
+							"error"
+						);
+					}
+				});
+			} else {
+				$('.ui.form').form({
+					onSuccess: function(event) {
+						event.preventDefault();
+						console.log("Form submission prevented.");
+					}
+				});
+				update_message(
+					"Important!",
+					"An invalid UUID was supplied in the url.  Check it was entered correctly or request a new authentication.",
+					"warning"
+				);
+			}
+
+			// Required initialisation for accordion.
+			$('.ui.accordion').accordion();
+		});
+	</script>
+</head>
+
+<body>
+	<div class="ui container">
+		<div class="ui card">
+
+			<div class="content">
+				<div class="right floated meta">
+					<img class="left floated mini ui image" src="st2_logo.png">
+					<i class="exchange icon large"></i>
+					<img class="right floated mini ui image" src="hubot_logo.png">
+				</div>
+				<div class="header">ChatOps Authentication</div>
+				<div class="meta">Associate your StackStorm token/key with your chat account.</div>
+			</div>
+
+			<div class="content">
+				<div class="ui styled accordion">
+					<div class="active title">
+						<i class="dropdown icon"></i>
+						<i class="user icon"></i> Username/password
+					</div>
+					<div class="active content">
+						<form class="ui form" id="login" method="post" enctype="application/json">
+							<div class="field">
+								<input type="text" name="secret_word" placeholder="Chat secret word">
+							</div>
+							<div class="field">
+								<input type="text" name="username" placeholder="StackStorm username">
+							</div>
+							<div class="field">
+								<input type="password" name="password" placeholder="StackStorm password">
+							</div>
+							<button class="ui button" type="submit">Submit</button>
+						</form>
+					</div>
+					<div class="title">
+						<i class="dropdown icon"></i>
+						<i class="ticket icon"></i> User Token
+					</div>
+					<div class="content">
+						<form class="ui form" id="user_token" method="post" enctype="application/json">
+							<div class="field">
+								<input type="text" name="secret_word" placeholder="Chat secret word">
+							</div>
+							<div class="field">
+								<input type="text" name="user_token" placeholder="User Token">
+							</div>
+							<button class="ui button" type="submit">Submit</button>
+						</form>
+					</div>
+					<div class="title">
+						<i class="dropdown icon"></i>
+						<i class="key icon"></i> API Key
+					</div>
+					<div class="content">
+						<form class="ui form" id="api_key" method="post" enctype="application/json">
+							<div class="field">
+								<input type="text" name="secret_word" placeholder="Chat secret word">
+							</div>
+							<div class="field">
+								<input type="text" name="api_key" placeholder="API key">
+							</div>
+							<button class="ui button" type="submit">Submit</button>
+						</form>
+					</div>
+				</div>
+				<!-- accordion -->
+			</div>
+			<div class="content">
+				<div id="info" class="ui message">
+					<div id="header" class="header">
+						Status
+					</div>
+					<p id="message">Waiting for user credential submission.</p>
+				</div>
+			</div>
+		</div>
+		<!-- cards -->
+	</div>
+	<!-- container -->
+</body>
+</html>

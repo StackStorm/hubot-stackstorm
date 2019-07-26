@@ -14,6 +14,7 @@
 
 "use strict";
 
+var _ = require('lodash');
 var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
@@ -59,9 +60,47 @@ function SlackAdapter(robot) {
 
 util.inherits(SlackAdapter, DefaultAdapter);
 
-SlackAdapter.prototype.postData = function(data) {
+SlackAdapter.prototype.getUserId = function (user_object) {
   var self = this;
 
+  return user_object.id;
+};
+
+SlackAdapter.prototype.getUsername = function (user_object) {
+  var self = this;
+
+  return user_object.name;
+};
+
+SlackAdapter.prototype.getUserFullName = function (user_object) {
+  var self = this;
+
+  return user_object.real_name;
+};
+
+SlackAdapter.prototype.getPrivateRoom = function (user_object) {
+  var self = this;
+
+  return user_object;
+};
+
+SlackAdapter.prototype.isPrivateRoom = function (obj) {
+  let room = obj;
+  if (obj.hasOwnProperty('room')) {
+    room = obj.room;
+  }
+  return room.startsWith('D');
+};
+
+SlackAdapter.prototype.sendPrivateMessage = function(user, message) {
+  var self = this;
+  var envelope = _.clone(user);
+  envelope.room = user.id;
+  return self.robot.adapter.client.send(envelope, message);
+};
+
+SlackAdapter.prototype.postData = function(data) {
+  var self = this;
   var recipient, attachment_color, split_message,
       attachment, pretext = "";
   var envelope,

@@ -38,6 +38,8 @@ var _ = require('lodash'),
   CommandFactory = require('./lib/command_factory.js'),
   adapters = require('./lib/adapters'),
   st2client = require('st2client'),
+  OutOfBandAuthenticationSession = require('./lib/auth/session'),
+  OutOfBandAuthenticationSessionStore = require('./lib/auth/session_store'),
   uuid = require('uuid')
   ;
 
@@ -109,6 +111,52 @@ function StackStorm(robot) {
   self.st2stream = null;
 
   self.two_factor_authorization_enabled = env.HUBOT_2FA || false;
+
+  // Hubot's brain and datastore both store information in cleartext. That data
+  // is also easily accessible to other hubot plugins. So instead of storing it
+  // there, for a first attempt at authentication session storage, just store
+  // it in a private variable in this object.
+  var oobAuthSessions = new OutOfBandAuthenticationSessionStore(self.robot.logger);
+
+  this.getOobAuthSessionByUserId = function (userId) {
+    return oobAuthSessions.getByUserId(userId);
+  };
+
+  this.getOobAuthSessionByUuId = function (uuid) {
+    return oobAuthSessions.getByUuid(uuid);
+  };
+
+  this.createOobAuthSession = function (userId, userSecret, data) {
+    let session = new OutOfBandAuthenticationSession(userId, userSecret, data);
+    return oobAuthSessions.put(session).id();
+  };
+
+  this.deleteOobAuthSession = function (userId) {
+    oobAuthSessions.delete(userId);
+  };
+
+  // Hubot's brain and datastore both store information in cleartext. That data
+  // is also easily accessible to other hubot plugins. So instead of storing it
+  // there, for a first attempt at user credential storage, just store it in a
+  // private variable in this object.
+  var userCredentials = {};
+
+  // Privileged functions that can access the userCredentials private data
+  this.storeUserAuthToken = function (userId, userAuthToken) {
+    userCredentials[userId] = {
+      token: userAuthToken
+    };
+  };
+
+  this.storeUserApiKey = function (userId, storeUserApiKey) {
+    userCredentials[userId] = {
+      key: userUserApiKey
+    };
+  };
+
+  this.getUserCredentials = function (userId) {
+    return userCredentials[userId];
+  };
 
 
   // Makes the script crash on unhandled rejections instead of ignoring them and keep running.
@@ -414,8 +462,97 @@ StackStorm.prototype.install_sigusr2_handler = function () {
   });
 };
 
+StackStorm.prototype.setupChatOpsAuth = function () {
+  var self = this;
+
+  self.robot.respond(/auth\s*$/i, function (res) {
+    let privateRoom = self.adapter.getPrivateRoom(res.envelope.user);
+    if (!self.adapter.isPrivateRoom(res.envelope)) {
+      res.reply('You can only authenticate from a private room');
+
+      let privateRoomMessage = ('You can begin ChatOps authentication here in this private room.');
+      self.adapter.sendPrivateMessage(privateRoom, privateRoomMessage);
+      return;
+    }
+
+    res.reply('Please provide a secret word to use for ChatOps authentication.');
+  });
+
+  self.robot.respond(/auth\s+([\S\s]+?)\s*$/i, function (res) {
+    let privateRoom = self.adapter.getPrivateRoom(res.envelope.user);
+    if (!self.adapter.isPrivateRoom(res.envelope)) {
+      res.reply('You can only authenticate from a private room');
+
+      let privateRoomMessage = ('You can begin ChatOps authentication here in this private room.\n'+
+                                '\n'+
+                                'Please use a secret word other than "'+
+                                res.match[1]+
+                                '", since was exposed in a public room.');
+      self.adapter.sendPrivateMessage(privateRoom, privateRoomMessage);
+      return;
+    }
+
+    let userId = self.adapter.getUserId(res.envelope.user);
+
+    // If a session already exists, delete it
+    let previousSession = self.getOobAuthSessionByUserId(userId);
+    if (previousSession) {
+      self.deleteOobAuthSession(userId);
+    }
+
+    // Create an authentication session
+    let sessionId = self.createOobAuthSession(userId, res.match[1]);
+
+    let secretMessageTemplate =  _.template(
+      'This is the secret link to your ChatOps authentication page:\n'+
+      'https://${ST2_HOSTNAME}/chatops/auth/index.html?uuid=${uuid}\n'+
+      '\n'+
+      'Your secret word is: `${userSecret}`\n'+
+      '\n'+
+      'Please do NOT share them with anybody.');
+    let secretMessage = secretMessageTemplate({
+      ST2_HOSTNAME: env.ST2_HOSTNAME,
+      uuid: sessionId,
+      userSecret: res.match[1]
+    });
+    self.adapter.sendPrivateMessage(privateRoom, secretMessage);
+  });
+
+  self.robot.router.post('/hubot/auth/:uuid', function (req, res) {
+    console.log('params:');
+    console.log(req.params);
+    console.log('req.body:');
+    console.log(req.body);
+    let session = self.getOobAuthSessionByUuId(req.params.uuid);
+    if (!session) {
+      self.robot.logger.debug('Invalid session ID "' + session.id() + '".');
+      throw Error('Session invalid');
+    }
+    console.log(Object(session));
+    session.unseal();
+
+    if (!req.body || !req.body.secret_word) {
+      throw Error('Bad POST request');
+    }
+
+    if (!session.matchSecret(req.body.secret_word)) {
+      throw Error('Invalid credentials');
+    }
+
+    self.robot.logger.debug('Matched chat user ' + session.userId + ' for credential association');
+
+    if (!req.body.username || !req.body.password) {
+      throw Error('Invalid credentials');
+    }
+
+    res.send('OK');
+  });
+};
+
 StackStorm.prototype.start = function () {
   var self = this;
+
+  self.setupChatOpsAuth();
 
   self.api_client.stream.listen().catch(function (err) {
     self.robot.logger.error('Unable to connect to stream:', err);

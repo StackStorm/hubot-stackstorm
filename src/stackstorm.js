@@ -29,7 +29,9 @@
 
 "use strict";
 
+var _ = require('lodash');
 var env = process.env;
+var fs = require('fs');
 var StackStormApi = require('./stackstorm_api');
 
 module.exports = function (robot) {
