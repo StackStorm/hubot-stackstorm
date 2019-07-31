@@ -30,7 +30,7 @@
 "use strict";
 
 var env = process.env;
-var StackStormApi = require('./stackstorm_api');
+var StackStormApi = require('./lib/stackstorm_api');
 
 module.exports = function (robot) {
   var stackstormApi = new StackStormApi(robot);
