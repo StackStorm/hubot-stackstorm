@@ -27,6 +27,14 @@ function MockSlackAdapter(logger) {
     this.client = new MockSlackClient(logger);
 }
 
+function MockMattermostAdapter(logger) {
+    this.logger = logger;
+}
+
+MockMattermostAdapter.prototype.send = function(envelope, message) {
+    this.logger.debug('Sending ' + JSON.stringify(message) + ' to ' + JSON.stringify(envelope));
+};
+
 function MockBotFrameworkAdapter(logger) {
     this.logger = logger;
 }
@@ -35,5 +43,8 @@ MockBotFrameworkAdapter.prototype.send = function(envelope, message) {
     this.logger.info('Sending ' + JSON.stringify(message) + ' to ' + JSON.stringify(envelope));
 };
 
-module.exports.MockSlackAdapter =  MockSlackAdapter;
-module.exports.MockBotFrameworkAdapter =  MockBotFrameworkAdapter;
+module.exports = {
+    MockSlackAdapter: MockSlackAdapter,
+    MockMattermostAdapter: MockMattermostAdapter,
+    MockBotFrameworkAdapter:  MockBotFrameworkAdapter
+};
