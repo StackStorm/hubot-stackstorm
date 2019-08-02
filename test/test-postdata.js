@@ -29,6 +29,7 @@ var chai = require("chai"),
   util = require('util');
 
 var MockSlackAdapter = dummyAdapters.MockSlackAdapter;
+var MockMattermostAdapter = dummyAdapters.MockMattermostAdapter;
 var MockBotFrameworkAdapter = dummyAdapters.MockBotFrameworkAdapter;
 
 chai.use(sinonChai);
@@ -147,26 +148,26 @@ describe("slack post data", function() {
                               'succeeded',
                               '1'),
         input = {
-      user: 'stanley',
-      channel: '#stackstorm',
-      message: message,
-      whisper: false,
-      extra: {
-        slack: {
-          icon_emoji: ":slack:",
-          username: "SlackBot",
-          attachments: [
-            {
-              color: "dfdfdf",
-              mrkdwn_in: ["text","pretext"],
-              pretext: "@stanley: ",
-              text: message,
-              fallback: message
+          user: 'stanley',
+          channel: '#stackstorm',
+          message: message,
+          whisper: false,
+          extra: {
+            slack: {
+              icon_emoji: ":slack:",
+              username: "SlackBot",
+              attachments: [
+                {
+                  color: "dfdfdf",
+                  mrkdwn_in: ["text","pretext"],
+                  pretext: "@stanley: ",
+                  text: message,
+                  fallback: message
+                }
+              ]
             }
-          ]
-        }
-      }
-    };
+          }
+        };
     adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
@@ -183,26 +184,26 @@ describe("slack post data", function() {
                               'succeeded',
                               '1'),
         input = {
-      user: 'stanley',
-      channel: '#stackstorm',
-      message: message,
-      whisper: false,
-      extra: {
-        slack: {
-          icon_emoji: ":slack:",
-          username: "SlackBot",
-          attachments: [
-            {
-              color: "5fff5f",
-              text: 'A'+(new Array(3500).join('B'))+'C'
-            }, {
-              color: "ff5f5f",
-              text: 'X'+(new Array(3500).join('Y'))+'Z'
+          user: 'stanley',
+          channel: '#stackstorm',
+          message: message,
+          whisper: false,
+          extra: {
+            slack: {
+              icon_emoji: ":slack:",
+              username: "SlackBot",
+              attachments: [
+                {
+                  color: "5fff5f",
+                  text: 'A'+(new Array(3500).join('B'))+'C'
+                }, {
+                  color: "ff5f5f",
+                  text: 'X'+(new Array(3500).join('Y'))+'Z'
+                }
+              ]
             }
-          ]
-        }
-      }
-    };
+          }
+        };
     adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledWith(
       { "id": "#stackstorm", "room": "#stackstorm", "user": "stanley" },
@@ -228,21 +229,21 @@ describe("slack post data", function() {
                               'succeeded',
                               '1'),
         input = {
-      user: 'stanley',
-      channel: '#stackstorm',
-      message: message,
-      whisper: false,
-      extra: {
-        color: "e5e5e5",
-        slack: {
-          color: "dfdfdf",
-          mrkdwn_in: ["text","pretext"],
-          pretext: "@stanley: ",
-          text: message,
-          fallback: message
-        }
-      }
-    };
+          user: 'stanley',
+          channel: '#stackstorm',
+          message: message,
+          whisper: false,
+          extra: {
+            color: "e5e5e5",
+            slack: {
+              color: "dfdfdf",
+              mrkdwn_in: ["text","pretext"],
+              pretext: "@stanley: ",
+              text: message,
+              fallback: message
+            }
+          }
+        };
     adapter.postData(input);
     expect(robot.adapter.client.send).to.have.been.calledOnce;
     expect(robot.adapter.client.send).to.have.been.calledWith(
@@ -418,14 +419,14 @@ describe("msteams post data", function () {
 
 describe("mattermost post data", function() {
   var logger = new Log('info');
-  var robot = new Robot(false, new MockSlackAdapter(logger));
+  var robot = new Robot(false, new MockMattermostAdapter(logger));
   var adapter = adapters.getAdapter('mattermost', robot);
 
   env.ST2_MATTERMOST_SUCCESS_COLOR = 'dfdfdf';
   env.ST2_MATTERMOST_FAIL_COLOR = 'danger';
 
   it('should post to room and mention a user', function() {
-    robot.emit = sinon.spy();
+    robot.adapter.send = sinon.spy();
     var input = {
       user: 'stanley',
       channel: '#stackstorm',
@@ -435,24 +436,27 @@ describe("mattermost post data", function() {
     var user = util.format('@%s: ', input.user);
 
     adapter.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledOnceWith(
       {
-        attachments: {
-          color: env.ST2_MATTERMOST_SUCCESS_COLOR,
-          fallback: "normal boring text",
-          mrkdwn_in: ["text", "pretext"],
-          text: "normal boring text"
+        room: '#stackstorm'
+      },
+      {
+        props: {
+          attachments: [
+            {
+              color: env.ST2_MATTERMOST_SUCCESS_COLOR,
+              fallback: "normal boring text",
+              mrkdwn_in: ["text", "pretext"],
+              text: "normal boring text"
+            }
+          ]
         },
-        room: input.channel,
-        text: user + "NORMAL PRETEXT"
-      }
-    );
+        message: user + "NORMAL PRETEXT"
+      });
   });
 
   it('should post to room and not mention a user', function() {
-    robot.emit = sinon.spy();
+    robot.adapter.send = sinon.spy();
     var input = {
       channel: '#stackstorm',
       message: util.format('NORMAL PRETEXT{~}normal boring text'),
@@ -461,20 +465,23 @@ describe("mattermost post data", function() {
     var user = util.format('@%s: ', input.user);
 
     adapter.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledOnceWith(
       {
-        attachments: {
-          color: env.ST2_MATTERMOST_SUCCESS_COLOR,
-          fallback: "normal boring text",
-          mrkdwn_in: ["text", "pretext"],
-          text: "normal boring text"
+        room: input.channel
+      },
+      {
+        props: {
+          attachments: [
+            {
+              color: env.ST2_MATTERMOST_SUCCESS_COLOR,
+              fallback: "normal boring text",
+              mrkdwn_in: ["text", "pretext"],
+              text: "normal boring text"
+            }
+          ]
         },
-        room: input.channel,
-        text: "NORMAL PRETEXT"
-      }
-    );
+        message: "NORMAL PRETEXT"
+      });
   });
 
   it('should just post messgae with pretext to room', function() {
@@ -496,7 +503,7 @@ describe("mattermost post data", function() {
   });
 
   it('should post success formatted slack attachment', function() {
-    robot.emit = sinon.spy();
+    robot.adapter.send = sinon.spy();
     var input = {
       user: 'stanley',
       channel: '#stackstorm',
@@ -509,25 +516,28 @@ describe("mattermost post data", function() {
     var user = util.format('@%s: ', input.user);
 
     adapter.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledOnceWith(
       {
-        attachments: {
-          color: env.ST2_MATTERMOST_SUCCESS_COLOR,
-          fallback: input.message,
-          mrkdwn_in: ["text", "pretext"],
-          text: input.message
+        room: input.channel
+      },
+      {
+        props: {
+          attachments: [
+            {
+              color: env.ST2_MATTERMOST_SUCCESS_COLOR,
+              fallback: input.message,
+              mrkdwn_in: ["text", "pretext"],
+              text: input.message
+            }
+          ]
         },
-        room: input.channel,
-        text: user
-      }
-    );
+        message: user
+      });
   });
 
   it('should split a long attachment into chunks', function() {
     this.clock = sinon.useFakeTimers();
-    robot.emit = sinon.spy();
+    robot.adapter.send = sinon.spy();
     var input = {
       user: 'stanley',
       channel: '#stackstorm',
@@ -538,155 +548,167 @@ describe("mattermost post data", function() {
         chunks = input.message.match(/[\s\S]{1,3800}/g);
 
     adapter.postData(input);
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledWith(
       {
-        attachments: {
-          color: env.ST2_MATTERMOST_SUCCESS_COLOR,
-          fallback: input.message,
-          mrkdwn_in: ["text", "pretext"],
-          text: chunks[0],
-          fallback: chunks[0]
+        room: input.channel
+      },
+      {
+        props: {
+          attachments: [
+            {
+              color: env.ST2_MATTERMOST_SUCCESS_COLOR,
+              fallback: chunks[0],
+              mrkdwn_in: ["text", "pretext"],
+              text: chunks[0]
+            }
+          ]
         },
-        room: input.channel,
-        text: user
-      }
-    );
+        message: user
+      });
     this.clock.tick(500);
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledWith(
       {
-        attachments: {
-          color: env.ST2_MATTERMOST_SUCCESS_COLOR,
-          fallback: input.message,
-          mrkdwn_in: ["text", "pretext"],
-          text: chunks[1],
-          fallback: chunks[1]
+        room: input.channel
+      },
+      {
+        props: {
+          attachments: [
+            {
+              color: env.ST2_MATTERMOST_SUCCESS_COLOR,
+              fallback: chunks[1],
+              mrkdwn_in: ["text", "pretext"],
+              text: chunks[1]
+            }
+          ]
         },
-        room: input.channel,
-        text: user
-      }
-    );
-    expect(robot.emit).to.have.been.calledTwice;
+        message: user
+      });
+    this.clock.tick(500);
+    expect(robot.adapter.send).to.have.been.calledTwice;
     this.clock.restore();
   });
 
   it('should post success with custom color', function() {
-    robot.emit = sinon.spy();
+    robot.adapter.send = sinon.spy();
     var message = util.format('%s\nstatus : %s\nexecution: %s',
                               'Short message',
                               'succeeded',
                               '1'),
         input = {
-      user: 'stanley',
-      channel: '#stackstorm',
-      message: message,
-      whisper: false,
-      extra: {
-        color: 'CUSTOM_COLOR'
-      }
-    };
+          user: 'stanley',
+          channel: '#stackstorm',
+          message: message,
+          whisper: false,
+          extra: {
+            color: 'CUSTOM_COLOR'
+          }
+        };
     var user = util.format('@%s: ', input.user);
 
     adapter.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledOnceWith(
       {
-        attachments: {
-          color: 'CUSTOM_COLOR',
-          fallback: input.message,
-          mrkdwn_in: ["text", "pretext"],
-          text: input.message
+        room: '#stackstorm'
+      },
+      {
+        props: {
+          attachments: [
+            {
+              color: 'CUSTOM_COLOR',
+              fallback: input.message,
+              mrkdwn_in: ["text", "pretext"],
+              text: input.message
+            }
+          ],
         },
-        room: input.channel,
-        text: user
-      }
-    );
+        message: user
+      });
   });
 
   it('should post success formatted slack attachment with extra', function() {
-    robot.emit = sinon.spy();
+    robot.adapter.send = sinon.spy();
     var message = util.format('%s\nstatus : %s\nexecution: %s',
                               'Short message',
                               'succeeded',
                               '1'),
         input = {
-      user: 'stanley',
-      channel: '#stackstorm',
-      message: message,
-      whisper: false,
-      extra: {
-        mattermost: {
-          icon_emoji: ":mattermost:",
-          username: "MattermostBot",
-          attachments: [
-            {
-              color: "dfdfdf",
-              mrkdwn_in: ["text","pretext"],
-              pretext: "@stanley: ",
-              text: message,
-              fallback: message
+          user: 'stanley',
+          channel: '#stackstorm',
+          message: message,
+          whisper: false,
+          extra: {
+            mattermost: {
+              icon_emoji: ":mattermost:",
+              username: "MattermostBot",
+              attachments: [
+                {
+                  color: "dfdfdf",
+                  mrkdwn_in: ["text","pretext"],
+                  pretext: "@stanley: ",
+                  text: message,
+                  fallback: message
+                }
+              ]
             }
-          ]
-        }
-      }
-    };
+          }
+        };
 
     adapter.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledOnceWith(
       {
-        attachments: input.extra.mattermost.attachments,
-        room: input.channel,
-        text: "@stanley: "
-      }
-    );
+        room: input.channel
+      },
+      {
+        props: {
+          attachments: input.extra.mattermost.attachments
+        },
+        message: "@stanley: "
+      });
   });
 
   it('should whisper a slack-attachment', function() {
-    robot.emit = sinon.spy();
+    robot.adapter.send = sinon.spy();
     var message = util.format('%s\nstatus : %s\nexecution: %s',
                               'Short message',
                               'succeeded',
                               '1'),
         input = {
-      user: 'stanley',
-      channel: '#stackstorm',
-      message: message,
-      whisper: true,
-      extra: {
-        mattermost: {
-          icon_emoji: ":mattermost:",
-          username: "MattermostBot",
-          attachments: [
-            {
-              color: "dfdfdf",
-              mrkdwn_in: ["text","pretext"],
-              pretext: "@stanley: ",
-              text: message,
-              fallback: message
+          user: 'stanley',
+          channel: '#stackstorm',
+          message: message,
+          whisper: true,
+          extra: {
+            mattermost: {
+              icon_emoji: ":mattermost:",
+              username: "MattermostBot",
+              attachments: [
+                {
+                  color: "dfdfdf",
+                  mrkdwn_in: ["text","pretext"],
+                  pretext: "@stanley: ",
+                  text: message,
+                  fallback: message
+                }
+              ]
             }
-          ]
-        }
-      }
-    };
+          }
+        };
 
     adapter.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledOnceWith(
       {
-        attachments: input.extra.mattermost.attachments,
-        room: input.user,
-        text: ''
-      }
-    );
+        room: input.user
+      },
+      {
+        props: {
+          attachments: input.extra.mattermost.attachments,
+        },
+        message: ''
+      });
   });
 
   it('should post fail formatted slack attachment', function() {
-    robot.emit = sinon.spy();
+    robot.adapter.send = sinon.spy();
     var input = {
       user: 'stanley',
       channel: '#stackstorm',
@@ -699,20 +721,23 @@ describe("mattermost post data", function() {
     var user = util.format('@%s: ', input.user);
 
     adapter.postData(input);
-    expect(robot.emit).to.have.been.calledOnce;
-    expect(robot.emit).to.have.been.calledWith(
-      'slack-attachment',
+    expect(robot.adapter.send).to.have.been.calledOnceWith(
       {
-        attachments: {
-          color: env.ST2_MATTERMOST_FAIL_COLOR,
-          fallback: input.message,
-          mrkdwn_in: ["text", "pretext"],
-          text: input.message
+        room: input.channel
+      },
+      {
+        props: {
+          attachments: [
+            {
+              color: env.ST2_MATTERMOST_FAIL_COLOR,
+              fallback: input.message,
+              mrkdwn_in: ["text", "pretext"],
+              text: input.message
+            }
+          ]
         },
-        room: input.channel,
-        text: user
-      }
-    );
+        message: user
+      });
   });
 });
 
