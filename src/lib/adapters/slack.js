@@ -18,14 +18,14 @@ var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
 var messages = require('./../slack-messages');
-var DefaultAdapter = require('./default');
+var SlackLikeAdapter = require('./slack-like');
 
 
 // NOTE: Be careful about making changes to this adapter, because the adapters
 //       for Mattermost, Cisco Spark, and Rocketchat all inherit from this one
 function SlackAdapter(robot) {
   var self = this;
-  DefaultAdapter.call(self, robot);
+  SlackLikeAdapter.call(self, robot);
 
   // We monkey patch sendMessage function to send "parse" argument with the message so the text is not
   // formatted and parsed on the server side.
@@ -57,7 +57,7 @@ function SlackAdapter(robot) {
   }
 };
 
-util.inherits(SlackAdapter, DefaultAdapter);
+util.inherits(SlackAdapter, SlackLikeAdapter);
 
 SlackAdapter.prototype.postData = function(data) {
   var self = this;
@@ -222,33 +222,6 @@ SlackAdapter.prototype.postData = function(data) {
   } else {
     self.robot.adapter.client.send(envelope, pretext + split_message.pretext);
   }
-};
-
-SlackAdapter.prototype.formatData = function(data) {
-  if (utils.isNull(data)) {
-    return "";
-  }
-  // For slack we do not truncate or format the result. This is because
-  // data is posted to slack as a message attachment.
-  return data;
-};
-
-SlackAdapter.prototype.formatRecipient = function(recipient) {
-  return recipient;
-};
-
-SlackAdapter.prototype.normalizeCommand = function(command) {
-  var self = this;
-  command = SlackAdapter.super_.prototype.normalizeCommand.call(self, command);
-  // replace left double quote with regular quote
-  command = command.replace(/\u201c/g, '\u0022');
-  // replace right double quote with regular quote
-  command = command.replace(/\u201d/g, '\u0022');
-  // replace left single quote with regular apostrophe
-  command = command.replace(/\u2018/g, '\u0027');
-  // replace right single quote with regular apostrophe
-  command = command.replace(/\u2019/g, '\u0027');
-  return command;
 };
 
 module.exports = SlackAdapter;

@@ -17,15 +17,15 @@
 var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
-var DefaultAdapter = require('./default');
+var SlackLikeAdapter = require('./slack-like');
 
 
 function MattermostAdapter(robot) {
   var self = this;
-  DefaultAdapter.call(self, robot);
+  SlackLikeAdapter.call(self, robot);
 }
 
-util.inherits(MattermostAdapter, DefaultAdapter);
+util.inherits(MattermostAdapter, SlackLikeAdapter);
 
 MattermostAdapter.prototype.postData = function(data) {
   var self = this;

@@ -89,11 +89,4 @@ MSTeamsAdapter.prototype.normalizeCommand = function (command) {
   return command;
 }
 
-MSTeamsAdapter.prototype.normalizeAddressee = function(msg) {
-  return {
-    name: msg.message.user.name,
-    room: msg.message.room
-  };
-};
-
 module.exports = MSTeamsAdapter;
