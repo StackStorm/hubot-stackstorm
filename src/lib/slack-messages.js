@@ -16,6 +16,11 @@
 
 var utils = require('./utils.js');
 
+// NOTE: This is being reused between the Slack adapter and the Mattermost
+//       adapter. If we need to tweak it for Mattermost, we should refactor it
+//       into a class, then inherit from it and override specific methods in
+//       Mattermost adapter.
+
 var buildMessagesWithChunkedFieldValue = function (msg) {
   var msgs;
 
