@@ -87,7 +87,7 @@ MattermostAdapter.prototype.postData = function(data) {
 
       attachment = {
         room: recipient,
-        attachments: content.attachments ? content.attachments : content,
+        attachments: content.attachments ? content.attachments : [content],
         // There is likely a bug here - `split_message.text` being a true-y
         // value does not imply that `split_message.pretext` is also non-empty,
         // but we unconditionally set `text` to
