@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+0.9.7
+-----
+* Fix Mattermost adapter [PR #193] (bug fix)
+
 0.9.6
 -----
 * Don't consider failed alias execution as a critical reason to exit hubot (bug fix)
