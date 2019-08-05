@@ -4,13 +4,13 @@ Changelog
 in development
 --------------
 
-* Move babel-eslint dependency to devDependencies (bug fix)
-* Small refactor and more tests (for ``scripts/stackstorm.js``) (improvement)
-* Refactor chat providers into their own modules (improvement)
-* Modernize directory structure to be more consistent with other hubot plugins
+* Move babel-eslint dependency to devDependencies [PR #180] (bug fix)
+* Small refactor and more tests (for ``scripts/stackstorm.js``) [PR #185] (improvement)
+* Refactor chat providers into their own modules [PR #186] (improvement)
+* Modernize directory structure to be more consistent with other hubot plugins [PR #186, PR #191]
   (improvement)
 * Split out the functionality of ``src/stackstorm.js`` into ``stackstorm_api.js`` and refactor it
-  to be a JS old style class with a wrapper (improvement)
+  to be a JS old style class with a wrapper [PR #187, PR #190] (improvement)
 
 0.9.6
 -----
