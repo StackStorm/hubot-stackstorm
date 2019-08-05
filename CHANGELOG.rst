@@ -10,7 +10,7 @@ in development
 * Modernize directory structure to be more consistent with other hubot plugins
   (improvement)
 * Split out the functionality of ``src/stackstorm.js`` into ``stackstorm_api.js`` and refactor it
-  be a JS old style class with a wrapper (improvement)
+  to be a JS old style class with a wrapper (improvement)
 
 0.9.6
 -----
