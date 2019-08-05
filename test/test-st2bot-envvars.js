@@ -40,7 +40,7 @@ describe("environment variable configuration", function () {
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../src/stackstorm.js")];
-    delete require.cache[require.resolve("../src/stackstorm_api.js")];
+    delete require.cache[require.resolve("../src/lib/stackstorm_api.js")];
   });
 
   afterEach(function() {
@@ -52,7 +52,7 @@ describe("environment variable configuration", function () {
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../src/stackstorm.js")];
-    delete require.cache[require.resolve("../src/stackstorm_api.js")];
+    delete require.cache[require.resolve("../src/lib/stackstorm_api.js")];
     if (robot) {
       robot.shutdown();
       if (robot.server) {
