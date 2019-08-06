@@ -18,15 +18,15 @@ var env = process.env;
 var util = require('util');
 var utils = require('./../utils');
 var DefaultAdapter = require('./default');
-var SlackAdapter = require('./slack');
+var SlackLikeAdapter = require('./slack-like');
 
 
 function SparkAdapter(robot) {
   var self = this;
-  SlackAdapter.call(self, robot);
+  SlackLikeAdapter.call(self, robot);
 }
 
-util.inherits(SparkAdapter, SlackAdapter);
+util.inherits(SparkAdapter, SlackLikeAdapter);
 
 SparkAdapter.prototype.postData = function(data) {
   var self = this;

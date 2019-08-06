@@ -4,11 +4,13 @@ Changelog
 in development
 --------------
 
-* Move babel-eslint dependency to devDependencies (bug fix)
-* Small refactor and more tests (for ``scripts/stackstorm.js``) (improvement)
-* Refactor chat providers into their own modules (improvement)
-* Modernize directory structure to be more consistent with other hubot plugins (improvement)
-* Split out the functionality of ``src/stackstorm.js`` into ``stackstorm_api.js`` and refactor it be a JS old style class with a wrapper (improvement)
+* Move babel-eslint dependency to devDependencies [PR #180] (bug fix)
+* Small refactor and more tests (for ``scripts/stackstorm.js``) [PR #185] (improvement)
+* Refactor chat providers into their own modules [PR #186] (improvement)
+* Modernize directory structure to be more consistent with other hubot plugins [PR #186, PR #191]
+  (improvement)
+* Split out the functionality of ``src/stackstorm.js`` into ``stackstorm_api.js`` and refactor it
+  to be a JS old style class with a wrapper [PR #187, PR #190] (improvement)
 
 0.9.6
 -----
@@ -16,12 +18,15 @@ in development
 
 0.9.5
 -----
-* Exit hubot on invalid, expired ``ST2_API_KEY`` / ``ST2_AUTH_TOKEN`` or any other Unauthorized response from st2 server (bug fix)
-* When st2 username/password is used, re-generate st2 auth token in advance, giving enough time for request to complete, st2client.js (bug fix)
+* Exit hubot on invalid, expired ``ST2_API_KEY`` / ``ST2_AUTH_TOKEN`` or any other Unauthorized
+  response from st2 server (bug fix)
+* When st2 username/password is used, re-generate st2 auth token in advance, giving enough time for
+  request to complete, st2client.js (bug fix)
 
 0.9.4
 -----
-* Exit hubot on unhandled promise rejections and uncaught exceptions, usually caused by unrecoverable errors (bug fix)
+* Exit hubot on unhandled promise rejections and uncaught exceptions, usually caused by
+  unrecoverable errors (bug fix)
 * Add pagination support for action aliases - fixes #158 (bug fix)
 
 0.9.3
@@ -31,7 +36,8 @@ in development
 
 0.9.2
 -----
-* Rename ENV variable ``ST2_API`` -> ``ST2_API_URL`` for consistency, keep ``ST2_API`` for backwards compatibility (improvement)
+* Rename ENV variable ``ST2_API`` -> ``ST2_API_URL`` for consistency, keep ``ST2_API`` for
+  backwards compatibility (improvement)
 
 0.9.1
 -----
@@ -105,7 +111,8 @@ in development
 0.2.2
 -----
 
-* Log a better error message if we fail to load the commands because of the StackStorm API unavailability.
+* Log a better error message if we fail to load the commands because of the StackStorm API
+  unavailability.
 
 0.2.1
 -----
