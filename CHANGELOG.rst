@@ -4,6 +4,9 @@ Changelog
 in development
 --------------
 
+0.10.0
+------
+
 * Move babel-eslint dependency to devDependencies [PR #180] (bug fix)
 * Small refactor and more tests (for ``scripts/stackstorm.js``) [PR #185] (improvement)
 * Refactor chat providers into their own modules [PR #186] (improvement)
