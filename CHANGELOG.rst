@@ -11,6 +11,8 @@ in development
   (improvement)
 * Split out the functionality of ``src/stackstorm.js`` into ``stackstorm_api.js`` and refactor it
   to be a JS old style class with a wrapper [PR #187, PR #190] (improvement)
+* Fix the Mattermost adapter to use the ``adapter.post`` function instead of emitting the
+  ``slack-attachment`` event [PR #192] (bug fix)
 
 0.9.6
 -----
