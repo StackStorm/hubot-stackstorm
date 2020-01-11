@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+0.10.1
+------
+
+* Create npm-shrinkwrap.json with only production dependencies
+
 0.10.0
 ------
 
