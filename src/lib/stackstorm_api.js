@@ -476,9 +476,12 @@ StackStorm.prototype.stop = function () {
   var self = this;
 
   clearInterval(self.commands_load_interval);
-  self.api_client.stream.listen().then(function (second_st2stream) {
-    second_st2stream.removeAllListeners();
-    second_st2stream.close();
+  // The st2client caches the stream object, so self.api_client.stream returns
+  // the same stream that was opened in self.start(), which gets passed to the
+  // promise in the st2stream parameter.
+  self.api_client.stream.listen().then(function (st2stream) {
+    st2stream.removeAllListeners();
+    st2stream.close();
   });
 };
 
