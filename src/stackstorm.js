@@ -36,7 +36,13 @@ module.exports = function (robot) {
   var stackstormApi = new StackStormApi(robot);
 
   return stackstormApi.authenticate().then(function () {
-    stackstormApi.start();
+    stackstormApi.start().then(function () {
+      // Reload commands on SIGUSR2
+      process.on('SIGUSR2', function() {
+        robot.logger.debug("Caught SIGUSR2, reloading commands");
+        stackstormApi.loadCommands();
+      });
+    });
     return stackstormApi.stop.bind(stackstormApi);
   });
 };

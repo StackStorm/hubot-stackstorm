@@ -405,19 +405,10 @@ StackStorm.prototype.executeCommand = function (msg, command_name, format_string
   }
 };
 
-StackStorm.prototype.install_sigusr2_handler = function () {
-  var self = this;
-
-  process.on('SIGUSR2', function() {
-    self.robot.logger.debug("Caught SIGUSR2, reloading commands");
-    self.loadCommands();
-  });
-};
-
 StackStorm.prototype.start = function () {
   var self = this;
 
-  self.api_client.stream.listen().catch(function (err) {
+  return self.api_client.stream.listen().catch(function (err) {
     self.robot.logger.error('Unable to connect to stream:', err);
   }).then(function (st2stream) {
     // Save the connection stream object
@@ -467,9 +458,6 @@ StackStorm.prototype.start = function () {
 
   // Initial command loading
   self.loadCommands();
-
-  // Install SIGUSR2 handler which reloads the command
-  self.install_sigusr2_handler();
 };
 
 StackStorm.prototype.stop = function () {
