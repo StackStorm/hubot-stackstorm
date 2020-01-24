@@ -28,16 +28,21 @@ function SparkAdapter(robot) {
 
 util.inherits(SparkAdapter, SlackLikeAdapter);
 
-SparkAdapter.prototype.postData = function(data) {
+SparkAdapter.prototype.postData = function (data) {
+  self.robot.logger.debug("Data is: ", data);
   var self = this;
 
   var recipient, split_message, formatted_message,
-      text = "";
+    text = "";
 
   if (data.whisper && data.user) {
-    recipient = { user: data.user };
+    recipient = {
+      user: data.user
+    };
   } else {
-    recipient = { channel: data.channel };
+    recipient = {
+      channel: data.channel
+    };
     text = (data.user && !data.whisper) ? util.format('%s: ', data.user) : "";
   }
 
@@ -59,15 +64,15 @@ SparkAdapter.prototype.postData = function(data) {
 
 // Override this with the original function from DefaultAdapter
 // We do want this one to truncate
-SparkAdapter.prototype.formatData = function(data) {
+SparkAdapter.prototype.formatData = function (data) {
   var self = this;
   return DefaultAdapter.prototype.formatData.call(self, data);
 };
 
-SparkAdapter.prototype.normalizeAddressee = function(msg) {
+SparkAdapter.prototype.normalizeAddressee = function (msg) {
   return {
     name: msg.message.user.name,
-    room: msg.message.user.room
+    room: msg.message.user.roomId
   };
 };
 
