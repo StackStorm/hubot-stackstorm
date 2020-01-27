@@ -48,7 +48,7 @@ SparkAdapter.prototype.postData = function (data) {
     envelope = {
       "name": data.user,
       "id": data.channel,
-      "room": data.channel,
+      "roomId": data.channel,
     };
     text = (data.user && !data.whisper) ? util.format('%s: ', data.user) : "";
   }
