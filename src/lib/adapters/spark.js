@@ -34,14 +34,19 @@ SparkAdapter.prototype.postData = function (data) {
 
   var recipient, split_message, formatted_message,
     text = "";
+  var envelope;
 
   if (data.whisper && data.user) {
-    recipient = {
-      user: data.user
+    recipient = data.user;
+    envelope = {
+      "user": data.user
     };
   } else {
-    recipient = {
-      channel: data.channel
+    recipient = data.channel;
+    envelope = {
+      "user": data.user,
+      "id": data.channel,
+      "room": data.channel,
     };
     text = (data.user && !data.whisper) ? util.format('%s: ', data.user) : "";
   }
@@ -59,7 +64,7 @@ SparkAdapter.prototype.postData = function (data) {
     formatted_message = split_message.pretext || split_message.text;
   }
 
-  self.robot.messageRoom.call(self.robot, recipient, formatted_message);
+  self.robot.messageRoom.call(self.robot, envelope, formatted_message);
 };
 
 // Override this with the original function from DefaultAdapter
