@@ -29,8 +29,8 @@ function SparkAdapter(robot) {
 util.inherits(SparkAdapter, SlackLikeAdapter);
 
 SparkAdapter.prototype.postData = function (data) {
-  self.robot.logger.debug("Data is: ", data);
   var self = this;
+  self.robot.logger.debug("Data is: ", data);
 
   var recipient, split_message, formatted_message,
     text = "";
