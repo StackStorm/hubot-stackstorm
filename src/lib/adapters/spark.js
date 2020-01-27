@@ -46,7 +46,7 @@ SparkAdapter.prototype.postData = function (data) {
       "channel": data.channel
     };
     envelope = {
-      "user": data.user,
+      "name": data.user,
       "id": data.channel,
       "room": data.channel,
     };
