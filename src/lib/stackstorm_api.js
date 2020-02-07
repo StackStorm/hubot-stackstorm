@@ -139,9 +139,6 @@ function StackStorm(robot) {
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
     command = self.adapter.normalizeCommand(msg.match[1]);
-    self.robot.logger.info("Inside respond message: ", msg);
-    self.robot.logger.info("Inside respond command: ", command);
-
     result = self.command_factory.getMatchingCommand(command);
 
     if (!result) {
