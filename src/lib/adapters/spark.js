@@ -30,9 +30,8 @@ util.inherits(SparkAdapter, SlackLikeAdapter);
 
 SparkAdapter.prototype.postData = function (data) {
   var self = this;
-  var recipient, split_message, formatted_message,
+  var recipient, split_message, formatted_message, envelope,
     text = "";
-  var envelope;
 
   if (data.whisper && data.user) {
     recipient = data.user;
