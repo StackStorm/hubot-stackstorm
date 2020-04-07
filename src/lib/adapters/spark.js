@@ -30,18 +30,13 @@ util.inherits(SparkAdapter, SlackLikeAdapter);
 
 SparkAdapter.prototype.postData = function (data) {
   var self = this;
-  var recipient, split_message, formatted_message, envelope,
-    text = "";
+  var split_message, formatted_message, envelope, text = "";
 
   if (data.whisper && data.user) {
-    recipient = data.user;
     envelope = {
       "user": data.user
     };
   } else {
-    recipient = {
-      "channel": data.channel
-    };
     envelope = {
       "name": data.user,
       "id": data.channel,
@@ -50,9 +45,8 @@ SparkAdapter.prototype.postData = function (data) {
     text = (data.user && !data.whisper) ? util.format('%s: ', data.user) : "";
   }
 
-  recipient = self.formatRecipient(recipient);
   // TODO: Pull attributes from data.extra.spark before pulling them from data.extra
-  recipient.extra = data.extra;
+  envelope.extra = data.extra;
   text += self.formatData(data.message);
 
   // Ignore the delimiter in the default formatter and just concat parts.
