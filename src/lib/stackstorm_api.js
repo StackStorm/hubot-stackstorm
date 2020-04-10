@@ -38,8 +38,7 @@ var _ = require('lodash'),
   CommandFactory = require('./command_factory.js'),
   adapters = require('./adapters'),
   st2client = require('st2client'),
-  uuid = require('uuid')
-  ;
+  uuid = require('uuid');
 
 // Setup the Environment
 env.ST2_API_URL = env.ST2_API || env.ST2_API_URL || 'http://localhost:9101';
@@ -114,12 +113,12 @@ function StackStorm(robot) {
   // Makes the script crash on unhandled rejections instead of ignoring them and keep running.
   // Usually happens when trying to connect to a nonexistent instances or similar unrecoverable issues.
   // In the future Node.js versions, promise rejections that are not handled will terminate the process with a non-zero exit code.
-  process.on('unhandledRejection', function(err) {
+  process.on('unhandledRejection', function (err) {
     throw err;
   });
 
   // Handle uncaught exceptions, log error and terminate hubot if one occurs
-  self.robot.error(function(err, res) {
+  self.robot.error(function (err, res) {
     if (err) {
       self.robot.logger.error(err.stack || JSON.stringify(err));
     }
@@ -134,13 +133,12 @@ function StackStorm(robot) {
     self.robot.shutdown();
   });
 
-  self.robot.respond(/([\s\S]+?)$/i, function(msg) {
+  self.robot.respond(/([\s\S]+?)$/i, function (msg) {
     var command, result;
 
     // Normalize the command and remove special handling provided by the chat service.
     // e.g. slack replace quote marks with left double quote which would break behavior.
     command = self.adapter.normalizeCommand(msg.match[1]);
-
     result = self.command_factory.getMatchingCommand(command);
 
     if (!result) {
@@ -153,7 +151,7 @@ function StackStorm(robot) {
     self.executeCommand(msg, command_name, format_string, command, action_alias);
   });
 
-  self.robot.router.post('/hubot/st2', function(req, res) {
+  self.robot.router.post('/hubot/st2', function (req, res) {
     var data;
 
     try {
@@ -205,9 +203,13 @@ function StackStorm(robot) {
   self.api_client = st2client(opts);
 
   if (env.ST2_API_KEY) {
-    self.api_client.setKey({ key: env.ST2_API_KEY });
+    self.api_client.setKey({
+      key: env.ST2_API_KEY
+    });
   } else if (env.ST2_AUTH_TOKEN) {
-    self.api_client.setToken({ token: env.ST2_AUTH_TOKEN });
+    self.api_client.setToken({
+      token: env.ST2_AUTH_TOKEN
+    });
   }
 
   if (env.ST2_API_KEY || env.ST2_AUTH_TOKEN || env.ST2_AUTH_USERNAME || env.ST2_AUTH_PASSWORD) {
@@ -272,7 +274,9 @@ StackStorm.prototype.loadCommands = function () {
 
   self.robot.logger.info('Loading commands....');
 
-  self.api_client.actionAlias.list({limit: -1})
+  self.api_client.actionAlias.list({
+      limit: -1
+    })
     .then(function (aliases) {
       // Remove all the existing commands
       self.command_factory.removeCommands();
@@ -294,7 +298,7 @@ StackStorm.prototype.loadCommands = function () {
         _.each(formats, function (format) {
           var command = formatCommand(self.robot.logger, name, format.display || format, description);
           self.command_factory.addCommand(command, name, format.display || format, alias,
-                                     format.display ? utils.DISPLAY : false);
+            format.display ? utils.DISPLAY : false);
 
           _.each(format.representation, function (representation) {
             command = formatCommand(self.robot.logger, name, representation, description);
@@ -347,7 +351,11 @@ StackStorm.prototype.sendAliasExecutionRequest = function (msg, payload) {
     .catch(function (err) {
       // Compatibility with older StackStorm versions
       if (err.status === 200) {
-        return self.sendAck(msg, { execution: { id: err.message } });
+        return self.sendAck(msg, {
+          execution: {
+            id: err.message
+          }
+        });
       }
       self.robot.logger.error('Failed to create an alias execution:', err);
       var addressee = self.adapter.normalizeAddressee(msg);
@@ -408,7 +416,7 @@ StackStorm.prototype.executeCommand = function (msg, command_name, format_string
 StackStorm.prototype.install_sigusr2_handler = function () {
   var self = this;
 
-  process.on('SIGUSR2', function() {
+  process.on('SIGUSR2', function () {
     self.robot.logger.debug("Caught SIGUSR2, reloading commands");
     self.loadCommands();
   });

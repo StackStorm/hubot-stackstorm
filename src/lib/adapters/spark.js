@@ -28,22 +28,25 @@ function SparkAdapter(robot) {
 
 util.inherits(SparkAdapter, SlackLikeAdapter);
 
-SparkAdapter.prototype.postData = function(data) {
+SparkAdapter.prototype.postData = function (data) {
   var self = this;
-
-  var recipient, split_message, formatted_message,
-      text = "";
+  var split_message, formatted_message, envelope, text = "";
 
   if (data.whisper && data.user) {
-    recipient = { user: data.user };
+    envelope = {
+      "user": data.user
+    };
   } else {
-    recipient = { channel: data.channel };
+    envelope = {
+      "name": data.user,
+      "id": data.channel,
+      "roomId": data.channel,
+    };
     text = (data.user && !data.whisper) ? util.format('%s: ', data.user) : "";
   }
 
-  recipient = self.formatRecipient(recipient);
   // TODO: Pull attributes from data.extra.spark before pulling them from data.extra
-  recipient.extra = data.extra;
+  envelope.extra = data.extra;
   text += self.formatData(data.message);
 
   // Ignore the delimiter in the default formatter and just concat parts.
@@ -54,20 +57,20 @@ SparkAdapter.prototype.postData = function(data) {
     formatted_message = split_message.pretext || split_message.text;
   }
 
-  self.robot.messageRoom.call(self.robot, recipient, formatted_message);
+  self.robot.messageRoom.call(self.robot, envelope, formatted_message);
 };
 
 // Override this with the original function from DefaultAdapter
 // We do want this one to truncate
-SparkAdapter.prototype.formatData = function(data) {
+SparkAdapter.prototype.formatData = function (data) {
   var self = this;
   return DefaultAdapter.prototype.formatData.call(self, data);
 };
 
-SparkAdapter.prototype.normalizeAddressee = function(msg) {
+SparkAdapter.prototype.normalizeAddressee = function (msg) {
   return {
     name: msg.message.user.name,
-    room: msg.message.user.room
+    room: msg.message.user.roomId
   };
 };
 
