@@ -902,7 +902,9 @@ describe("spark post data", function() {
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
-        channel: input.channel,
+        id: input.channel,
+        roomId: input.channel,
+        name: input.user,
         extra: undefined
       },
       user + "normal boring text"
@@ -912,6 +914,7 @@ describe("spark post data", function() {
   it('should post to room and not mention a user', function() {
     robot.messageRoom = sinon.spy();
     var input = {
+      user: 'stanley',
       channel: '#stackstorm',
       message: "normal boring text",
       whisper: false
@@ -922,10 +925,12 @@ describe("spark post data", function() {
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
-        channel: input.channel,
+        id: input.channel,
+        roomId: input.channel,
+        name: input.user,
         extra: undefined
       },
-      "normal boring text"
+      "stanley: normal boring text"
     );
   });
 
@@ -947,7 +952,9 @@ describe("spark post data", function() {
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
-        channel: input.channel,
+        id: input.channel,
+        roomId: input.channel,
+        name: input.user,
         extra: {
           custom1: "attribute1",
           custom2: "attribute2"
@@ -992,7 +999,9 @@ describe("spark post data", function() {
     expect(robot.messageRoom).to.have.been.calledOnce;
     expect(robot.messageRoom).to.have.been.calledWith(
       {
-        channel: input.channel,
+        id: input.channel,
+        roomId: input.channel,
+        name: input.user,
         extra: undefined
       },
       user + "NORMAL PRETEXT\nnormal boring text"
