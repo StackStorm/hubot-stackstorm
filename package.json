@@ -59,7 +59,7 @@
   "main": "index.js",
   "scripts": {
     "eslint": "eslint .",
-    "test": "nyc mocha"
+    "test": "nyc mocha --exit"
   },
   "nyc": {
     "temp-directory": "./coverage/.nyc_output",
