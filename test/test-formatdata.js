@@ -395,7 +395,7 @@ describe('SparkFormatter', function() {
     var msg = {
       message: {
         user: {
-          room: "SparkRoomName",
+          roomId: "SparkRoomId",
           name: "SparkUserName"
         }
       }
@@ -404,7 +404,7 @@ describe('SparkFormatter', function() {
     expect(o.name).to.be.an('string');
     expect(o.name).to.equal('SparkUserName');
     expect(o.room).to.be.an('string');
-    expect(o.room).to.equal('SparkRoomName');
+    expect(o.room).to.equal('SparkRoomId');
   });
 });
 
