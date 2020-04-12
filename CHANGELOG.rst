@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+0.10.2
+------
+
+* Fix the Cisco Spark/Webex Teams adapter [PR #200] (bug fix)
+* Fix mocha tests to return a non-zero exit status if tests fail [PR #201] (bug fix)
+
 0.10.1
 ------
 
