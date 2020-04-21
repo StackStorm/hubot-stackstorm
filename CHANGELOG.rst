@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+0.10.3
+------
+
+* Update st2client.js to 1.2.2 [PR #203] (change)
+
 0.10.2
 ------
 
