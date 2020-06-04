@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+0.10.4
+------
+
+* Update st2client.js to 1.2.3 [PR #204] (change)
+* Add mversion to devDependencies (change)
+
 0.10.3
 ------
 
