@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+0.11.0
+------
+
+* Remove HipChat adapter [PR #207] (change)
+
 0.10.4
 ------
 
