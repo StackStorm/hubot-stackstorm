@@ -227,67 +227,6 @@ describe('MSTeamsFormatter', function() {
   });
 });
 
-describe('HipChatFormatter', function() {
-  var adapterName = 'hipchat';
-  var robot = new DummyRobot('dummy', null, false);
-
-  it('should echo back for non-empty', function() {
-    var adapter = adapters.getAdapter(adapterName, robot);
-    var o = adapter.formatData('DATA');
-    expect(o).to.be.an('string');
-    expect(o).to.equal('/code DATA');
-  });
-
-  it('should be an empty string for empty', function() {
-    var adapter = adapters.getAdapter(adapterName, robot);
-    var o = adapter.formatData('');
-    expect(o).to.be.an('string');
-    expect(o).to.equal('');
-  });
-
-  it('should correctly format recipient', function() {
-    var adapter = adapters.getAdapter(adapterName, robot);
-    env.HUBOT_HIPCHAT_JID = '234x_y234@conf.hipchat.com';
-    var o = adapter.formatRecipient('Estee');
-    expect(o).to.be.an('string');
-    expect(o).to.equal('234x_Estee@conf.hipchat.com');
-  });
-
-  it('should correctly format recipient with conf.btf.hipchat.com', function() {
-    var adapter = adapters.getAdapter(adapterName, robot);
-    env.HUBOT_HIPCHAT_JID = '234x_y234@conf.hipchat.com';
-    env.HUBOT_HIPCHAT_XMPP_DOMAIN = "btf.hipchat.com";
-    var o = adapter.formatRecipient('Estee');
-    expect(o).to.be.an('string');
-    expect(o).to.equal('234x_Estee@conf.btf.hipchat.com');
-  });
-
-  it('should normalize command', function() {
-    var adapter = adapters.getAdapter(adapterName, robot);
-    var o = adapter.normalizeCommand('run local "uname -a"');
-    expect(o).to.be.an('string');
-    expect(o).to.equal('run local "uname -a"');
-  });
-
-  it('should normalize the addressee', function() {
-    var adapter = adapters.getAdapter(adapterName, robot);
-    // HipChat packages the room and user name differently
-    var msg = {
-      message: {
-        user: {
-          jid: "HipChatRoomName",
-          mention_name: "HipChatUserName"
-        }
-      }
-    };
-    var o = adapter.normalizeAddressee(msg);
-    expect(o.name).to.be.an('string');
-    expect(o.name).to.equal('HipChatUserName');
-    expect(o.room).to.be.an('string');
-    expect(o.room).to.equal('HipChatRoomName');
-  });
-});
-
 describe('RocketChatFormatter', function() {
   var adapterName = 'rocketchat';
   var robot = new DummyRobot('dummy', null, false);
