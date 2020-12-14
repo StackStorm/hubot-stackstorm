@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+0.11.1
+------
+
+* Update ``ini`` dependency to 1.3.8 (improvement) #212
+
 0.11.0
 ------
 
