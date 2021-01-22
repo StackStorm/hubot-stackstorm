@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+0.11.2
+------
+
+* Update ``lodash`` and ``st2client`` dependencies (improvement) #215
+
 0.11.1
 ------
 
