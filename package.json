@@ -1,7 +1,7 @@
 {
   "name": "hubot-stackstorm",
   "description": "A hubot plugin for integrating with StackStorm event-driven infrastructure automation platform.",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "author": "StackStorm, Inc. <info@stackstorm.com>",
   "license": "Apache-2.0",
   "keywords": [
@@ -24,9 +24,9 @@
     "cli-table": "<=1.0.0",
     "coffee-register": "1.0.0",
     "coffee-script": "1.12.7",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.20",
     "rsvp": "^4.8.4",
-    "st2client": "^1.2.3",
+    "st2client": "^1.2.5",
     "truncate": "^2.0.1",
     "uuid": "^3.0.0"
   },
