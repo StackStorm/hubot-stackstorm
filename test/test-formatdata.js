@@ -88,6 +88,30 @@ describe('SlackFormatter', function() {
     expect(o).to.equal('run remote \'uname -a\' \'localhost, 127.0.0.1\'');
   });
 
+  // copy/paste a command in slack. Sometimes (esp w/ URLs) it replaces a space with this char.
+  it('should normalize command with slack-injected latin1 non-breaking space', function() {
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run local\xA0"uname -a"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run local "uname -a"');
+  });
+
+  // slack injects the latin1 variant (above) but we can't break the unicode variant.
+  it('should normalize command with unicode non-breaking space', function() {
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run local\u00A0"uname -a"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run local "uname -a"');
+  });
+
+  // not likely. Just making sure this doesn't mangle the unicode chars.
+  it('should normalize command with mixed latin1/unicode non-breaking space', function() {
+    var adapter = adapters.getAdapter(adapterName, robot);
+    var o = adapter.normalizeCommand('run\xA0\u00A0\xA0local\u00A0\xA0\u00A0"uname -a"');
+    expect(o).to.be.an('string');
+    expect(o).to.equal('run   local   "uname -a"');
+  });
+
   it('should normalize the addressee', function() {
     var adapter = adapters.getAdapter(adapterName, robot);
     var msg = {
