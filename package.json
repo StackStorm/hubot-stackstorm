@@ -24,7 +24,7 @@
     "cli-table": "<=1.0.0",
     "coffee-register": "1.0.0",
     "coffee-script": "1.12.7",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "rsvp": "^4.8.4",
     "st2client": "^1.2.5",
     "truncate": "^2.0.1",
