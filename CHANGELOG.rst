@@ -3,6 +3,7 @@ Changelog
 
 in development
 --------------
+* Update ``lodash`` and ``st2client`` dependencies (improvement)
 
 0.11.2
 ------
