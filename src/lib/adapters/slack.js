@@ -224,4 +224,15 @@ SlackAdapter.prototype.postData = function(data) {
   }
 };
 
+SlackAdapter.prototype.normalizeCommand = function(command) {
+  var self = this;
+  command = SlackLikeAdapter.prototype.normalizeCommand.call(self, command);
+  // replace non-breaking space with regular space
+  // first the unicode variant, so we don't cut it in half,
+  // then the latin1 variant (thanks to slack)
+  command = command.replace(/\u00A0/g, ' ');
+  command = command.replace(/\xA0/g, ' ');
+  return command;
+}
+
 module.exports = SlackAdapter;

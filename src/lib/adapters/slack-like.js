@@ -56,11 +56,6 @@ SlackLikeAdapter.prototype.normalizeCommand = function(command) {
   command = command.replace(/\u2018/g, '\u0027');
   // replace right single quote with regular apostrophe
   command = command.replace(/\u2019/g, '\u0027');
-  // replace non-breaking space with regular space
-  // first the unicode variant, so we don't cut it in half,
-  // then the latin1 variant (thanks to slack)
-  command = command.replace(/\u00A0/g, ' ');
-  command = command.replace(/\xA0/g, ' ');
   return command;
 };
 
