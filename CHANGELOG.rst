@@ -9,7 +9,7 @@ in development
 ------
 
 * Clean slack-injected latin1 nbsp character (/xA0) from command to improve command recognition.
-  Slack will sometimes replace a space with /xA0, ofen near something that renders as a link.
+  Slack will sometimes replace a space with /xA0, often near something that renders as a link.
   Now, when someone copies that command, they can paste it and still have hubot recognize it.
   (improvement) #214
 
