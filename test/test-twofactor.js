@@ -44,7 +44,8 @@ describe("two-factor auth module", function() {
   var robot, user, adapter, st2bot, stop, command_factory;
 
   before(function(done) {
-    robot = new Robot(null, "mock-adapter", true, "Hubot");
+    robot = new Robot(null, true, "mock-adapter", "Hubot");
+    robot.setupNullRouter();
 
     // Hack. Need a better solution than stubbing out methods.
     if (disableLogger) {

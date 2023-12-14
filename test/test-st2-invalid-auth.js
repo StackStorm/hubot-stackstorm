@@ -34,7 +34,8 @@ chai.use(chaiAsPromised);
 global.process.exit = sinon.spy();
 
 describe("invalid st2 credential configuration", function() {
-  var robot = new Robot(null, "mock-adapter", false, "Hubot");
+  var robot = new Robot(null, false, "mock-adapter", "Hubot");
+  robot.setupNullRouter();
   robot.logger = new Logger(true);
   var restore_env = null,
     info_spy = sinon.spy(robot.logger, 'info'),
@@ -64,6 +65,7 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var stackstorm = require("../src/stackstorm.js");
+    console.log("past the require")
     expect(stackstorm.bind(this, robot)).to.throw("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
     done();
   });
@@ -111,6 +113,7 @@ describe("invalid st2 credential configuration", function() {
     stackstorm(robot).then(function (result) {
       done(new Error("The previous code should have thrown an exception"));
     }).catch(function (err) {
+      console.log("in the catch")
       expect(error_spy.args).to.have.lengthOf(1);
       expect(error_spy.args[0][0]).to.be.a('string');
       expect(error_spy.args[0][0]).to.startWith('Failed to authenticate');

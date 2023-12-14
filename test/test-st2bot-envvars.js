@@ -28,7 +28,8 @@ var chai = require("chai"),
 chai.use(sinonChai);
 
 describe("environment variable configuration", function () {
-  var robot = new Robot(null, "mock-adapter", false, "Hubot");
+  var robot = new Robot(null, false, "mock-adapter", "Hubot");
+  robot.setupNullRouter();
   robot.logger = new Logger(true);
   var restore_env = null,
     debug_spy = sinon.spy(robot.logger, 'debug'),

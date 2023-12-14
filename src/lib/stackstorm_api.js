@@ -113,8 +113,8 @@ function StackStorm(robot) {
   // Makes the script crash on unhandled rejections instead of ignoring them and keep running.
   // Usually happens when trying to connect to a nonexistent instances or similar unrecoverable issues.
   // In the future Node.js versions, promise rejections that are not handled will terminate the process with a non-zero exit code.
-  process.on('unhandledRejection', function (err) {
-    throw err;
+  process.on('unhandledRejection', function (reason, p) {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
   });
 
   // Handle uncaught exceptions, log error and terminate hubot if one occurs
