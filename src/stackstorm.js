@@ -44,5 +44,6 @@ module.exports = function (robot) {
     return stackstormApi.stop.bind(stackstormApi);
   }).catch(function(err) {
     console.log("got an error", err)
+    throw err;
   });
 };

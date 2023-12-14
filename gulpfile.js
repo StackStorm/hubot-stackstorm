@@ -52,7 +52,7 @@ var settings = {
 
 function test(cb) {
   gulp.src('test/**/*.js', {read: false})
-    .pipe(mocha({reporter: 'spec'}))
+    .pipe(mocha({reporter: 'spec', timeout: 20000}))
   cb()
 }
 

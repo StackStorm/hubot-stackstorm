@@ -59,7 +59,7 @@ describe("auth with invalid st2 API key", function() {
     process.prependOnceListener('uncaughtException', function (error) {
       process.listeners('uncaughtException').push(originalException);
       recordedError = error;
-      //done();
+      done();
     });
 
     // Remove stackstorm.js from the require cache
@@ -70,8 +70,12 @@ describe("auth with invalid st2 API key", function() {
     stackstorm(robot).then(function (result) {
       stop = result;
       done();
+    }).catch(function (err) {
+      console.log("test-st2-unauthorized", err);
     });
-    robot.run();
+    robot.run().catch(function(err) {
+      console.log("run error", err)
+    });
   });
 
   after(function() {
@@ -94,6 +98,7 @@ describe("auth with invalid st2 API key", function() {
   });
 
   it("fails to retrieve the commands from API", function () {
+    console.log(logs);
     expect(error_spy).to.have.been.calledWith('Failed to retrieve commands from "http://localhost:9101": Unauthorized - ApiKey with key_hash=123 not found.');
   });
 

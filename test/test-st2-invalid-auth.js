@@ -110,7 +110,11 @@ describe("invalid st2 credential configuration", function() {
 
     // Load script under test
     var i, stackstorm = require("../src/stackstorm.js");
+    console.log("impoted stackstorm")
+    console.log(i)
+    console.log(stackstorm)
     stackstorm(robot).then(function (result) {
+      console.log("no error thrown", result)
       done(new Error("The previous code should have thrown an exception"));
     }).catch(function (err) {
       console.log("in the catch")
