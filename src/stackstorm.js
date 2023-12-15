@@ -33,17 +33,14 @@ var env = process.env;
 var StackStormApi = require('./lib/stackstorm_api');
 
 module.exports = function (robot) {
-  console.log("calling the exported function");
   var stackstormApi = new StackStormApi(robot);
-  console.log("setup the robot");
 
   return stackstormApi.authenticate().then(function () {
-    console.log("authenticated");
     stackstormApi.start();
-    console.log("starting the api");
     return stackstormApi.stop.bind(stackstormApi);
-  }).catch(function(err) {
-    console.log("got an error", err)
-    throw err;
-  });
+  })
+  // .catch(function(err) {
+  //   console.log("got an error in stackstorm.js", err)
+  //   throw err;
+  // });
 };

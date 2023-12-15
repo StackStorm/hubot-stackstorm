@@ -33,15 +33,12 @@ filenames.forEach(function(filename) {
 });
 
 module.exports.getAdapter = function(adapterName, robot) {
-  console.log("getAdapter");
   if (!(adapterName in adapters)) {
-    console.log("adapter name not found");
     robot.logger.warning(
       util.format('No adapter found for %s. Using DefaultAdapter.', adapterName));
     adapterName = 'default';
   }
   robot.logger.debug(
     util.format('Using %s adapter', adapterName));
-  console.log("returning the new adapter", adapterName)
   return new adapters[adapterName](robot);
 };

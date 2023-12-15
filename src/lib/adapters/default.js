@@ -21,18 +21,13 @@ var truncate = require('truncate');
 
 
 function DefaultAdapter(robot) {
-  console.log("DefaultAdapter");
   var self = this;
-  console.log("DefaultAdapter 1");
   self.robot = robot;
-  console.log("DefaultAdapter 2");
   // Limit the size of a message.
   self.truncate_length = env.ST2_MAX_MESSAGE_LENGTH;
-  console.log("DefaultAdapter 3");
 };
 
 DefaultAdapter.prototype.postData = function(data) {
-  console.log("DefaultAdapter.postData");
   var self = this;
   var recipient, split_message, formatted_message,
       text = "";
@@ -59,7 +54,6 @@ DefaultAdapter.prototype.postData = function(data) {
 };
 
 DefaultAdapter.prototype.formatData = function(data) {
-  console.log("DefaultAdapter.formData");
   var self = this;
 
   if (utils.isNull(data)) {
@@ -78,17 +72,14 @@ DefaultAdapter.prototype.formatData = function(data) {
 };
 
 DefaultAdapter.prototype.formatRecipient = function(recipient) {
-  console.log("DefaultAdapter.formRecipient");
   return recipient;
 };
 
 DefaultAdapter.prototype.normalizeCommand = function(command) {
-  console.log("DefaultAdapter.normalizeCommand");
   return command;
 };
 
 DefaultAdapter.prototype.normalizeAddressee = function(msg) {
-  console.log("DefaultAdapter.normalizeAddressee");
   return {
     name: msg.message.user.name,
     room: msg.message.room
