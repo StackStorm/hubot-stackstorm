@@ -84,16 +84,10 @@ describe("stanley the StackStorm bot", function() {
   });
 
   it("responds when asked for help", function(done) {
-
     adapter.on("send", function(envelope, strings) {
-      console.log(strings)
-      console.log(envelope)
       expect(strings[0]).to.be.a('string');
       done();
     });
-    console.log(adapter)
-    console.log(robot.middleware)
-    console.log(robot.listeners)
     adapter.receive(new TextMessage(user, "Hubot help"));
   });
 
