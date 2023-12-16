@@ -73,7 +73,7 @@ describe("auth with invalid st2 API key", function() {
     robot.run();
   });
 
-  beforeEach(done => setTimeout(done, 2000))
+  beforeEach(done => setTimeout(done, 200))
 
   after(function() {
     stop && stop();
