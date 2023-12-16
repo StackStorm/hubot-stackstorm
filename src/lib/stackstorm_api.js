@@ -114,29 +114,22 @@ function StackStorm(robot) {
   // Usually happens when trying to connect to a nonexistent instances or similar unrecoverable issues.
   // In the future Node.js versions, promise rejections that are not handled will terminate the process with a non-zero exit code.
   process.on('unhandledRejection', function (err) {
-    console.log('Unhandled Rejection');// at: Promise', p, 'reason:', reason);
-    console.log(err);
     throw err;
   });
 
   // Handle uncaught exceptions, log error and terminate hubot if one occurs
   self.robot.error(function (err, res) {
-    console.log("robot.error 1")
     if (err) {
       self.robot.logger.error(err.stack || JSON.stringify(err));
     }
-    console.log("robot.error 2")
     if (res) {
-      console.log("robot.error 3")
       res.send(JSON.stringify({
         "status": "failed",
         "msg": "An error occurred trying to post the message:\n" + err
       }));
     }
-    console.log("robot.error 4")
 
     self.robot.logger.info('Hubot will shut down ...');
-    console.log("robot.error 5")
     self.robot.shutdown();
   });
 
@@ -317,9 +310,7 @@ StackStorm.prototype.loadCommands = function () {
       self.robot.logger.info(self.command_factory.st2_hubot_commands.length + ' commands are loaded');
     })
     .catch(function (err) {
-      var errString = util.format('Failed to retrieve commands from "%s": %s', env.ST2_API_URL, err.message)
-      console.log("errString", errString)
-      self.robot.logger.error(errString);
+      self.robot.logger.error(util.format('Failed to retrieve commands from "%s": %s', env.ST2_API_URL, err.message));
       if (err.status === 401 || err.message.includes('Unauthorized')) {
         throw err;
       }

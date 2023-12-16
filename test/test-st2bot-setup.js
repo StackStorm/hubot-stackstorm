@@ -40,8 +40,6 @@ describe("stanley the StackStorm bot", function() {
 
   before(function(done) {
     robot = new Robot(null, "mock-adapter", true, "Hubot");
-    // robot.setupNullRouter();
-    // robot.loadAdapter("shell");
 
     // Hack. Need a better solution than stubbing out methods.
     if (disableLogger) {
