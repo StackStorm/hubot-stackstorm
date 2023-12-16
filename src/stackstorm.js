@@ -38,5 +38,5 @@ module.exports = function (robot) {
   return stackstormApi.authenticate().then(function () {
     stackstormApi.start();
     return stackstormApi.stop.bind(stackstormApi);
-  })
+  });
 };

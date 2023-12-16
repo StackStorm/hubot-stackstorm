@@ -90,19 +90,14 @@ describe("auth with invalid st2 API key", function() {
   it("is using ST2_API_KEY as authentication", function () {
     // debug, if needed
     //console.log(logs);
-    console.log("running the 'is using ST2_API_KEY as authentication' test")
     expect(info_spy).to.have.been.calledWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
   });
 
   it("fails to retrieve the commands from API", function () {
-    this.timeout = 20000
-    // console.log(robot.logger);
-    console.log("running the 'fails to retrieve the commands from API' test")
     expect(error_spy).to.have.been.calledWith('Failed to retrieve commands from "http://localhost:9101": Unauthorized - ApiKey with key_hash=123 not found.');
   });
 
   it("throws an 'Unauthorized' error", function () {
-    console.log("running the 'throws an 'Unauthorized' error' test")
     expect(recordedError).to.be.deep.equal(
       {
         "name": "APIError",
@@ -113,7 +108,6 @@ describe("auth with invalid st2 API key", function() {
   });
 
   it("leads to Hubot shutdown", function () {
-    console.log("running the 'leads to Hubot shutdown' test")
     expect(info_spy).to.have.been.calledWith('Hubot will shut down ...');
   });
 });
