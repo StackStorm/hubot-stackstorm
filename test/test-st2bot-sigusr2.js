@@ -28,7 +28,7 @@ var chai = require("chai"),
 chai.use(sinonChai);
 
 describe("SIGUSR2", function () {
-  var robot = new Robot(null, false, "mock-adapter", "Hubot");
+  var robot = new Robot(null, "mock-adapter", false, "Hubot");
   robot.setupNullRouter();
   robot.logger = new Logger(true);
   var debug_spy = sinon.spy(robot.logger, 'debug'),

@@ -29,8 +29,8 @@ chai.use(sinonChai);
 
 describe("auth with invalid st2 API key", function() {
   var stop;
-  var robot = new Robot(null, true, "mock-adapter", "Hubot");
-  robot.setupNullRouter();
+  var robot = new Robot(null, "mock-adapter", true, "Hubot");
+  // robot.setupNullRouter();
   robot.logger = new Logger(true);
   var recordedError = null,
     error_spy = sinon.spy(robot.logger, 'error'),
@@ -69,12 +69,8 @@ describe("auth with invalid st2 API key", function() {
     stackstorm(robot).then(function (result) {
       stop = result;
       done();
-    }).catch(function (err) {
-      console.log("test-st2-unauthorized", err);
     });
-    robot.run().catch(function(err) {
-      console.log("run error", err)
-    });
+    robot.run();
   });
 
   beforeEach(done => setTimeout(done, 2000))

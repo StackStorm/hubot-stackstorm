@@ -39,8 +39,9 @@ describe("stanley the StackStorm bot", function() {
   var robot, user, adapter, st2bot, stop;
 
   before(function(done) {
-    robot = new Robot(null, true, "mock-adapter", "Hubot");
-    robot.setupNullRouter();
+    robot = new Robot(null, "mock-adapter", true, "Hubot");
+    // robot.setupNullRouter();
+    // robot.loadAdapter("shell");
 
     // Hack. Need a better solution than stubbing out methods.
     if (disableLogger) {
@@ -85,10 +86,16 @@ describe("stanley the StackStorm bot", function() {
   });
 
   it("responds when asked for help", function(done) {
+
     adapter.on("send", function(envelope, strings) {
+      console.log(strings)
+      console.log(envelope)
       expect(strings[0]).to.be.a('string');
       done();
     });
+    console.log(adapter)
+    console.log(robot.middleware)
+    console.log(robot.listeners)
     adapter.receive(new TextMessage(user, "Hubot help"));
   });
 

@@ -34,7 +34,7 @@ chai.use(chaiAsPromised);
 global.process.exit = sinon.spy();
 
 describe("invalid st2 credential configuration", function() {
-  var robot = new Robot(null, false, "mock-adapter", "Hubot");
+  var robot = new Robot(null, "mock-adapter", false, "Hubot");
   robot.setupNullRouter();
   robot.logger = new Logger(true);
   var restore_env = null,
