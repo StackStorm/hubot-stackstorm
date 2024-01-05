@@ -122,7 +122,8 @@ describe("invalid st2 credential configuration", function() {
       // So instead of using basic string comparison, we use a regex and check for common substrings
       // On later node versions then just seeing
       // getaddrinfo ENOTFOUND nonexistent-st2-auth-url
-      expect(err.message).to.match(/getaddrinfo ENOTFOUND nonexistent-st2-auth-url/);
+      // getaddrinfo EAI_AGAIN nonexistent-st2-auth-url seen on Github Actions.
+      expect(err.message).to.match(/getaddrinfo (ENOTFOUND|EAI_AGAIN) nonexistent-st2-auth-url/);
 
       done();
     });
