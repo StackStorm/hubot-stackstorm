@@ -3,7 +3,8 @@ Changelog
 
 in development
 --------------
-* Update ``lodash`` and ``st2client`` dependencies (improvement)
+* Use Github Actions for tests.
+* Remove TravisCI.
 
 0.12.0
 ------
