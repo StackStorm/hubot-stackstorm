@@ -77,8 +77,8 @@
     ]
   },
   "overrides": {
-      "graceful-fs": "^4.2.11"
-    },
+    "graceful-fs": "^4.2.11"
+  },
   "engines": {
     "node": ">=14.0 <21.0"
   },
