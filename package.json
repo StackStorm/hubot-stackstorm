@@ -76,8 +76,11 @@
       "text"
     ]
   },
+  "overrides": {
+    "graceful-fs": "^4.2.11"
+  },
   "engines": {
-    "node": ">=8.0 <11.0"
+    "node": ">=14.0 <21.0"
   },
   "files": [
     "/index.js",
