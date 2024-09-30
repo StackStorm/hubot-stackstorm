@@ -22,13 +22,13 @@ var chai = require("chai"),
   sinon = require('sinon'),
   sinonChai = require('sinon-chai'),
   nock = require('nock'),
-  Robot = require("hubot/src/robot"),
   Logger = require('./dummy-logger.js');
 
 chai.use(sinonChai);
 
-describe("SIGUSR2", function () {
-  var robot = new Robot(null, "mock-adapter", false, "Hubot");
+describe("SIGUSR2", async function () {
+  var hubot_import = await import("hubot/index.mjs");
+  var robot = new hubot_import.Robot("mock-adapter", false, "Hubot");
   robot.logger = new Logger(true);
   var debug_spy = sinon.spy(robot.logger, 'debug'),
     info_spy = sinon.spy(robot.logger, 'info');

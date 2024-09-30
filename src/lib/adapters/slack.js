@@ -76,12 +76,18 @@ SlackAdapter.prototype.postData = function(data) {
     };
   } else {
     recipient = data.channel;
-    pretext = (data.user && !data.whisper) ? util.format('@%s: ', data.user) : "";
+    pretext = (data.user && !data.whisper) ? util.format('<@%s>: ', data.user) : "";
     envelope = {
       "room": data.channel,
       "id": data.channel,
       "user": data.user,
     };
+  }
+
+  //If extra.slack.thread_response is set, we will send the response in a thread (SLACK ONLY)
+  var message = {};
+  if (data.extra && data.extra.slack && data.extra.slack.thread_response) {
+    message.thread_ts = data.context.id;
   }
 
   // Allow packs to specify arbitrary keys
@@ -212,7 +218,8 @@ SlackAdapter.prototype.postData = function(data) {
       content.pretext = i === 0 ? pretext + split_message.pretext : null;
       content.text = chunks[i];
       content.fallback = chunks[i];
-      robot.adapter.client.send(envelope, {'attachments': [content]});
+      message.attachments = [content];
+      robot.adapter.client.send(envelope, message);
 
       if (chunks.length > ++i) {
         setTimeout(function(){ sendChunk(i); }, 300);

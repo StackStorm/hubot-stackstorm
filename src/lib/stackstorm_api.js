@@ -172,7 +172,7 @@ function StackStorm(robot) {
 
 
   if (env.ST2_API) {
-    self.robot.logger.warning("ST2_API is deprecated and will be removed in a future releases. Instead, please use the ST2_API_URL environment variable.");
+    self.robot.logger.error("ST2_API is deprecated and will be removed in a future releases. Instead, please use the ST2_API_URL environment variable.");
   }
 
   if (self.two_factor_authorization_enabled) {
@@ -331,7 +331,17 @@ StackStorm.prototype.sendAck = function (msg, res) {
     }
   }
 
-  if (res.message) {
+  // If ack.extra.slack.thread_response is set in the action-alias definition,
+  // then we will thread the ACK response message (SLACK ONLY)
+  var threaded_message = {}
+  if (res.extra && res.extra.slack && res.extra.slack.thread_response) {
+    threaded_message.thread_ts = msg.message.id;
+  }
+
+  if (res.message && threaded_message.thread_ts !== undefined) {
+    threaded_message.text = res.message + history;
+    return msg.send(threaded_message);
+  } else if (res.message) {
     return msg.send(res.message + history);
   }
 
@@ -387,7 +397,7 @@ StackStorm.prototype.executeCommand = function (msg, command_name, format_string
     'command': command,
     'user': addressee.name,
     'source_channel': addressee.room,
-    'source_context': msg.envelope,
+    'source_context': msg.message,
     'notification_route': env.ST2_ROUTE || 'hubot'
   };
 
@@ -433,7 +443,7 @@ StackStorm.prototype.start = function () {
 
     self.st2stream.onerror = function (err) {
       // TODO: squeeze a little bit more info out of evensource.js
-      self.robot.logger.warning('Stream error:', err);
+      self.robot.logger.error('Stream error:', err);
       if (err.status === 401) {
         throw err;
       }

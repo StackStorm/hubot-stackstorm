@@ -22,14 +22,14 @@ var chai = require('chai'),
   sinon = require('sinon'),
   sinonChai = require('sinon-chai'),
   nock = require('nock'),
-  Robot = require('hubot/src/robot'),
   Logger = require('./dummy-logger.js');
 
 chai.use(sinonChai);
 
-describe("auth with invalid st2 API key", function() {
+describe("auth with invalid st2 API key", async function() {
   var stop;
-  var robot = new Robot(null, "mock-adapter", true, "Hubot");
+  var hubot_import = await import("hubot/index.mjs");
+  var robot = new hubot_import.Robot("mock-adapter", true, "Hubot");
   robot.logger = new Logger(true);
   var recordedError = null,
     error_spy = sinon.spy(robot.logger, 'error'),
@@ -75,8 +75,12 @@ describe("auth with invalid st2 API key", function() {
 
   after(function() {
     stop && stop();
-    robot.server.close();
-    robot.shutdown();
+    if (robot) {
+      robot.shutdown();
+      if (robot.server) {
+        robot.server.close();
+      }
+    }
     // Remove stackstorm.js from the require cache
     // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
     delete require.cache[require.resolve("../src/stackstorm.js")];
