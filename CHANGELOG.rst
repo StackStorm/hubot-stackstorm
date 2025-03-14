@@ -6,6 +6,14 @@ in development
 * Use Github Actions for tests.
 * Remove TravisCI.
 
+0.13.0
+------
+
+* Require nodejs 20, Hubot 11. Drop coffee script
+* With slack related deprecations, hubot libary archiving/deprecations, version 13 only supports slack.
+* Remove other providers that have old dependencies and are not actively maintained.
+* Allow responding in a thread for the ack/result in slack (improvement) #237
+
 0.12.0
 ------
 

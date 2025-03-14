@@ -24,7 +24,6 @@ var chai = require("chai"),
   sinonChai = require('sinon-chai'),
   chaiAsPromised = require('chai-as-promised'),
   mockedEnv = require('mocked-env'),
-  Robot = require("hubot/src/robot"),
   Logger = require('./dummy-logger.js');
 
 chai.use(sinonChai);
@@ -33,8 +32,9 @@ chai.use(chaiAsPromised);
 
 global.process.exit = sinon.spy();
 
-describe("invalid st2 credential configuration", function() {
-  var robot = new Robot(null, "mock-adapter", false, "Hubot");
+describe("invalid st2 credential configuration", async function() {
+  var hubot_import = await import("hubot/index.mjs");
+  var robot = new hubot_import.Robot("mock-adapter", false, "Hubot");
   robot.logger = new Logger(true);
   var restore_env = null,
     info_spy = sinon.spy(robot.logger, 'info'),

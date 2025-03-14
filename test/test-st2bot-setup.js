@@ -17,13 +17,8 @@
 /*global describe, it, before, after*/
 "use strict";
 
-// needed to get all coffeescript modules to be loaded
-require('coffee-register');
-
 var expect = require("chai").expect,
-  path = require("path"),
-  Robot = require("hubot/src/robot"),
-  TextMessage = require("hubot/src/message").TextMessage;
+  path = require("path");
 
 var disableLogger = true,
     logs = [],
@@ -35,11 +30,14 @@ var disableAuth = function() {
   process.env.ST2_AUTH_PASSWORD = '';
 };
 
-describe("stanley the StackStorm bot", function() {
+describe("stanley the StackStorm bot", async function() {
+  var hubot_import = await import("hubot/index.mjs");
+
   var robot, user, adapter, st2bot, stop;
 
-  before(function(done) {
-    robot = new Robot(null, "mock-adapter", true, "Hubot");
+  before( async function(done) {
+    robot = new hubot_import.Robot("mock-adapter", true, "Hubot");
+    var TextMessage = new hubot_import.TextMessage;
 
     // Hack. Need a better solution than stubbing out methods.
     if (disableLogger) {
@@ -79,8 +77,12 @@ describe("stanley the StackStorm bot", function() {
 
   after(function() {
     stop && stop();
-    robot.server.close();
-    robot.shutdown();
+    if (robot) {
+      robot.shutdown();
+      if (robot.server) {
+        robot.server.close();
+      }
+    }
   });
 
   it("responds when asked for help", function(done) {

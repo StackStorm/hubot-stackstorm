@@ -17,14 +17,9 @@
 /*global describe, it, before, after*/
 "use strict";
 
-// needed to get all coffeescript modules to be loaded
-require('coffee-register');
-
 var fs = require('fs'),
     expect = require("chai").expect,
     path = require("path"),
-    Robot = require("hubot/src/robot"),
-    TextMessage = require("hubot/src/message").TextMessage,
     CommandFactory = require('../src/lib/command_factory.js'),
     formatCommand = require('../src/lib/format_command.js'),
     utils = require('../src/lib/utils.js');
@@ -40,11 +35,13 @@ var enableTwofactor = function() {
   process.env.HUBOT_2FA = 'somepack.twofactor_action';
 };
 
-describe("two-factor auth module", function() {
+describe("two-factor auth module", async function() {
+  var hubot_import = await import("hubot/index.mjs");
+  var TextMessage = new hubot_import.TextMessage;
   var robot, user, adapter, st2bot, stop, command_factory;
 
-  before(function(done) {
-    robot = new Robot(null, "mock-adapter", true, "Hubot");
+  before( async function(done) {
+    robot = new hubot_import.Robot("mock-adapter", true, "Hubot");
 
     // Hack. Need a better solution than stubbing out methods.
     if (disableLogger) {
@@ -93,8 +90,12 @@ describe("two-factor auth module", function() {
 
   after(function() {
     stop && stop();
-    robot.server.close();
-    robot.shutdown();
+    if (robot) {
+      robot.shutdown();
+      if (robot.server) {
+        robot.server.close();
+      }
+    }
     logs = [];
   });
 

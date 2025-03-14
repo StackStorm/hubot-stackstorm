@@ -33,8 +33,11 @@ filenames.forEach(function(filename) {
 });
 
 module.exports.getAdapter = function(adapterName, robot) {
+  if (adapterName === "@hubot-friends/hubot-slack") {
+    adapterName = "slack";
+  }
   if (!(adapterName in adapters)) {
-    robot.logger.warning(
+    robot.logger.error(
       util.format('No adapter found for %s. Using DefaultAdapter.', adapterName));
     adapterName = 'default';
   }
