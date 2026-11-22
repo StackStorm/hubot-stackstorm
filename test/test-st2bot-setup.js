@@ -18,87 +18,68 @@
 "use strict";
 
 var expect = require("chai").expect,
-  path = require("path");
+  nock = require('nock').default,  // an ES module since nock 14
+  mockedEnv = require('mocked-env'),
+  support = require('./support/robot.js');
 
-var disableLogger = true,
-    logs = [],
-    controlledLogger = function(msg) { logs.push(msg); };
+var ALIASES = require('./fixtures/aliases.json');
 
-var disableAuth = function() {
-  process.env.ST2_AUTH_URL = '';
-  process.env.ST2_AUTH_USERNAME = '';
-  process.env.ST2_AUTH_PASSWORD = '';
-};
+describe("stanley the StackStorm bot", function() {
+  var robot, user, stop, restore_env, logs = [];
 
-describe("stanley the StackStorm bot", async function() {
-  var hubot_import = await import("hubot/index.mjs");
+  before(async function() {
+    restore_env = mockedEnv({ ST2_API_KEY: 'test-key' }, { clear: false });
+    nock('http://localhost:9101')
+      .get('/v1/actionalias')
+      .query({ limit: '-1', offset: '0' })
+      .reply(200, ALIASES);
 
-  var robot, user, adapter, st2bot, stop;
-
-  before( async function(done) {
-    robot = new hubot_import.Robot("mock-adapter", true, "Hubot");
-    var TextMessage = new hubot_import.TextMessage;
-
-    // Hack. Need a better solution than stubbing out methods.
-    if (disableLogger) {
-      robot.logger.error = controlledLogger;
-      robot.logger.warning = controlledLogger;
-      robot.logger.info = controlledLogger;
-      robot.logger.debug = controlledLogger;
-    }
-
-    disableAuth();
-
-    robot.adapter.on("connected", function() {
-
-      // Load script under test
-      st2bot = require("../src/stackstorm");
-
-      st2bot(robot).then(function(result) {
-        stop = result;
-        // Load help module
-        robot.loadFile(path.resolve('node_modules', 'hubot-help', 'src'), 'help.coffee');
-
-        user = robot.brain.userForId("1", {
-          name: "mocha",
-          room: "#mocha"
-        });
-
-        adapter = robot.adapter;
-        done();
-      }).catch(function(err) {
-        console.log(err);
-        done(err);
-      });
+    robot = await support.createRobot({ httpd: true, alias: '!' });
+    ['error', 'warn', 'info', 'debug'].forEach(function (level) {
+      robot.logger[level] = function (msg) { logs.push(msg); };
     });
 
-    robot.run();
+    stop = await support.freshStackstorm()(robot);
+    await support.loadHelp(robot);
+    user = robot.brain.userForId("1", { name: "mocha", room: "#mocha" });
+
+    // aliases load asynchronously after start()
+    for (var i = 0; i < 50 && !logs.some(function (l) { return / commands are loaded$/.test(l); }); i++) {
+      await new Promise(function (resolve) { setTimeout(resolve, 20); });
+    }
   });
 
   after(function() {
     stop && stop();
-    if (robot) {
-      robot.shutdown();
-      if (robot.server) {
-        robot.server.close();
-      }
-    }
+    robot && robot.shutdown();
+    nock.cleanAll();
+    restore_env && restore_env();
   });
 
-  it("responds when asked for help", function(done) {
-    adapter.on("send", function(envelope, strings) {
-      expect(strings[0]).to.be.a('string');
-      done();
+  it("loads the StackStorm aliases", function() {
+    var loaded = logs.filter(function (l) { return / commands are loaded$/.test(l); });
+    expect(loaded).to.have.length(1);
+    expect(parseInt(loaded[0], 10)).to.be.at.least(ALIASES.length);
+  });
+
+  it("lists the aliases when asked for help", async function() {
+    var sent = new Promise(function (resolve) {
+      robot.adapter.once("send", function (envelope, strings) { resolve(strings.join('\n')); });
     });
-    adapter.receive(new TextMessage(user, "Hubot help"));
+    await support.say(robot, user, "!help");
+
+    // hubot 14 keeps help in robot.helpStrings: the alias must be there, not only hubot-help's own
+    var help = await sent;
+    expect(help).to.contain('!alias1 fmt1 {{param}} breaking words {{param2=default}} - alias1');
+    expect(help).to.contain('!help - Displays all of the help commands');
   });
 
   it("has listeners", function() {
+    // hubot-stackstorm's catch-all and hubot-help's
     expect(robot.listeners).to.have.length(2);
   });
 
   it("doesn't have two-factor auth enabled by default", function() {
     expect(logs).not.to.contain('Two-factor auth is enabled');
   });
-
 });

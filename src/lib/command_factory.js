@@ -19,6 +19,14 @@ var utils = require('./utils.js');
 
 
 /**
+ * The list hubot-help reads: robot.commands up to hubot 13, robot.helpStrings from hubot 14 (where
+ * robot.commands became hubot's CommandBus).
+ */
+function helpStrings(robot) {
+  return Array.isArray(robot.commands) ? robot.commands : robot.helpStrings;
+}
+
+/**
  * Manage command for stackstorm, storing them in robot and providing
  * lookups given command literals.
  */
@@ -77,22 +85,23 @@ CommandFactory.prototype.addCommand = function(command, name, format, action_ali
     regex = this.getRegexForFormatString(format);
     this.st2_commands_regex_map[format] = regex;
   }
-  if ((!flag || flag === utils.DISPLAY) && this.robot.commands.indexOf(command_string) === -1) {
-    this.robot.commands.push(command_string);
+  var help = helpStrings(this.robot);
+  if ((!flag || flag === utils.DISPLAY) && help.indexOf(command_string) === -1) {
+    help.push(command_string);
   }
 
   this.robot.logger.debug('Added command: ' + command);
 };
 
 CommandFactory.prototype.removeCommands = function() {
-  var i, command, array_index;
+  var i, command, array_index, help = helpStrings(this.robot);
 
   for (i = 0; i < this.st2_hubot_commands.length; i++) {
     command = this.st2_hubot_commands[i];
-    array_index = this.robot.commands.indexOf(command);
+    array_index = help.indexOf(command);
 
     if (array_index !== -1) {
-      this.robot.commands.splice(array_index, 1);
+      help.splice(array_index, 1);
     }
   }
 

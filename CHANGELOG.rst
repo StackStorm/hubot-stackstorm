@@ -6,6 +6,45 @@ in development
 * Use Github Actions for tests.
 * Remove TravisCI.
 
+0.14.0
+------
+
+* Works with Hubot 14 as well as 11–13, on Node.js 24 LTS.
+
+  - Hubot 14 turned ``robot.commands`` into its CommandBus and keeps help text in
+    ``robot.helpStrings``. The aliases' help entries now go to whichever list the running Hubot
+    has. Before, ``robot.commands.indexOf`` failed and no StackStorm commands loaded.
+  - Hubot 13.1.2 and later name the Slack adapter ``SlackBot`` instead of
+    ``@hubot-friends/hubot-slack``. Both names now select the Slack formatting; before, replies
+    fell back to plain text.
+
+* Fixed the bot exiting when the StackStorm API answered with an error body that has no
+  ``faultstring``. st2client then passes the body object as the error message, and
+  ``err.message.includes`` threw inside the handler.
+* Dependencies:
+
+  - Removed ``uuid`` (Node's ``crypto.randomUUID``) and the unused ``cli-table``.
+  - lodash 4.18, truncate 3.
+  - ``overrides`` replace st2client's ``axios`` 0.21 with 1.x and ``eventsource`` 0.1 with 2.0.
+    Both had published advisories, and eventsource's was critical. st2client 1.2.6 is still
+    its latest release. Projects that depend on hubot-stackstorm need the same overrides,
+    because npm only applies them from the top-level ``package.json``.
+  - ``.npmrc`` with supply-chain guardrails: no install scripts, no git dependencies, and only
+    versions published at least 14 days ago. Two reviewed security fixes are pinned until
+    they pass that age.
+  - Production dependencies have no ``npm audit`` findings.
+
+* Tests and tooling:
+
+  - mocha 12 with c8 coverage; ESLint 10 with a flat config.
+  - Removed gulp, babel-eslint, nyc, mversion and hubot-mock-adapter.
+  - The six test files that start a real Hubot never ran: their ``describe`` callbacks were
+    async, so mocha registered no tests. They are ported to Hubot 14's API with an in-memory
+    adapter (``test/support/robot.js``).
+  - New tests cover Hubot 14 help, adapter selection and the API-error crash.
+  - 94 tests pass, with 88% line coverage.
+  - CI runs lint and tests on Node.js 24.
+
 0.13.0
 ------
 

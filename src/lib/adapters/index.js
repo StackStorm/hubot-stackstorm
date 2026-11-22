@@ -33,7 +33,9 @@ filenames.forEach(function(filename) {
 });
 
 module.exports.getAdapter = function(adapterName, robot) {
-  if (adapterName === "@hubot-friends/hubot-slack") {
+  // hubot 13.1.2+ names the adapter after its class ("SlackBot") once it is loaded; earlier
+  // versions keep the package name it was loaded from
+  if (adapterName === "@hubot-friends/hubot-slack" || adapterName === "SlackBot") {
     adapterName = "slack";
   }
   if (!(adapterName in adapters)) {

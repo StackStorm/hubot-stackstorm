@@ -107,28 +107,20 @@ Please see https://github.com/StackStorm/hubot-stackstorm/issues
 
 ## Testing
 
-### Lint
+Node.js 24 (`.nvmrc`) with npm 11.10 or later: `.npmrc` turns off install scripts and only
+accepts package versions published at least 14 days ago.
 
 ```bash
-gulp lint
-```
-
-### Tests
-
-```bash
-gulp test
+npm ci
+npm run lint
+npm test          # mocha, with c8 coverage in coverage/
 ```
 
 ## Publishing
 
-Reminder to ourselves, instead of bumping the version manually, use `mversion`.
-
+```bash
+npm version patch   # bumps package.json, commits and tags v<version>
 ```
-npm install -g mversion
-mversion patch
-```
-
-This will bump the version in `package.json`, commit and create a tag with format described in `.mversionrc`.
 
 ## Copyright, License, and Contributors Agreement
 

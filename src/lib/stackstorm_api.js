@@ -38,7 +38,7 @@ var _ = require('lodash'),
   CommandFactory = require('./command_factory.js'),
   adapters = require('./adapters'),
   st2client = require('st2client'),
-  uuid = require('uuid');
+  crypto = require('crypto');
 
 // Setup the Environment
 env.ST2_API_URL = env.ST2_API || env.ST2_API_URL || 'http://localhost:9101';
@@ -310,8 +310,10 @@ StackStorm.prototype.loadCommands = function () {
       self.robot.logger.info(self.command_factory.st2_hubot_commands.length + ' commands are loaded');
     })
     .catch(function (err) {
-      self.robot.logger.error(util.format('Failed to retrieve commands from "%s": %s', env.ST2_API_URL, err.message));
-      if (err.status === 401 || err.message.includes('Unauthorized')) {
+      // st2client puts the whole response body in message when the API's error has no faultstring
+      var message = typeof err.message === 'string' ? err.message : JSON.stringify(err.message);
+      self.robot.logger.error(util.format('Failed to retrieve commands from "%s": %s', env.ST2_API_URL, message));
+      if (err.status === 401 || message.includes('Unauthorized')) {
         throw err;
       }
     });
@@ -402,7 +404,7 @@ StackStorm.prototype.executeCommand = function (msg, command_name, format_string
   };
 
   if (utils.enable2FA(action_alias)) {
-    var twofactor_id = uuid.v4();
+    var twofactor_id = crypto.randomUUID();
     self.robot.logger.debug('Requested an action that requires 2FA. Guid: ' + twofactor_id);
     msg.send(TWOFACTOR_MESSAGE);
     self.api_client.executions.create({
