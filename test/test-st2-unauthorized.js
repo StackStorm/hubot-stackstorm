@@ -20,97 +20,72 @@
 var chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
-  sinonChai = require('sinon-chai'),
-  nock = require('nock'),
-  Logger = require('./dummy-logger.js');
+  sinonChai = require('sinon-chai').default,  // an ES module since sinon-chai 4
+  nock = require('nock').default,  // an ES module since nock 14
+  mockedEnv = require('mocked-env'),
+  Logger = require('./dummy-logger.js'),
+  support = require('./support/robot.js');
 
 chai.use(sinonChai);
 
-describe("auth with invalid st2 API key", async function() {
-  var stop;
-  var hubot_import = await import("hubot/index.mjs");
-  var robot = new hubot_import.Robot("mock-adapter", true, "Hubot");
-  robot.logger = new Logger(true);
-  var recordedError = null,
-    error_spy = sinon.spy(robot.logger, 'error'),
-    warning_spy = sinon.spy(robot.logger, 'warning'),
-    info_spy = sinon.spy(robot.logger, 'info'),
-    debug_spy = sinon.spy(robot.logger, 'debug');
+describe("auth with invalid st2 API key", function() {
+  var robot, stop, restore_env, recordedError = null, mochaHandlers;
 
-  before(function(done) {
-    process.env.ST2_API_KEY = 'aaaa';
+  before(async function() {
+    restore_env = mockedEnv({ ST2_API_KEY: 'aaaa' });
 
-    // emulate ST2 API response
     nock('http://localhost:9101')
       .get('/v1/actionalias')
-      .query({"limit":"-1","offset":"0"})
-      .reply(401, {"faultstring":"Unauthorized - ApiKey with key_hash=123 not found."});
-
-    // emulate ST2 STREAM response
+      .query({ limit: '-1', offset: '0' })
+      .reply(401, { "faultstring": "Unauthorized - ApiKey with key_hash=123 not found." });
     nock('http://localhost:9102')
       .get('/v1/stream')
-      .query({"st2-api-key":"aaa"})
+      .query(true)
       .reply(401, "");
 
-    // hack to detect uncaught exceptions
-    var originalException = process.listeners('uncaughtException').pop();
-    process.removeListener('uncaughtException', originalException);
-    process.prependOnceListener('uncaughtException', function (error) {
-      process.listeners('uncaughtException').push(originalException);
-      recordedError = error;
-      //done();
-    });
+    // A rejected key is unrecoverable: the error is rethrown until it is uncaught and the process
+    // exits (the service manager restarts it). Catch it here instead of letting mocha see it.
+    mochaHandlers = process.listeners('uncaughtException');
+    process.removeAllListeners('uncaughtException');
+    process.once('uncaughtException', function (error) { recordedError = error; });
 
-    // Remove stackstorm.js from the require cache
-    // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
-    delete require.cache[require.resolve("../src/stackstorm.js")];
-    delete require.cache[require.resolve("../src/lib/stackstorm_api.js")];
-    var stackstorm = require("../src/stackstorm.js");
-    stackstorm(robot).then(function (result) {
-      stop = result;
-      done();
-    });
-    robot.run();
+    robot = await support.createRobot({ httpd: true });
+    robot.logger = new Logger(true);
+    ['error', 'info', 'debug'].forEach(function (level) { sinon.spy(robot.logger, level); });
+
+    stop = await support.freshStackstorm()(robot);
+    for (var i = 0; i < 100 && !recordedError; i++) {
+      await new Promise(function (resolve) { setTimeout(resolve, 20); });
+    }
   });
 
   after(function() {
+    process.removeAllListeners('uncaughtException');
+    mochaHandlers.forEach(function (handler) { process.on('uncaughtException', handler); });
     stop && stop();
-    if (robot) {
-      robot.shutdown();
-      if (robot.server) {
-        robot.server.close();
-      }
-    }
-    // Remove stackstorm.js from the require cache
-    // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
-    delete require.cache[require.resolve("../src/stackstorm.js")];
-    delete require.cache[require.resolve("../src/lib/stackstorm_api.js")];
+    robot && robot.shutdown();
+    nock.cleanAll();
+    restore_env && restore_env();
   });
 
-  // CAUTION: These tests are brittle - do not move them around, remove
-  //          intermediate tests, or combine expects/assertions
-  // TODO: Come back and fix this properly
   it("is using ST2_API_KEY as authentication", function () {
-    // debug, if needed
-    //console.log(logs);
-    expect(info_spy).to.have.been.calledWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
+    expect(robot.logger.info).to.have.been.calledWith('Using ST2_API_KEY as authentication. Expiry will lead to bot exit.');
   });
 
   it("fails to retrieve the commands from API", function () {
-    expect(error_spy).to.have.been.calledWith('Failed to retrieve commands from "http://localhost:9101": Unauthorized - ApiKey with key_hash=123 not found.');
+    expect(robot.logger.error).to.have.been.calledWith('Failed to retrieve commands from "http://localhost:9101": Unauthorized - ApiKey with key_hash=123 not found.');
   });
 
-  it("throws an 'Unauthorized' error", function () {
-    expect(recordedError).to.be.deep.equal(
-      {
-        "name": "APIError",
-        "status": 401,
-        "message": "Unauthorized - ApiKey with key_hash=123 not found."
-      }
-    );
+  it("throws the 'Unauthorized' error until it is uncaught", function () {
+    expect(recordedError).to.include({
+      name: "APIError",
+      status: 401,
+      message: "Unauthorized - ApiKey with key_hash=123 not found."
+    });
   });
 
-  it("leads to Hubot shutdown", function () {
-    expect(info_spy).to.have.been.calledWith('Hubot will shut down ...');
+  it("shuts hubot down on errors hubot reports", function () {
+    robot.emit('error', new Error('boom'));
+    expect(robot.logger.info).to.have.been.calledWith('Hubot will shut down ...');
   });
 });

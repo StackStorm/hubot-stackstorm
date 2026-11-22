@@ -17,86 +17,22 @@
 /*global describe, it, before, after*/
 "use strict";
 
-var fs = require('fs'),
-    expect = require("chai").expect,
-    path = require("path"),
-    CommandFactory = require('../src/lib/command_factory.js'),
-    formatCommand = require('../src/lib/format_command.js'),
+var expect = require("chai").expect,
+    mockedEnv = require('mocked-env'),
     utils = require('../src/lib/utils.js');
 
-var ALIAS_FIXTURES = fs.readFileSync('test/fixtures/aliases.json');
-ALIAS_FIXTURES = JSON.parse(ALIAS_FIXTURES);
+var ALIAS_FIXTURES = require('./fixtures/aliases.json');
 
-var disableLogger = true,
-    logs = [],
-    controlledLogger = function(msg) { logs.push(msg); };
+describe("two-factor auth module", function() {
+  var restore_env;
 
-var enableTwofactor = function() {
-  process.env.HUBOT_2FA = 'somepack.twofactor_action';
-};
-
-describe("two-factor auth module", async function() {
-  var hubot_import = await import("hubot/index.mjs");
-  var TextMessage = new hubot_import.TextMessage;
-  var robot, user, adapter, st2bot, stop, command_factory;
-
-  before( async function(done) {
-    robot = new hubot_import.Robot("mock-adapter", true, "Hubot");
-
-    // Hack. Need a better solution than stubbing out methods.
-    if (disableLogger) {
-      robot.logger.error = controlledLogger;
-      robot.logger.warning = controlledLogger;
-      robot.logger.info = controlledLogger;
-      robot.logger.debug = controlledLogger;
-    }
-
-    enableTwofactor();
-
-    robot.adapter.on("connected", function() {
-
-      // Load script under test
-      st2bot = require("../src/stackstorm");
-
-      st2bot(robot).then(function(result) {
-        stop = result;
-        // Load help module
-        robot.loadFile(path.resolve('node_modules', 'hubot-help', 'src'), 'help.coffee');
-
-        user = robot.brain.userForId("1", {
-          name: "mocha",
-          room: "#mocha"
-        });
-
-        adapter = robot.adapter;
-        command_factory = new CommandFactory(robot);
-        ALIAS_FIXTURES.forEach(function(alias) {
-          command_factory.addCommand(
-            formatCommand(null, alias.name, alias.formats[0], alias.description),
-            alias.name,
-            alias.formats[0],
-            alias);
-        });
-        done();
-
-      }).catch(function(err) {
-        console.log(err);
-        done(err);
-      });
-    });
-
-    robot.run();
+  // two-factor auth only applies when HUBOT_2FA names the action that confirms it
+  before(function() {
+    restore_env = mockedEnv({ HUBOT_2FA: 'somepack.twofactor_action' }, { clear: false });
   });
 
   after(function() {
-    stop && stop();
-    if (robot) {
-      robot.shutdown();
-      if (robot.server) {
-        robot.server.close();
-      }
-    }
-    logs = [];
+    restore_env && restore_env();
   });
 
   it("is fired up when an alias has `extra:security:twofactor`", function() {
@@ -109,5 +45,4 @@ describe("two-factor auth module", async function() {
     expect(utils.enable2FA(ALIAS_FIXTURES[2])).to.be.not.ok;
     expect(utils.enable2FA(ALIAS_FIXTURES[3])).to.be.not.ok;
   });
-
 });

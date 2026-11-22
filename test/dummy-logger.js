@@ -21,6 +21,7 @@ function Logger(enabled) {
   this.logs = {
     error: [],
     warning: [],
+    warn: [],
     info: [],
     debug: []
   };
@@ -34,6 +35,12 @@ function Logger(enabled) {
   this.warning = function(msg) {
     if (this.enabled) {
       this.logs.warning.push(msg);
+    }
+  };
+
+  this.warn = function(msg) {
+    if (this.enabled) {
+      this.logs.warn.push(msg);
     }
   };
 

@@ -69,6 +69,30 @@ describe('command factory', function() {
     expect(command_factory.robot.commands).to.have.length(0);
   });
 
+  it('should keep help in robot.helpStrings on hubot 14, where robot.commands is the CommandBus', function() {
+    var robot = new Robot(false), command_factory, alias = ALIAS_FIXTURES[0];
+
+    // hubot 14: robot.commands is an object, and hubot-help reads robot.helpStrings
+    var commandBus = { register: function() {} };
+    robot.commands = commandBus;
+    robot.helpStrings = ['hubot help - Displays all of the help commands'];
+    command_factory = new CommandFactory(robot);
+
+    command_factory.addCommand(
+      formatCommand(null, alias.name, alias.formats[0], alias.description),
+      alias.name,
+      alias.formats[0],
+      alias);
+
+    expect(robot.helpStrings).to.have.length(2);
+    expect(robot.helpStrings[1]).to.equal('hubot ' + formatCommand(null, alias.name, alias.formats[0], alias.description));
+    expect(robot.commands).to.equal(commandBus);
+
+    command_factory.removeCommands();
+
+    expect(robot.helpStrings).to.deep.equal(['hubot help - Displays all of the help commands']);
+  });
+
   it('should add command with empty format to robot', function() {
     var command_factory, alias;
 

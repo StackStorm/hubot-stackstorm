@@ -21,7 +21,7 @@ var chai = require('chai'),
   env = process.env,
   adapters = require('../src/lib/adapters'),
   dummyAdapters = require('./dummy-adapters.js'),
-  Log = require('log'),
+  Logger = require('./dummy-logger.js'),
   DummyRobot = require('./dummy-robot.js');
 
 env.ST2_MAX_MESSAGE_LENGTH = 500;
@@ -31,7 +31,7 @@ var MockBotFrameworkAdapter = dummyAdapters.MockBotFrameworkAdapter;
 
 describe('SlackFormatter', function() {
   var adapterName = 'slack';
-  var logger = new Log('info');
+  var logger = new Logger(false);
   var robot = new DummyRobot(false, new MockSlackAdapter(logger));
 
   it('should create a snippet for non-empty', function() {

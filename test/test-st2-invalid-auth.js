@@ -14,118 +14,84 @@
 
 /*jshint quotmark:false*/
 /*jshint -W030*/
-/*global describe, it, before, after, beforeEach, afterEach*/
+/*global describe, it, before, after, afterEach*/
 'use strict';
 
 var chai = require("chai"),
   expect = chai.expect,
-  chaiString = require("chai-string"),
   sinon = require('sinon'),
-  sinonChai = require('sinon-chai'),
-  chaiAsPromised = require('chai-as-promised'),
+  sinonChai = require('sinon-chai').default,  // an ES module since sinon-chai 4
   mockedEnv = require('mocked-env'),
-  Logger = require('./dummy-logger.js');
+  Logger = require('./dummy-logger.js'),
+  support = require('./support/robot.js');
 
 chai.use(sinonChai);
-chai.use(chaiString);
-chai.use(chaiAsPromised);
 
-global.process.exit = sinon.spy();
+describe("invalid st2 credential configuration", function() {
+  var robot, restore_env = null;
+  var TOGETHER = "Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.";
 
-describe("invalid st2 credential configuration", async function() {
-  var hubot_import = await import("hubot/index.mjs");
-  var robot = new hubot_import.Robot("mock-adapter", false, "Hubot");
-  robot.logger = new Logger(true);
-  var restore_env = null,
-    info_spy = sinon.spy(robot.logger, 'info'),
-    error_spy = sinon.spy(robot.logger, 'error');
-
-  beforeEach(function () {
-    process.exit.resetHistory();
+  before(async function () {
+    robot = await support.createRobot();
+    robot.logger = new Logger(true);
+    sinon.spy(robot.logger, 'info');
+    sinon.spy(robot.logger, 'error');
   });
 
   afterEach(function() {
     restore_env && restore_env();
-    error_spy.resetHistory();
-    info_spy.resetHistory();
-    // Remove stackstorm.js from the require cache
-    // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
-    delete require.cache[require.resolve("../src/stackstorm.js")];
-    delete require.cache[require.resolve("../src/lib/stackstorm_api.js")];
+    robot.logger.error.resetHistory();
+    robot.logger.info.resetHistory();
   });
 
-  it("should error out with missing auth URL", function(done) {
-    // Mock process.env for all modules
-    // https://glebbahmutov.com/blog/mocking-process-env/
+  after(function () {
+    robot && robot.shutdown();
+  });
+
+  it("should error out with missing auth URL", function() {
     restore_env = mockedEnv({
       ST2_AUTH_USERNAME: 'nonexistent-st2-auth-username',
       ST2_AUTH_PASSWORD: 'nonexistent-st2-auth-password'
     });
 
-    // Load script under test
-    var stackstorm = require("../src/stackstorm.js");
-    expect(stackstorm.bind(this, robot)).to.throw("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
-    done();
+    var stackstorm = support.freshStackstorm();
+    expect(function () { stackstorm(robot); }).to.throw(TOGETHER);
   });
 
-  it("should error out with missing auth username", function(done) {
-    // Mock process.env for all modules
-    // https://glebbahmutov.com/blog/mocking-process-env/
+  it("should error out with missing auth username", function() {
     restore_env = mockedEnv({
       ST2_AUTH_URL: 'https://nonexistent-st2-auth-url',
       ST2_AUTH_PASSWORD: 'nonexistent-st2-auth-password'
     });
 
-    // Load script under test
-    var stackstorm = require("../src/stackstorm.js");
-    expect(stackstorm.bind(this, robot)).to.throw("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
-    done();
+    var stackstorm = support.freshStackstorm();
+    expect(function () { stackstorm(robot); }).to.throw(TOGETHER);
   });
 
-
-  it("should error out with missing auth password", function(done) {
-    // Mock process.env for all modules
-    // https://glebbahmutov.com/blog/mocking-process-env/
+  it("should error out with missing auth password", function() {
     restore_env = mockedEnv({
       ST2_AUTH_URL: 'https://nonexistent-st2-auth-url',
       ST2_AUTH_USERNAME: 'nonexistent-st2-auth-username'
     });
 
-    // Load script under test
-    var stackstorm = require("../src/stackstorm.js");
-    expect(stackstorm.bind(this, robot)).to.throw("Env variables ST2_AUTH_USERNAME, ST2_AUTH_PASSWORD and ST2_AUTH_URL should only be used together.");
-    done();
+    var stackstorm = support.freshStackstorm();
+    expect(function () { stackstorm(robot); }).to.throw(TOGETHER);
   });
 
-  it("should throw exception with bad auth URL", function(done) {
-    // Mock process.env for all modules
-    // https://glebbahmutov.com/blog/mocking-process-env/
+  it("should reject with a bad auth URL", async function() {
     restore_env = mockedEnv({
       ST2_AUTH_URL: 'https://nonexistent-st2-auth-url:9101',
       ST2_AUTH_USERNAME: 'nonexistent-st2-auth-username',
       ST2_AUTH_PASSWORD: 'nonexistent-st2-auth-password'
     });
 
-    // Load script under test
-    var i, stackstorm = require("../src/stackstorm.js");
-    stackstorm(robot).then(function (result) {
-      done(new Error("The previous code should have thrown an exception"));
-    }).catch(function (err) {
-      expect(error_spy.args).to.have.lengthOf(1);
-      expect(error_spy.args[0][0]).to.be.a('string');
-      expect(error_spy.args[0][0]).to.startWith('Failed to authenticate');
+    var err = await support.freshStackstorm()(robot).then(
+      function () { throw new Error("authentication should have failed"); },
+      function (e) { return e; });
 
-      // On Mac, this is:
-      // getaddrinfo ENOTFOUND nonexistent-st2-auth-url nonexistent-st2-auth-url:9101
-      // But on Linux, it is:
-      // 
-      // So instead of using basic string comparison, we use a regex and check for common substrings
-      // On later node versions then just seeing
-      // getaddrinfo ENOTFOUND nonexistent-st2-auth-url
-      // getaddrinfo EAI_AGAIN nonexistent-st2-auth-url seen on Github Actions.
-      expect(err.message).to.match(/getaddrinfo (ENOTFOUND|EAI_AGAIN) nonexistent-st2-auth-url/);
-
-      done();
-    });
+    expect(robot.logger.error).to.have.callCount(1);
+    expect(robot.logger.error.args[0][0]).to.match(/^Failed to authenticate/);
+    // ENOTFOUND, or EAI_AGAIN where DNS isn't reachable (CI)
+    expect(err.message).to.match(/getaddrinfo (ENOTFOUND|EAI_AGAIN) nonexistent-st2-auth-url/);
   });
 });

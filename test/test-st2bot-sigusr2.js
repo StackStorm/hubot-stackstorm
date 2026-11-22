@@ -14,80 +14,62 @@
 
 /*jshint quotmark:false*/
 /*jshint -W030*/
-/*global describe, it, afterEach*/
+/*global describe, it, before, after*/
 'use strict';
 
 var chai = require("chai"),
   expect = chai.expect,
   sinon = require('sinon'),
-  sinonChai = require('sinon-chai'),
-  nock = require('nock'),
-  Logger = require('./dummy-logger.js');
+  sinonChai = require('sinon-chai').default,  // an ES module since sinon-chai 4
+  nock = require('nock').default,  // an ES module since nock 14
+  mockedEnv = require('mocked-env'),
+  Logger = require('./dummy-logger.js'),
+  support = require('./support/robot.js');
 
 chai.use(sinonChai);
 
-describe("SIGUSR2", async function () {
-  var hubot_import = await import("hubot/index.mjs");
-  var robot = new hubot_import.Robot("mock-adapter", false, "Hubot");
-  robot.logger = new Logger(true);
-  var debug_spy = sinon.spy(robot.logger, 'debug'),
-    info_spy = sinon.spy(robot.logger, 'info');
+describe("SIGUSR2", function () {
+  var robot, stop, restore_env;
 
-  // Not required for SIGUSR2 to work, but mocking the response increases code
-  // coverage and more closely approximates the real world
-  beforeEach(function () {
-    // emulate ST2 API response
+  before(async function () {
+    restore_env = mockedEnv({ ST2_API_KEY: 'test-key' });
+    // the initial load, then the reload the signal asks for
     nock('http://localhost:9101')
       .get('/v1/actionalias')
       .times(2)
-      .query({"limit": "-1", "offset": "0"})
-      .reply(200, [
-        {
-          "name": "hello",
-          "description": "long hello",
-          "enabled": true,
-          "formats": [
-            {
-              "display": "format_one",
-              "representation": "format_one"
-            },
-            {
-              "display": "format_two",
-              "representation": "format_two"
-            }
-          ]
-        }
-      ]);
+      .query({ limit: '-1', offset: '0' })
+      .reply(200, [{
+        "name": "hello",
+        "description": "long hello",
+        "enabled": true,
+        "formats": [
+          { "display": "format_one", "representation": "format_one" },
+          { "display": "format_two", "representation": "format_two" }
+        ]
+      }]);
+
+    robot = await support.createRobot();
+    robot.logger = new Logger(true);
+    sinon.spy(robot.logger, 'debug');
+    sinon.spy(robot.logger, 'info');
+    stop = await support.freshStackstorm()(robot);
   });
 
-  afterEach(function() {
-    info_spy.resetHistory();
-    debug_spy.resetHistory();
+  after(function () {
+    stop && stop();
+    robot && robot.shutdown();
     nock.cleanAll();
-    // Remove stackstorm.js from the require cache
-    // https://medium.com/@gattermeier/invalidate-node-js-require-cache-c2989af8f8b0
-    delete require.cache[require.resolve("../src/stackstorm.js")];
+    restore_env && restore_env();
   });
 
-  it("should run loadCommands() after receiving signal", function (done) {
-    // Load script under test
-    var stackstorm = require("../src/stackstorm.js");
-    stackstorm(robot).then(function (stop) {
-      expect(debug_spy).to.have.callCount(1);
-      expect(debug_spy).to.have.been.calledWith('Using default adapter');
-      process.emit('SIGUSR2');
-      expect(debug_spy).to.have.callCount(2);
-      expect(debug_spy).to.have.been.calledWith('Caught SIGUSR2, reloading commands');
-      expect(info_spy.args).to.have.length.above(1);
-      expect(info_spy).to.have.been.calledWith('Loading commands....');
+  it("reloads the commands when it receives the signal", function () {
+    expect(robot.logger.debug).to.have.been.calledWith('Using default adapter');
+    robot.logger.debug.resetHistory();
+    robot.logger.info.resetHistory();
 
-      stop();
+    process.emit('SIGUSR2');
 
-      done();
-    }).catch(function (err) {
-      console.log(err);
-      stop && stop();
-      done(err);
-    });
+    expect(robot.logger.debug).to.have.been.calledWith('Caught SIGUSR2, reloading commands');
+    expect(robot.logger.info).to.have.been.calledWith('Loading commands....');
   });
 });

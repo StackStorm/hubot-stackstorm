@@ -22,10 +22,10 @@ var chai = require("chai"),
   expect = chai.expect,
   Robot = require('./dummy-robot.js'),
   dummyAdapters = require('./dummy-adapters.js'),
-  Log = require('log'),
+  Logger = require('./dummy-logger.js'),
   adapters = require('../src/lib/adapters'),
   sinon = require('sinon'),
-  sinonChai = require('sinon-chai'),
+  sinonChai = require('sinon-chai').default,  // an ES module since sinon-chai 4
   util = require('util');
 
 var MockSlackAdapter = dummyAdapters.MockSlackAdapter;
@@ -35,7 +35,7 @@ var MockBotFrameworkAdapter = dummyAdapters.MockBotFrameworkAdapter;
 chai.use(sinonChai);
 
 describe("slack post data", function() {
-  var logger = new Log('info');
+  var logger = new Logger(false);
   var robot = new Robot(false, new MockSlackAdapter(logger));
   var adapter = adapters.getAdapter('slack', robot);
 
@@ -419,7 +419,7 @@ describe("slack post data", function() {
 // });
 
 // describe("mattermost post data", function() {
-//   var logger = new Log('info');
+//   var logger = new Logger(false);
 //   var robot = new Robot(false, new MockMattermostAdapter(logger));
 //   var adapter = adapters.getAdapter('mattermost', robot);
 
@@ -743,7 +743,7 @@ describe("slack post data", function() {
 // });
 
 // describe("spark post data", function() {
-//   var logger = new Log('info');
+//   var logger = new Logger(false);
 //   var robot = new Robot(false, new MockSlackAdapter(logger));
 //   var adapter = adapters.getAdapter('spark', robot);
 
@@ -869,7 +869,7 @@ describe("slack post data", function() {
 // });
 
 // describe("rocketchat post data", function() {
-//   var logger = new Log('info');
+//   var logger = new Logger(false);
 //   var robot = new Robot(false, new MockSlackAdapter(logger));
 //   var adapter = adapters.getAdapter('rocketchat', robot);
 
